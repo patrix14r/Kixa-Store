@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Carrito de Compras</title>
+    <link rel="stylesheet" href="css/carrito.css">
+</head>
+<body>
+
+    <h1 class="titulo">🛒 Carrito de Compras</h1>
+
+    <div id="carrito" class="carrito-contenedor"></div>
+    <div id="total" class="total"></div>
+
+    <button class="btn-comprar-principal" onclick="abrirModal()">Comprar</button>
+
+    <!-- 🔵 MODAL DE MÉTODOS -->
+    <div id="modal" class="modal">
+        <div class="modal-contenido animacion-modal">
+            <span class="cerrar" onclick="cerrarModal()">&times;</span>
+
+            <h2>Selecciona un método de pago</h2>
+
+            <div class="opciones">
+                <button onclick="mostrarContraentrega()" class="opcion">📦 Contraentrega</button>
+                <button onclick="mostrarTarjeta()" class="opcion">💳 Tarjeta</button>
+                <button onclick="mostrarYape()" class="opcion">📱 Yape</button>
+            </div>
+
+            <div id="contenido-pago"></div>
+        </div>
+    </div>
+
+    <!-- 🟢 ALERTA BONITA -->
+    <div id="alerta" class="alerta">
+        <div class="alerta-contenido animacion-alerta">
+            <h2>✅ Pedido Confirmado</h2>
+            <p id="mensaje-alerta"></p>
+            <button onclick="cerrarAlerta()" class="btn-alerta">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+        const contenedor = document.getElementById("carrito");
+        const totalBox = document.getElementById("total");
+        const modal = document.getElementById("modal");
+        const contenidoPago = document.getElementById("contenido-pago");
+        const alerta = document.getElementById("alerta");
+        const mensajeAlerta = document.getElementById("mensaje-alerta");
+
+        function mostrarCarrito() {
+            contenedor.innerHTML = "";
+            let total = 0;
+
+            if (carrito.length === 0) {
+                contenedor.innerHTML = "<p class='vacio'>No hay productos en el carrito</p>";
+                totalBox.innerHTML = "";
+                return;
+            }
+
+            carrito.forEach((p, index) => {
+                contenedor.innerHTML += `
+                    <div class="item">
+                        <img src="${p.imagen}" class="img-item">
+                        <div class="info">
+                            <p class="nombre">${p.nombre}</p>
+                            <p>Talla: ${p.talla}</p>
+                            <p>Precio: S/ ${p.precio}</p>
+                            <button class="eliminar" onclick="eliminar(${index})">Eliminar</button>
+                        </div>
+                    </div>
+                `;
+                total += p.precio;
+            });
+
+            totalBox.innerHTML = `<h3>Total a pagar: S/ ${total}</h3>`;
+        }
+
+        function eliminar(i) {
+            carrito.splice(i, 1);
+            localStorage.setItem("carrito", JSON.stringify(carrito));
+            mostrarCarrito();
+        }
+
+        // 🔵 MODAL
+        function abrirModal() {
+            modal.style.display = "flex";
+            contenidoPago.innerHTML = "";
+        }
+
+        function cerrarModal() {
+            modal.style.display = "none";
+        }
+
+        // 🟢 ALERTA BONITA
+        function mostrarAlerta(mensaje) {
+            mensajeAlerta.innerHTML = mensaje;
+            alerta.style.display = "flex";
+
+            // borrar carrito después del pedido
+            carrito = [];
+            localStorage.setItem("carrito", JSON.stringify([]));
+            mostrarCarrito();
+        }
+
+        function cerrarAlerta() {
+            alerta.style.display = "none";
+            cerrarModal();
+        }
+
+        // GENERAR CÓDIGO RANDOM
+        function generarCodigo() {
+            return "PED-" + Math.floor(Math.random() * 90000 + 10000);
+        }
+
+        // 🔵 MÉTODOS DE PAGO
+        function mostrarContraentrega() {
+            contenidoPago.innerHTML = `
+                <h3>📦 Pago Contraentrega</h3>
+                <p>Pagarás cuando llegue tu pedido.</p>
+                <button class="btn-confirmar" onclick="confirmar('Contraentrega')">Confirmar Pedido</button>
+            `;
+        }
+
+        function mostrarTarjeta() {
+            contenidoPago.innerHTML = `
+                <h3>💳 Pago con Tarjeta</h3>
+
+                <label>Número de Tarjeta</label>
+                <input type="text" placeholder="0000 0000 0000 0000">
+
+                <div class="fila">
+                    <div>
+                        <label>MM/AA</label>
+                        <input type="text" placeholder="05/28">
+                    </div>
+                    <div>
+                        <label>CVV</label>
+                        <input type="password" placeholder="***">
+                    </div>
+                </div>
+
+                <button class="btn-confirmar" onclick="confirmar('Tarjeta')">Pagar</button>
+            `;
+        }
+
+        function mostrarYape() {
+            contenidoPago.innerHTML = `
+                <h3>📱 Pago con Yape</h3>
+                <p>Escanea el QR:</p>
+
+                <img src="assets/yape.jpg" class="qr">
+                <p class="numero">📞 916934205 </p>
+
+                <button class="btn-confirmar" onclick="confirmar('Yape')">He pagado</button>
+            `;
+        }
+
+        // 🔵 CONFIRMAR
+        function confirmar(metodo) {
+            let codigo = generarCodigo();
+            mostrarAlerta(`Método: <b>${metodo}</b><br>Código de pedido: <b>${codigo}</b>`);
+        }
+
+        mostrarCarrito();
+    </script>
+
+</body>
+</html>

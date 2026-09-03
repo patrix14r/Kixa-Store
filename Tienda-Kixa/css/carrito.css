@@ -1,0 +1,163 @@
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #d7e1ec, #f5f7fa);
+    padding: 20px;
+}
+
+.titulo {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.carrito-contenedor {
+    max-width: 600px;
+    margin: auto;
+}
+
+.item {
+    display: flex;
+    background: #fff;
+    margin-bottom: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    animation: fadeIn .4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.img-item {
+    width: 90px;
+    height: 90px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.eliminar {
+    margin-top: 10px;
+    padding: 7px 15px;
+    background: #ff4747;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+}
+
+.total {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 22px;
+}
+
+.btn-comprar-principal {
+    display: block;
+    margin: 25px auto;
+    padding: 15px 25px;
+    background: #4a4af4;
+    color: white;
+    border: none;
+    font-size: 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-comprar-principal:hover {
+    transform: scale(1.05);
+}
+
+/* MODAL */
+.modal {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+}
+
+.modal-contenido {
+    background: white;
+    width: 90%;
+    max-width: 420px;
+    padding: 25px;
+    border-radius: 14px;
+    position: relative;
+}
+
+.animacion-modal {
+    animation: pop .35s ease;
+}
+
+@keyframes pop {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.opciones {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.opcion {
+    padding: 10px;
+    background: #222;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.qr {
+    width: 200px;
+    display: block;
+    margin: auto;
+}
+
+.btn-confirmar {
+    width: 100%;
+    padding: 12px;
+    background: green;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* ALERTA BONITA */
+.alerta {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+}
+
+.alerta-contenido {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    width: 90%;
+    max-width: 350px;
+}
+
+.animacion-alerta {
+    animation: pop .4s ease;
+}
+
+.btn-alerta {
+    padding: 10px 20px;
+    background: #4a4af4;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}

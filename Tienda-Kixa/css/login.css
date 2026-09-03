@@ -1,0 +1,149 @@
+/* ===========================
+   🔹 General
+=========================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+body, html {
+  height: 100%;
+}
+.background {
+  background: url('../assets/789.png') no-repeat center center/cover;
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.55);
+  top: 0;
+  left: 0;
+}
+
+/* ===========================
+   🔹 Caja de formularios
+=========================== */
+.login-box {
+  position: relative;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  padding: 2.5rem 3rem;
+  width: 90%;
+  max-width: 400px;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+  overflow: hidden;
+  
+}
+
+.form {
+  display: none;
+  animation: fadeIn 0.7s ease;
+}
+.form.active {
+  display: block;
+}
+
+h2 span {
+  color: #d60000;
+}
+
+.subtitle {
+  color: #ddd;
+  margin-bottom: 1.8rem;
+}
+
+/* ===========================
+   🔹 Inputs flotantes
+=========================== */
+.input-group {
+  position: relative;
+  margin-bottom: 1.8rem;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.9rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  color: #fff;
+  outline: none;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.input-group label {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ccc;
+  pointer-events: none;
+  transition: 0.3s ease;
+}
+
+.input-group input:focus,
+.input-group input:valid {
+  border-color: #bb0000;
+}
+
+.input-group input:focus + label,
+.input-group input:valid + label {
+  top: -10px;
+  font-size: 0.8rem;
+  color: #ffffff;
+}
+
+/* ===========================
+   🔹 Botones y enlaces
+=========================== */
+.btn {
+  width: 100%;background: linear-gradient(135deg, #ff0000, #3b0000);
+  color: #ffffff;
+  border: none;
+  padding: 0.9rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(255,111,97,0.3);
+}
+
+.register-text {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.register-text a {
+  color: #ff0000;
+  text-decoration: none;
+  font-weight: 600;
+}
+.register-text a:hover {
+  text-decoration: underline;
+}
+
+/* ===========================
+   🔹 Animación
+=========================== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
