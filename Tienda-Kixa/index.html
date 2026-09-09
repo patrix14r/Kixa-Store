@@ -21,7 +21,7 @@
     <div class="top-links">
       <a href="ayuda.html">Ayuda</a>
       <span>|</span>
-      <a href="formulario.html">Formulario</a>
+      <a href="formulario.html">Contáctanos</a>
       <span>|</span>
       <a href="login.html">Iniciar sesión</a>
     </div>
@@ -34,19 +34,52 @@
       <a href="index.html"><span>Tienda Kixa</span></a>
     </div>
 
-    <nav class="nav-links main-menu">
-      <a href="mujer.html">Mujer</a>
-      <a href="hombre.html">Hombre</a>
-      <a href="niños.html">Niños</a>
-      <a href="deporte.html">Deporte</a>
-      
+        <nav class="nav-links main-menu">
+      <div class="nav-item">
+        <a href="mujer.html">Mujer</a>
+        <div class="mega-menu">
+          <a href="mujer.html#running">Running</a>
+          <a href="mujer.html#gym">Gym/Fitness</a>
+          <a href="mujer.html#urbano">Urbano</a>
+          <a href="mujer.html#plataformas">Plataformas</a>
+          <a href="mujer.html#accesorios">Accesorios</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="hombre.html">Hombre</a>
+        <div class="mega-menu">
+          <a href="hombre.html#running">Running</a>
+          <a href="hombre.html#futbol">Fútbol</a>
+          <a href="hombre.html#urbano">Urbano</a>
+          <a href="hombre.html#training">Training</a>
+          <a href="hombre.html#basquet">Básquet</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="niños.html">Niños</a>
+        <div class="mega-menu">
+          <a href="niños.html#escolar">Calzado Escolar</a>
+          <a href="niños.html#deportivas">Zapatillas Deportivas</a>
+          <a href="niños.html#bebes">Bebés/Primeros Pasos</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="deporte.html">Deporte</a>
+        <div class="mega-menu">
+          <a href="deporte.html#futbol">Fútbol (Grass/Futsal)</a>
+          <a href="deporte.html#running">Running Pro</a>
+          <a href="deporte.html#training">Training</a>
+        </div>
+      </div>
     </nav>
 
+    <div class="navbar-right">
     <div class="search-bar">
       <input type="text" placeholder="Buscar" />
       <button aria-label="buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
     </div>
 
+    <button class="mobile-menu-btn"><i class="fa fa-bars"></i></button>
     <div class="icons">
       <a href="carrito.html" title="Carrito"><i class="fa-solid fa-bag-shopping"></i></a>
 
@@ -54,29 +87,62 @@
    
     
     </div>
+    </div>
   </header>
 
   <!-- 🔹 BANNER PRINCIPAL -->
   <section class="hero">
-    <div class="slider">
-      <img src="assets/dsa6.jpg" class="slide active" alt="Zapatillas 1" />
-      <img src="assets/dsa9.webp" class="slide" alt="Zapatillas 2" />
-      <img src="assets/dsa7.jpg" class="slide" alt="Zapatillas 3" />
-      <img src="assets/zapatillas retro homnbre.webp" class="slide" alt="Zapatillas 4" />
-      <img src="assets/das11.jpeg" class="slide" alt="zapatillas 5" />
-      <img src="assets/dsa5.webp" class="slide" alt="zapatillas 6" />
-
-      <!-- Botones -->
-      <button class="prev">&#10094;</button>
-      <button class="next">&#10095;</button>
+    <div class="slides-container">
+      <div class="slide active">
+        <img src="assets/dsa6.jpg" alt="Zapatillas 1" />
+        <div class="slide-banner">
+          <h2>Colección Running 2026 - 20% OFF</h2>
+          <p>Alcanza tu máximo rendimiento</p>
+          <a href="producto.html" class="btn-hero">Ver Colección</a>
+        </div>
+      </div>
+      <div class="slide">
+        <img src="assets/dsa9.webp" alt="Zapatillas 2" />
+        <div class="slide-banner">
+          <h2>Nuevos Lanzamientos Urbanos</h2>
+          <p>Estilo para la calle</p>
+          <a href="producto.html" class="btn-hero">Comprar ahora</a>
+        </div>
+      </div>
+      <div class="slide">
+        <img src="assets/dsa7.jpg" alt="Zapatillas 3" />
+        <div class="slide-banner">
+          <h2>Liquidación de Temporada</h2>
+          <p>Hasta 50% de descuento en seleccionados</p>
+          <a href="producto.html" class="btn-hero">Aprovechar Ofertas</a>
+        </div>
+      </div>
     </div>
 
-    <div class="hero-content">
-      <h1>Nueva Colección 2025</h1>
-      <p>Descubre las últimas tendencias en zapatillas</p>
-      <a href="nuevo.html" class="btn-hero">Comprar ahora</a>
+    <!-- Controles -->
+    <button class="prev">&#10094;</button>
+    <button class="next">&#10095;</button>
+
+    <!-- Indicadores -->
+    <div class="dots-container">
+      <span class="dot active" data-index="0"></span>
+      <span class="dot" data-index="1"></span>
+      <span class="dot" data-index="2"></span>
     </div>
   </section>
+
+  <!-- SECCIÓN DE MARCAS OFICIALES -->
+  <section class="brands-section">
+    <h2>Explora por Marca</h2>
+    <div class="brands-grid">
+      <a href="hombre.html" class="brand-card"><img src="assets/brands/nike-logo.png" alt="Nike"></a>
+      <a href="hombre.html" class="brand-card"><img src="assets/brands/adidas-logo.png" alt="Adidas"></a>
+      <a href="hombre.html" class="brand-card"><img src="assets/brands/puma-logo.png" alt="Puma"></a>
+      <a href="hombre.html" class="brand-card"><img src="assets/brands/jordan-logo.webp" alt="Jordan"></a>
+      <a href="hombre.html" class="brand-card"><img src="assets/brands/umbro-logo.png" alt="Umbro"></a>
+    </div>
+  </section>
+
 
 
   <!-- 🔥 SECCIÓN DE OFERTAS -->
@@ -127,7 +193,8 @@
 
    <div class="footer-column social">
   <h3>Síguenos</h3>
-  <div class="icons">
+  <button class="mobile-menu-btn"><i class="fa fa-bars"></i></button>
+    <div class="icons">
 
     <a href="https://www.facebook.com/people/Zapatillas-Kixa/pfbid0246fZ4YBwM2GBdeEQf8FfUFJUdLqgaXgWAMwz5UrPMX37SW7AabDdAATinm152jZCl/" target="_blank">
       <i class="fab fa-facebook"></i>
@@ -152,6 +219,51 @@
   </div>
 </footer>
 
+
+<script src="js/kixa-ux.js"></script>
+
+  <!-- Mobile Drawer -->
+  <div class="mobile-drawer">
+    <button class="close-drawer-btn"><i class="fa fa-times"></i></button>
+    <div class="mobile-drawer-content">
+      <div class="drawer-item">
+        <a href="mujer.html">Mujer</a>
+        <div class="drawer-sub">
+          <a href="mujer.html#running">Running</a>
+          <a href="mujer.html#gym">Gym/Fitness</a>
+          <a href="mujer.html#urbano">Urbano</a>
+          <a href="mujer.html#plataformas">Plataformas</a>
+          <a href="mujer.html#accesorios">Accesorios</a>
+        </div>
+      </div>
+      <div class="drawer-item">
+        <a href="hombre.html">Hombre</a>
+        <div class="drawer-sub">
+          <a href="hombre.html#running">Running</a>
+          <a href="hombre.html#futbol">Fútbol</a>
+          <a href="hombre.html#urbano">Urbano</a>
+          <a href="hombre.html#training">Training</a>
+          <a href="hombre.html#basquet">Básquet</a>
+        </div>
+      </div>
+      <div class="drawer-item">
+        <a href="niños.html">Niños</a>
+        <div class="drawer-sub">
+          <a href="niños.html#escolar">Calzado Escolar</a>
+          <a href="niños.html#deportivas">Zapatillas Deportivas</a>
+          <a href="niños.html#bebes">Bebés/Primeros Pasos</a>
+        </div>
+      </div>
+      <div class="drawer-item">
+        <a href="deporte.html">Deporte</a>
+        <div class="drawer-sub">
+          <a href="deporte.html#futbol">Fútbol (Grass/Futsal)</a>
+          <a href="deporte.html#running">Running Pro</a>
+          <a href="deporte.html#training">Training</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>

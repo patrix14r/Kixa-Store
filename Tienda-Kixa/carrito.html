@@ -8,25 +8,64 @@
 <body>
 
     <h1 class="titulo">🛒 Carrito de Compras</h1>
+    <div style="max-width: 1100px; margin: 0 auto;">
+        <a href="index.html" class="btn-volver">← Seguir comprando</a>
+    </div>
 
-    <div id="carrito" class="carrito-contenedor"></div>
-    <div id="total" class="total"></div>
+    <div class="layout-carrito">
+        <!-- Izquierda: Lista de productos -->
+        <div class="col-items">
+            <div id="carrito" class="carrito-contenedor"></div>
+        </div>
 
-    <button class="btn-comprar-principal" onclick="abrirModal()">Comprar</button>
+        <!-- Derecha: Resumen -->
+        <div class="col-resumen">
+            <div class="resumen-card">
+                <h2>Resumen de Pedido</h2>
+                <div class="fila-resumen">
+                    <span>Subtotal</span>
+                    <span id="subtotal">S/ 0.00</span>
+                </div>
+                <div class="fila-resumen">
+                    <span>IGV (18%)</span>
+                    <span id="igv">S/ 0.00</span>
+                </div>
+                <div class="fila-resumen total-resumen">
+                    <span>Total</span>
+                    <span id="total-final">S/ 0.00</span>
+                </div>
+                <button class="btn-comprar-principal" onclick="procederPago()">Proceder al Pago</button>
+            </div>
+        </div>
+    </div>
+    
+    <div style="max-width: 1100px; margin: 0 auto;">
+        <a href="index.html" class="btn-volver btn-volver-bottom">← Seguir comprando</a>
+    </div>
+
+    <!-- 🟡 MODAL DE AUTENTICACIÓN -->
+    <div id="modal-auth" class="modal">
+        <div class="modal-contenido animacion-modal">
+            <span class="cerrar" onclick="cerrarModalAuth()">&times;</span>
+            <h2>Inicia Sesión</h2>
+            <p style="color: #666; margin-bottom: 20px;">Debes iniciar sesión para completar tu pedido.</p>
+            <div class="opciones-auth">
+                <a href="login.html" class="btn-auth">Iniciar Sesión</a>
+                <a href="registro.html" class="btn-auth btn-auth-outline">Registrarse</a>
+            </div>
+        </div>
+    </div>
 
     <!-- 🔵 MODAL DE MÉTODOS -->
     <div id="modal" class="modal">
         <div class="modal-contenido animacion-modal">
             <span class="cerrar" onclick="cerrarModal()">&times;</span>
-
             <h2>Selecciona un método de pago</h2>
-
             <div class="opciones">
                 <button onclick="mostrarContraentrega()" class="opcion">📦 Contraentrega</button>
                 <button onclick="mostrarTarjeta()" class="opcion">💳 Tarjeta</button>
                 <button onclick="mostrarYape()" class="opcion">📱 Yape</button>
             </div>
-
             <div id="contenido-pago"></div>
         </div>
     </div>
@@ -44,44 +83,89 @@
         let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
         const contenedor = document.getElementById("carrito");
-        const totalBox = document.getElementById("total");
         const modal = document.getElementById("modal");
+        const modalAuth = document.getElementById("modal-auth");
         const contenidoPago = document.getElementById("contenido-pago");
         const alerta = document.getElementById("alerta");
         const mensajeAlerta = document.getElementById("mensaje-alerta");
 
+        const elSubtotal = document.getElementById("subtotal");
+        const elIgv = document.getElementById("igv");
+        const elTotal = document.getElementById("total-final");
+
         function mostrarCarrito() {
             contenedor.innerHTML = "";
-            let total = 0;
+            let subtotal = 0;
 
             if (carrito.length === 0) {
                 contenedor.innerHTML = "<p class='vacio'>No hay productos en el carrito</p>";
-                totalBox.innerHTML = "";
+                actualizarResumen(0);
                 return;
             }
 
             carrito.forEach((p, index) => {
+                let cantidad = p.cantidad || 1;
                 contenedor.innerHTML += `
                     <div class="item">
                         <img src="${p.imagen}" class="img-item">
                         <div class="info">
                             <p class="nombre">${p.nombre}</p>
-                            <p>Talla: ${p.talla}</p>
-                            <p>Precio: S/ ${p.precio}</p>
-                            <button class="eliminar" onclick="eliminar(${index})">Eliminar</button>
+                            <p class="talla">Talla: ${p.talla}</p>
+                            <p class="precio">S/ ${p.precio}</p>
+                            <div class="acciones-item">
+                                <label style="font-size: 14px; color: #555;">Cant: 
+                                    <input type="number" min="1" value="${cantidad}" onchange="cambiarCantidad(${index}, this.value)" class="input-cantidad">
+                                </label>
+                                <button class="eliminar" onclick="eliminar(${index})">🗑️ Eliminar</button>
+                            </div>
                         </div>
                     </div>
                 `;
-                total += p.precio;
+                subtotal += (p.precio * cantidad);
             });
 
-            totalBox.innerHTML = `<h3>Total a pagar: S/ ${total}</h3>`;
+            actualizarResumen(subtotal);
+        }
+
+        function cambiarCantidad(i, valor) {
+            let nuevaCantidad = parseInt(valor);
+            if (nuevaCantidad > 0) {
+                carrito[i].cantidad = nuevaCantidad;
+                localStorage.setItem("carrito", JSON.stringify(carrito));
+                mostrarCarrito();
+            }
+        }
+
+        function actualizarResumen(subtotal) {
+            let igv = subtotal * 0.18;
+            let total = subtotal + igv;
+            
+            elSubtotal.innerText = \`S/ \${subtotal.toFixed(2)}\`;
+            elIgv.innerText = \`S/ \${igv.toFixed(2)}\`;
+            elTotal.innerText = \`S/ \${total.toFixed(2)}\`;
         }
 
         function eliminar(i) {
             carrito.splice(i, 1);
             localStorage.setItem("carrito", JSON.stringify(carrito));
             mostrarCarrito();
+        }
+
+        function procederPago() {
+            const usuario = localStorage.getItem('usuario');
+            if (!usuario) {
+                modalAuth.style.display = "flex";
+            } else {
+                if (carrito.length === 0) {
+                    alert("Tu carrito está vacío.");
+                    return;
+                }
+                abrirModal();
+            }
+        }
+
+        function cerrarModalAuth() {
+            modalAuth.style.display = "none";
         }
 
         // 🔵 MODAL
@@ -117,51 +201,53 @@
 
         // 🔵 MÉTODOS DE PAGO
         function mostrarContraentrega() {
-            contenidoPago.innerHTML = `
-                <h3>📦 Pago Contraentrega</h3>
-                <p>Pagarás cuando llegue tu pedido.</p>
+            contenidoPago.innerHTML = \`
+                <h3 style="margin-top: 20px;">📦 Pago Contraentrega</h3>
+                <p style="color: #666; margin-bottom: 15px;">Pagarás cuando llegue tu pedido.</p>
                 <button class="btn-confirmar" onclick="confirmar('Contraentrega')">Confirmar Pedido</button>
-            `;
+            \`;
         }
 
         function mostrarTarjeta() {
-            contenidoPago.innerHTML = `
-                <h3>💳 Pago con Tarjeta</h3>
+            contenidoPago.innerHTML = \`
+                <h3 style="margin-top: 20px;">💳 Pago con Tarjeta</h3>
+                
+                <div style="text-align: left; margin-bottom: 15px;">
+                    <label style="font-size: 14px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Número de Tarjeta</label>
+                    <input type="text" placeholder="0000 0000 0000 0000" class="input-pago">
+                </div>
 
-                <label>Número de Tarjeta</label>
-                <input type="text" placeholder="0000 0000 0000 0000">
-
-                <div class="fila">
+                <div class="fila" style="text-align: left; margin-bottom: 15px;">
                     <div>
-                        <label>MM/AA</label>
-                        <input type="text" placeholder="05/28">
+                        <label style="font-size: 14px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">MM/AA</label>
+                        <input type="text" placeholder="05/28" class="input-pago">
                     </div>
                     <div>
-                        <label>CVV</label>
-                        <input type="password" placeholder="***">
+                        <label style="font-size: 14px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">CVV</label>
+                        <input type="password" placeholder="***" class="input-pago">
                     </div>
                 </div>
 
                 <button class="btn-confirmar" onclick="confirmar('Tarjeta')">Pagar</button>
-            `;
+            \`;
         }
 
         function mostrarYape() {
-            contenidoPago.innerHTML = `
-                <h3>📱 Pago con Yape</h3>
-                <p>Escanea el QR:</p>
+            contenidoPago.innerHTML = \`
+                <h3 style="margin-top: 20px;">📱 Pago con Yape</h3>
+                <p style="color: #666; margin-bottom: 15px;">Escanea el QR:</p>
 
                 <img src="assets/yape.jpg" class="qr">
-                <p class="numero">📞 916934205 </p>
+                <p class="numero" style="font-size: 20px; font-weight: bold; margin: 15px 0;">📞 916934205</p>
 
                 <button class="btn-confirmar" onclick="confirmar('Yape')">He pagado</button>
-            `;
+            \`;
         }
 
         // 🔵 CONFIRMAR
         function confirmar(metodo) {
             let codigo = generarCodigo();
-            mostrarAlerta(`Método: <b>${metodo}</b><br>Código de pedido: <b>${codigo}</b>`);
+            mostrarAlerta(\`Método: <b>\${metodo}</b><br><br>Código de pedido: <b>\${codigo}</b>\`);
         }
 
         mostrarCarrito();
