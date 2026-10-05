@@ -1,0 +1,127 @@
+/* ==========================
+   ESTILOS GENERALES
+========================== */
+
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+
+    background-image: url("../assets/789.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    min-height: 100vh;
+}
+
+.form-container {
+    background-color: rgba(0, 0, 0, 0.25);
+    border-radius: 25px;
+    padding: 30px 50px;
+    width: 420px;
+
+    margin: 60px auto;
+
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    backdrop-filter: blur(12px);
+
+    color: #fff;
+
+    animation: slideUp 0.6s ease forwards;
+    transform: translateY(50px);
+}
+
+/* Animación */
+
+@keyframes slideUp {
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* ==========================
+   TÍTULO
+========================== */
+
+.form-container h2 {
+    text-align: center;
+    color: #cc0000;
+    font-size: 28px;
+    margin-bottom: 35px;
+    font-weight: 700;
+}
+
+/* ==========================
+   LABELS
+========================== */
+
+.form-container label {
+    display: block;
+    margin-top: 20px;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+/* ==========================
+   INPUTS Y TEXTAREA
+========================== */
+
+.form-container input,
+.form-container textarea {
+    width: 100%;
+    padding: 10px 0;
+    margin-top: 5px;
+    border: none;
+    border-bottom: 2px solid #ccc;
+    font-size: 14px;
+    background: transparent;
+    transition: all 0.3s ease;
+    color: #bebebe;
+    font-family: 'Poppins', sans-serif;
+}
+
+.form-container input:focus,
+.form-container textarea:focus {
+    border-bottom: 2px solid #ad0202;
+    outline: none;
+}
+
+.form-container textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* ==========================
+   BOTÓN DEL FORMULARIO
+========================== */
+
+.form-container button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 30px;
+    background: linear-gradient(135deg, #ff0000, #3b0000);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-container button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(255,111,97,0.3);
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+
+@media (max-width: 480px) {
+    .form-container {
+        width: 85%;
+        padding: 20px;
+    }
+}

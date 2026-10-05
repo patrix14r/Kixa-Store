@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras | Tienda Kixa</title>
+
+    <link rel="stylesheet" href="css/carrito.css">
+    <link rel="stylesheet" href="css/diseño.css">
+
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<div class="top-bar">
+    <div class="top-links">
+        <a href="ayuda.html">Ayuda</a>
+        <span>|</span>
+        <a href="formulario.html">Formulario</a>
+        <span>|</span>
+        <a href="login.html">Iniciar sesión</a>
+    </div>
+</div>
+
+<header class="navbar">
+
+    <div class="logo">
+        <img src="assets/web.jpg" alt="Logo de la tienda">
+        <a href="index.html">
+            <span>Tienda Kixa</span>
+        </a>
+    </div>
+
+    <nav class="nav-links">
+        <a href="mujer.html">Mujer</a>
+        <a href="hombre.html" class="active">Hombre</a>
+        <a href="niños.html">Niños</a>
+        <a href="deporte.html">Deporte</a>
+    </nav>
+
+    <div class="search-bar">
+        <input type="text" placeholder="Buscar">
+        <button>
+            <i class="fa fa-search"></i>
+        </button>
+    </div>
+
+    <div class="icons">
+
+        <a href="carrito.html" title="Carrito">
+            <i class="fa fa-shopping-cart"></i>
+        </a>
+
+        <a href="cuenta.html" title="Cuenta">
+            <i class="fa fa-user"></i>
+        </a>
+
+    </div>
+
+</header>
+
+
+<!-- ================= CARRITO ================= -->
+
+<main class="carrito-page">
+
+    <div class="carrito-header">
+
+        <div>
+            <span class="mini-titulo">TU COMPRA</span>
+            <h1>
+                <i class="fa-solid fa-cart-shopping"></i>
+                Carrito de compras
+            </h1>
+            <p>Revisa tus productos antes de realizar tu pedido.</p>
+        </div>
+
+    </div>
+
+
+    <div class="carrito-layout">
+
+        <!-- PRODUCTOS -->
+        <section class="productos-section">
+
+            <div class="productos-header">
+                <h2>Productos seleccionados</h2>
+                <span id="cantidad-productos"></span>
+            </div>
+
+            <div id="carrito" class="carrito-contenedor"></div>
+
+        </section>
+
+
+        <!-- RESUMEN -->
+        <aside class="resumen">
+
+            <div class="resumen-header">
+                <h2>Resumen del pedido</h2>
+                <i class="fa-solid fa-receipt"></i>
+            </div>
+
+            <div class="resumen-linea">
+                <span>Subtotal</span>
+                <strong id="subtotal">S/ 0.00</strong>
+            </div>
+
+            <div class="resumen-linea">
+                <span>Envío</span>
+                <strong class="envio">GRATIS</strong>
+            </div>
+
+            <div class="separador"></div>
+
+            <div class="total-final">
+                <span>Total</span>
+                <strong id="total">S/ 0.00</strong>
+            </div>
+
+            <button
+                class="btn-comprar-principal"
+                onclick="abrirModal()">
+
+                <span>Continuar con la compra</span>
+                <i class="fa-solid fa-arrow-right"></i>
+
+            </button>
+
+            <div class="seguridad">
+
+                <i class="fa-solid fa-shield-halved"></i>
+
+                <div>
+                    <strong>Compra segura</strong>
+                    <p>Tus datos están protegidos.</p>
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</main>
+
+
+<!-- ================= MODAL DE PAGO ================= -->
+
+<div id="modal" class="modal">
+
+    <div class="modal-contenido animacion-modal">
+
+        <button class="cerrar" onclick="cerrarModal()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="modal-titulo">
+
+            <div class="icono-pago">
+                <i class="fa-solid fa-credit-card"></i>
+            </div>
+
+            <div>
+                <h2>Selecciona tu método</h2>
+                <p>Elige cómo deseas realizar tu pago.</p>
+            </div>
+
+        </div>
+
+
+        <div class="opciones">
+
+            <button onclick="mostrarContraentrega()" class="opcion">
+
+                <span class="opcion-icono">
+                    <i class="fa-solid fa-box"></i>
+                </span>
+
+                <span>
+                    <strong>Contraentrega</strong>
+                    <small>Paga cuando recibas tu pedido</small>
+                </span>
+
+                <i class="fa-solid fa-chevron-right"></i>
+
+            </button>
+
+
+            <button onclick="mostrarTarjeta()" class="opcion">
+
+                <span class="opcion-icono">
+                    <i class="fa-solid fa-credit-card"></i>
+                </span>
+
+                <span>
+                    <strong>Tarjeta</strong>
+                    <small>Pago con tarjeta</small>
+                </span>
+
+                <i class="fa-solid fa-chevron-right"></i>
+
+            </button>
+
+
+            <button onclick="mostrarYape()" class="opcion">
+
+                <span class="opcion-icono">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                </span>
+
+                <span>
+                    <strong>Yape</strong>
+                    <small>Realiza tu pago por Yape</small>
+                </span>
+
+                <i class="fa-solid fa-chevron-right"></i>
+
+            </button>
+
+        </div>
+
+
+        <div id="contenido-pago"></div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= ALERTA ================= -->
+
+<div id="alerta" class="alerta">
+
+    <div class="alerta-contenido animacion-alerta">
+
+        <div class="check-confirmacion">
+            <i class="fa-solid fa-check"></i>
+        </div>
+
+        <h2>¡Pedido confirmado!</h2>
+
+        <p id="mensaje-alerta"></p>
+
+        <button onclick="cerrarAlerta()" class="btn-alerta">
+            Volver a la tienda
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ================= JAVASCRIPT ================= -->
+
+<script>
+
+let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+const contenedor = document.getElementById("carrito");
+const subtotalBox = document.getElementById("subtotal");
+const totalBox = document.getElementById("total");
+const cantidadProductos = document.getElementById("cantidad-productos");
+
+const modal = document.getElementById("modal");
+const contenidoPago = document.getElementById("contenido-pago");
+
+const alerta = document.getElementById("alerta");
+const mensajeAlerta = document.getElementById("mensaje-alerta");
+
+
+// ================= MOSTRAR CARRITO =================
+
+function mostrarCarrito() {
+
+    contenedor.innerHTML = "";
+
+    let total = 0;
+
+    if (carrito.length === 0) {
+
+        cantidadProductos.textContent = "";
+
+        contenedor.innerHTML = `
+
+            <div class="carrito-vacio">
+
+                <div class="icono-vacio">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                </div>
+
+                <h2>Tu carrito está vacío</h2>
+
+                <p>
+                    Parece que todavía no has agregado productos.
+                </p>
+
+                <a href="index.html" class="btn-seguir">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Seguir comprando
+                </a>
+
+            </div>
+
+        `;
+
+        subtotalBox.textContent = "S/ 0.00";
+        totalBox.textContent = "S/ 0.00";
+
+        return;
+    }
+
+
+    cantidadProductos.textContent =
+        `${carrito.length} ${carrito.length === 1 ? "producto" : "productos"}`;
+
+
+    carrito.forEach((p, index) => {
+
+        total += Number(p.precio);
+
+        contenedor.innerHTML += `
+
+            <article class="item">
+
+                <div class="imagen-producto">
+
+                    <img
+                        src="${p.imagen}"
+                        alt="${p.nombre}"
+                        class="img-item"
+                    >
+
+                </div>
+
+
+                <div class="info-producto">
+
+                    <span class="categoria-producto">
+                        CALZADO
+                    </span>
+
+                    <h3 class="nombre">
+                        ${p.nombre}
+                    </h3>
+
+                    <div class="detalle-producto">
+
+                        <span>
+                            <i class="fa-solid fa-ruler-horizontal"></i>
+                            Talla: <strong>${p.talla}</strong>
+                        </span>
+
+                    </div>
+
+                    <button
+                        class="eliminar"
+                        onclick="eliminar(${index})">
+
+                        <i class="fa-regular fa-trash-can"></i>
+                        Eliminar
+
+                    </button>
+
+                </div>
+
+
+                <div class="precio-producto">
+
+                    <span>Precio</span>
+
+                    <strong>
+                        S/ ${Number(p.precio).toFixed(2)}
+                    </strong>
+
+                </div>
+
+            </article>
+
+        `;
+
+    });
+
+
+    subtotalBox.textContent = `S/ ${total.toFixed(2)}`;
+    totalBox.textContent = `S/ ${total.toFixed(2)}`;
+
+}
+
+
+// ================= ELIMINAR =================
+
+function eliminar(i) {
+
+    carrito.splice(i, 1);
+
+    localStorage.setItem(
+        "carrito",
+        JSON.stringify(carrito)
+    );
+
+    mostrarCarrito();
+
+}
+
+
+// ================= MODAL =================
+
+function abrirModal() {
+
+    // ==========================================
+    // COMPROBAR CARRITO
+    // ==========================================
+
+    if (carrito.length === 0) {
+
+        alert("Tu carrito está vacío.");
+
+        return;
+    }
+
+
+    // ==========================================
+    // COMPROBAR SESIÓN
+    // ==========================================
+
+    const sesion =
+        localStorage.getItem("usuarioLogueado");
+
+
+    if (!sesion) {
+
+        alert(
+            "⚠️ Debes iniciar sesión antes de realizar la compra."
+        );
+
+        window.location.href = "login.html";
+
+        return;
+    }
+
+
+    // ==========================================
+    // ABRIR MÉTODOS DE PAGO
+    // ==========================================
+
+    modal.style.display = "flex";
+
+    contenidoPago.innerHTML = "";
+
+}
+
+// Cerrar haciendo click fuera del modal
+
+window.addEventListener("click", function(event) {
+
+    if (event.target === modal) {
+        cerrarModal();
+    }
+
+});
+
+
+// ================= CONTRAENTREGA =================
+
+function mostrarContraentrega() {
+
+    contenidoPago.innerHTML = `
+
+        <div class="pago-form">
+
+            <h3>
+                <i class="fa-solid fa-box"></i>
+                Pago Contraentrega
+            </h3>
+
+            <p>
+                Pagarás cuando recibas tu pedido.
+            </p>
+
+            <button
+                class="btn-confirmar"
+                onclick="confirmar('Contraentrega')">
+
+                Confirmar pedido
+                <i class="fa-solid fa-arrow-right"></i>
+
+            </button>
+
+        </div>
+
+    `;
+
+}
+
+
+// ================= TARJETA =================
+
+function mostrarTarjeta() {
+
+    contenidoPago.innerHTML = `
+
+        <div class="pago-form">
+
+            <h3>
+                <i class="fa-solid fa-credit-card"></i>
+                Pago con tarjeta
+            </h3>
+
+            <label>Número de tarjeta</label>
+
+            <input
+                type="text"
+                placeholder="0000 0000 0000 0000"
+            >
+
+
+            <div class="fila">
+
+                <div>
+
+                    <label>MM/AA</label>
+
+                    <input
+                        type="text"
+                        placeholder="05/28"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>CVV</label>
+
+                    <input
+                        type="password"
+                        placeholder="***"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <button
+                class="btn-confirmar"
+                onclick="confirmar('Tarjeta')">
+
+                Pagar ahora
+                <i class="fa-solid fa-lock"></i>
+
+            </button>
+
+        </div>
+
+    `;
+
+}
+
+
+// ================= YAPE =================
+
+function mostrarYape() {
+
+    contenidoPago.innerHTML = `
+
+        <div class="pago-form yape-form">
+
+            <h3>
+                <i class="fa-solid fa-mobile-screen-button"></i>
+                Pago con Yape
+            </h3>
+
+            <p>Escanea el código QR para realizar tu pago.</p>
+
+            <img
+                src="assets/yape.jpg"
+                class="qr"
+                alt="Código QR de Yape"
+            >
+
+            <div class="numero-yape">
+                <i class="fa-solid fa-phone"></i>
+                916934205
+            </div>
+
+            <button
+                class="btn-confirmar"
+                onclick="confirmar('Yape')">
+
+                He realizado el pago
+                <i class="fa-solid fa-check"></i>
+
+            </button>
+
+        </div>
+
+    `;
+
+}
+
+
+// ================= CONFIRMAR =================
+
+function confirmar(metodo) {
+
+    let codigo = generarCodigo();
+
+    modal.style.display = "none";
+
+    
+    contenidoPago.innerHTML = "";
+
+    mostrarAlerta(
+        `Método de pago: <b>${metodo}</b><br>
+         Código de pedido: <b>${codigo}</b>`
+    );
+
+}
+
+
+// ================= CÓDIGO =================
+
+function generarCodigo() {
+
+    return "PED-" + Math.floor(Math.random() * 90000 + 10000);
+
+}
+
+
+// ================= ALERTA =================
+
+function mostrarAlerta(mensaje) {
+
+    mensajeAlerta.innerHTML = mensaje;
+
+    alerta.style.display = "flex";
+
+    carrito = [];
+
+    localStorage.setItem(
+        "carrito",
+        JSON.stringify([])
+    );
+
+    mostrarCarrito();
+
+}
+
+
+function cerrarAlerta() {
+
+    alerta.style.display = "none";
+
+    cerrarModal();
+
+}
+
+
+mostrarCarrito();
+
+</script>
+
+</body>
+</html>

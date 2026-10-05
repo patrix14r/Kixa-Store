@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Niños | Tienda Kixa</title>
+
+  <link rel="stylesheet" href="css/diseño.css">
+  <link rel="stylesheet" href="css/niños.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  >
+</head>
+
+<body>
+
+  <!-- =========================================
+       BARRA SUPERIOR
+  ========================================== -->
+
+  <div class="top-bar">
+
+    <div class="top-links">
+
+      <a href="ayuda.html">Ayuda</a>
+      <span>|</span>
+
+      <a href="formulario.html">Formulario</a>
+      <span>|</span>
+
+      <a href="login.html">Iniciar sesión</a>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================
+       NAVBAR
+  ========================================== -->
+
+  <header class="navbar">
+
+    <div class="logo">
+
+      <img
+        src="assets/web.jpg"
+        alt="Logo de la tienda"
+      >
+
+      <a href="index.html">
+        <span>Tienda Kixa</span>
+      </a>
+
+    </div>
+
+
+    <nav class="nav-links">
+
+      <a href="mujer.html">
+        Mujer
+      </a>
+
+      <a href="hombre.html">
+        Hombre
+      </a>
+
+      <a href="niños.html" class="active">
+        Niños
+      </a>
+
+      <a href="deporte.html">
+        Deporte
+      </a>
+
+    </nav>
+
+
+    <div class="search-bar">
+
+      <input
+        type="text"
+        placeholder="Buscar"
+      >
+
+      <button aria-label="Buscar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+
+    </div>
+
+
+    <div class="icons">
+
+      <a
+        href="carrito.html"
+        title="Carrito"
+      >
+        <i class="fa-solid fa-bag-shopping"></i>
+      </a>
+
+      <a
+        href="cuenta.html"
+        title="Cuenta"
+      >
+        <i class="fa-solid fa-user"></i>
+      </a>
+
+    </div>
+
+  </header>
+
+
+  <!-- =========================================
+       HERO
+  ========================================== -->
+
+  <section class="ninos-hero">
+
+    <div class="hero-slider">
+
+      <img
+        src="assets/123.jpg"
+        class="hero-slide active"
+        alt="Colección Kixa Niños"
+      >
+
+      <img
+        src="assets/sea-background-gwt8s3fsxh92ysbu.jpg"
+        class="hero-slide"
+        alt="Zapatillas para niños"
+      >
+
+      <img
+        src="assets/qwe.jpg"
+        class="hero-slide"
+        alt="Nueva colección niños"
+      >
+
+    </div>
+
+
+    <div class="hero-overlay"></div>
+
+
+    <!-- DECORACIÓN -->
+
+    <div class="hero-lines">
+
+      <span></span>
+      <span></span>
+      <span></span>
+
+    </div>
+
+
+    <!-- CONTENIDO -->
+
+    <div class="ninos-hero-content">
+
+      <span class="hero-small">
+        KIXA KIDS
+      </span>
+
+      <h1>
+        NIÑOS
+        <br>
+        <em>PEQUEÑOS</em>
+        <strong>GIGANTES.</strong>
+      </h1>
+
+      <p>
+        Zapatillas cómodas, resistentes y con
+        mucho estilo para cada aventura.
+      </p>
+
+      <a
+        href="#productos"
+        class="hero-btn"
+      >
+        Ver colección
+        <i class="fa-solid fa-arrow-right"></i>
+      </a>
+
+    </div>
+
+
+    <!-- TEXTO DECORATIVO -->
+
+    <div class="hero-side-text">
+
+      KIDS<br>
+      MOVE<br>
+      FAST
+
+    </div>
+
+
+    <!-- FLECHAS -->
+
+    <button
+      class="hero-arrow hero-prev"
+      aria-label="Anterior"
+    >
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+
+    <button
+      class="hero-arrow hero-next"
+      aria-label="Siguiente"
+    >
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+
+
+    <!-- PUNTOS -->
+
+    <div class="hero-dots">
+
+      <span class="dot active"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================
+       TITULO
+  ========================================== -->
+
+  <section
+    class="coleccion-header"
+    id="productos"
+  >
+
+    <div class="section-title">
+
+      <span></span>
+
+      <p>COLECCIÓN</p>
+
+      <span></span>
+
+    </div>
+
+
+    <h2>
+      Niños <strong>2026</strong>
+    </h2>
+
+
+    <p class="section-description">
+      Zapatillas cómodas, resistentes y con estilo.
+    </p>
+
+  </section>
+
+
+  <!-- =========================================
+       FILTROS
+  ========================================== -->
+
+  <section class="filtros">
+
+    <button
+      class="filtro activo"
+      data-filtro="todos"
+    >
+      Todos
+    </button>
+
+
+    <button
+      class="filtro"
+      data-filtro="nike"
+    >
+      Nike
+    </button>
+
+
+    <button
+      class="filtro"
+      data-filtro="adidas"
+    >
+      Adidas
+    </button>
+
+
+    <button
+      class="filtro"
+      data-filtro="puma"
+    >
+      Puma
+    </button>
+
+
+    <button
+      class="filtro"
+      data-filtro="jordan"
+    >
+      Jordan
+    </button>
+
+
+    <button
+      class="filtro"
+      data-filtro="lacoste"
+    >
+      Lacoste
+    </button>
+
+  </section>
+
+
+  <!-- =========================================
+       PRODUCTOS
+  ========================================== -->
+
+  <main class="productos-container">
+
+    <div class="grid-productos">
+
+
+      <!-- 1. AIR JORDAN -->
+
+      <article
+        class="producto"
+        data-marca="jordan"
+      >
+
+        <div class="producto-img">
+
+          <img
+            src="assets/z1.jpg"
+            alt="Air Jordan"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Air Jordan">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="producto-info">
+
+          <span class="marca">
+            JORDAN
+          </span>
+
+          <h3>
+            Air Jordan
+          </h3>
+
+
+          <div class="producto-bottom">
+
+            <span class="precio">
+              S/ 159.00
+            </span>
+
+            <a
+              href="producto.html?id=Air Jordan"
+              class="mini-btn"
+              title="Ver producto"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 2. JORDAN 1 -->
+
+      <article
+        class="producto"
+        data-marca="jordan"
+      >
+
+        <div class="producto-img">
+
+          <img
+            src="assets/z2.jpg"
+            alt="Jordan 1 Sky Blue"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Jordan 1 - sky blue">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="producto-info">
+
+          <span class="marca">
+            JORDAN
+          </span>
+
+          <h3>
+            Jordan 1 - Sky Blue
+          </h3>
+
+
+          <div class="producto-bottom">
+
+            <span class="precio">
+              S/ 200.00
+            </span>
+
+            <a
+              href="producto.html?id=Jordan 1 - sky blue"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 3. LACOSTE -->
+
+      <article
+        class="producto"
+        data-marca="lacoste"
+      >
+
+        <div class="producto-img">
+
+          <img
+            src="assets/z3.jpg"
+            alt="Lacoste Thrill White"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Lacoste Thrill / white">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="producto-info">
+
+          <span class="marca">
+            LACOSTE
+          </span>
+
+          <h3>
+            Lacoste Thrill / White
+          </h3>
+
+
+          <div class="producto-bottom">
+
+            <span class="precio">
+              S/ 85.00
+            </span>
+
+            <a
+              href="producto.html?id=Lacoste Thrill / white"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 4. NIKE -->
+
+      <article
+        class="producto"
+        data-marca="nike"
+      >
+
+        <div class="producto-img">
+
+          <img
+            src="assets/z4.jpg"
+            alt="Nike Court Borough Low 2"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Court Borough Low 2 - 100">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="producto-info">
+
+          <span class="marca">
+            NIKE
+          </span>
+
+          <h3>
+            Nike Court Borough Low 2
+          </h3>
+
+
+          <div class="producto-bottom">
+
+            <span class="precio">
+              S/ 100.00
+            </span>
+
+            <a
+              href="producto.html?id=Nike Court Borough Low 2 - 100"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 5. NIKE -->
+
+      <article
+        class="producto"
+        data-marca="nike"
+      >
+
+        <div class="producto-img">
+
+          <img
+            src="assets/z5.jpg"
+            alt="Nike Court Borough Low 2"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Court Borough Low 2 - 90">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="producto-info">
+
+          <span class="marca">
+            NIKE
+          </span>
+
+          <h3>
+            Nike Court Borough Low 2
+          </h3>
+
+
+          <div class="producto-bottom">
+
+            <span class="precio">
+              S/ 90.00
+            </span>
+
+            <a
+              href="producto.html?id=Nike Court Borough Low 2 - 90"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 6. ADIDAS -->
+
+      <article
+        class="producto"
+        data-marca="adidas"
+      >
+
+        <div class="producto-img">
+
+          <img
+            src="assets/z6.jpg"
+            alt="Adidas Tensaur Run K"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Adidas Tensaur Run K">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="producto-info">
+
+          <span class="marca">
+            ADIDAS
+          </span>
+
+          <h3>
+            Adidas Tensaur Run K
+          </h3>
+
+
+          <div class="producto-bottom">
+
+            <span class="precio">
+              S/ 75.00
+            </span>
+
+            <a
+              href="producto.html?id=Adidas Tensaur Run K"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 7. NIKE -->
+
+      <article
+        class="producto"
+        data-marca="nike"
+      >
+
+        <div class="producto-img">
+
+          <img
+            src="assets/t7.jpg"
+            alt="Nike Wearallday"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Wearallday">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="producto-info">
+
+          <span class="marca">
+            NIKE
+          </span>
+
+          <h3>
+            Nike Wearallday
+          </h3>
+
+
+          <div class="producto-bottom">
+
+            <span class="precio">
+              S/ 65.00
+            </span>
+
+            <a
+              href="producto.html?id=Nike Wearallday"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 8. ADIDAS -->
+
+      <article
+        class="producto"
+        data-marca="adidas"
+      >
+
+        <div class="producto-img">
+
+          <img
+            src="assets/z8.jpg"
+            alt="Adidas Grand Court"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Adidas Grand Court">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="producto-info">
+
+          <span class="marca">
+            ADIDAS
+          </span>
+
+          <h3>
+            Adidas Grand Court
+          </h3>
+
+
+          <div class="producto-bottom">
+
+            <span class="precio">
+              S/ 80.00
+            </span>
+
+            <a
+              href="producto.html?id=Adidas Grand Court"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 9. PUMA -->
+
+      <article
+        class="producto"
+        data-marca="puma"
+      >
+
+        <div class="producto-img">
+
+          <img
+            src="assets/z9.jpg"
+            alt="Puma Courtflex V2 V PS"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Puma Courtflex V2 V PS">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="producto-info">
+
+          <span class="marca">
+            PUMA
+          </span>
+
+          <h3>
+            Puma Courtflex V2 V PS
+          </h3>
+
+
+          <div class="producto-bottom">
+
+            <span class="precio">
+              S/ 80.00
+            </span>
+
+            <a
+              href="producto.html?id=Puma Courtflex V2 V PS"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 10. PUMA -->
+
+      <article
+        class="producto"
+        data-marca="puma"
+      >
+
+        <div class="producto-img">
+
+          <img
+            src="assets/z10.jpg"
+            alt="Puma Flex Essential"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Puma Flex Essential">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="producto-info">
+
+          <span class="marca">
+            PUMA
+          </span>
+
+          <h3>
+            Puma Flex Essential
+          </h3>
+
+
+          <div class="producto-bottom">
+
+            <span class="precio">
+              S/ 80.00
+            </span>
+
+            <a
+              href="producto.html?id=Puma Flex Essential"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 11. ADIDAS -->
+
+      <article
+        class="producto"
+        data-marca="adidas"
+      >
+
+        <div class="producto-img">
+
+          <img
+            src="assets/z11.jpg"
+            alt="Adidas Altarun K Blue"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Adidas Altarun K / blue">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="producto-info">
+
+          <span class="marca">
+            ADIDAS
+          </span>
+
+          <h3>
+            Adidas Altarun K / Blue
+          </h3>
+
+
+          <div class="producto-bottom">
+
+            <span class="precio">
+              S/ 80.00
+            </span>
+
+            <a
+              href="producto.html?id=Adidas Altarun K / blue"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+    </div>
+
+  </main>
+
+
+  
+
+
+  <script src="js/niños.js"></script>
+
+</body>
+</html>

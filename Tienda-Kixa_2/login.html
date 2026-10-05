@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login | Tienda Kixa</title>
+
+    <link rel="stylesheet" href="css/diseño.css">
+    <link rel="stylesheet" href="css/login.css">
+
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- GOOGLE FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+</head>
+
+
+<body>
+
+    <div class="top-bar">
+
+        <div class="top-links">
+
+            <a href="ayuda.html">
+                Ayuda
+            </a>
+
+            <span>|</span>
+
+            <a href="formulario.html">
+                Formulario
+            </a>
+
+            <span>|</span>
+
+            <a href="login.html">
+                Iniciar sesión
+            </a>
+
+        </div>
+
+    </div>
+
+
+
+    <header class="navbar">
+
+        <div class="logo">
+
+            <img
+                src="assets/web.jpg"
+                alt="Logo de la tienda">
+
+            <a href="index.html">
+                <span>Tienda Kixa</span>
+            </a>
+
+        </div>
+
+
+        <nav class="nav-links">
+
+            <a href="mujer.html">
+                Mujer
+            </a>
+
+            <a href="hombre.html" class="active">
+                Hombre
+            </a>
+
+            <a href="niños.html">
+                Niños
+            </a>
+
+            <a href="deporte.html">
+                Deporte
+            </a>
+
+        </nav>
+
+
+        <div class="search-bar">
+
+            <input
+                type="text"
+                placeholder="Buscar">
+
+            <button>
+                <i class="fa fa-search"></i>
+            </button>
+
+        </div>
+
+
+        <div class="icons">
+
+            <a
+                href="carrito.html"
+                title="Carrito">
+
+                <i class="fa fa-shopping-cart"></i>
+
+            </a>
+
+
+            <a
+                href="cuenta.html"
+                title="Cuenta">
+
+                <i class="fa fa-user"></i>
+
+            </a>
+
+        </div>
+
+    </header>
+
+
+
+    <div class="background">
+
+        <div class="overlay"></div>
+
+
+        <div class="login-box" id="formContainer">
+
+
+           
+
+            <form
+                id="loginForm"
+                class="form active">
+
+                <div class="form-icon">
+
+                    <i class="fa-solid fa-user"></i>
+
+                </div>
+
+
+                <h2>
+                    Bienvenido a <span>Kixa</span>
+                </h2>
+
+
+                <p class="subtitle">
+                    Inicia sesión para continuar
+                </p>
+
+
+                <!-- CORREO -->
+
+                <div class="input-group">
+
+                    <input
+                        type="email"
+                        id="loginEmail"
+                        required>
+
+                    <label for="loginEmail">
+                        Correo electrónico
+                    </label>
+
+                </div>
+
+
+                <!-- CONTRASEÑA -->
+
+                <div class="input-group">
+
+                    <input
+                        type="password"
+                        id="loginPassword"
+                        required>
+
+                    <label for="loginPassword">
+                        Contraseña
+                    </label>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="btn">
+
+                    <i class="fa-solid fa-right-to-bracket"></i>
+
+                    Ingresar
+
+                </button>
+
+
+                <p class="register-text">
+
+                    ¿No tienes cuenta?
+
+                    <a
+                        href="#"
+                        id="showRegister">
+
+                        Regístrate
+
+                    </a>
+
+                </p>
+
+            </form>
+
+
+
+            <!-- =================================================
+                 REGISTRO
+                 ================================================= -->
+
+            <form
+                id="registerForm"
+                class="form">
+
+
+                <div class="form-icon">
+
+                    <i class="fa-solid fa-user-plus"></i>
+
+                </div>
+
+
+                <h2>
+                    Crea tu cuenta en <span>Kixa</span>
+                </h2>
+
+
+                <p class="subtitle">
+                    Completa todos tus datos para registrarte
+                </p>
+
+
+                <div class="registro-grid">
+
+
+                    <!-- NOMBRE -->
+
+                    <div class="input-group">
+
+                        <input
+                            type="text"
+                            id="registerName"
+                            required>
+
+                        <label for="registerName">
+                            Nombre completo
+                        </label>
+
+                    </div>
+
+
+                    <!-- CORREO -->
+
+                    <div class="input-group">
+
+                        <input
+                            type="email"
+                            id="registerEmail"
+                            required>
+
+                        <label for="registerEmail">
+                            Correo electrónico
+                        </label>
+
+                    </div>
+
+
+                    <!-- TELEFONO -->
+
+                    <div class="input-group">
+
+                        <input
+                            type="tel"
+                            id="registerPhone"
+                            maxlength="9"
+                            pattern="[0-9]{9}"
+                            required>
+
+                        <label for="registerPhone">
+                            Número de teléfono
+                        </label>
+
+                    </div>
+
+
+                    <!-- DNI -->
+
+                    <div class="input-group">
+
+                        <input
+                            type="text"
+                            id="registerDni"
+                            maxlength="8"
+                            pattern="[0-9]{8}"
+                            required>
+
+                        <label for="registerDni">
+                            DNI
+                        </label>
+
+                    </div>
+
+
+                    <!-- CIUDAD -->
+
+                    <div class="input-group select-group">
+
+                        <select
+                            id="registerCity"
+                            required>
+
+                            <option value="" disabled selected>
+                                
+                            </option>
+
+                            <option value="Lima">
+                                Lima
+                            </option>
+
+                            <option value="Arequipa">
+                                Arequipa
+                            </option>
+
+                            <option value="Trujillo">
+                                Trujillo
+                            </option>
+
+                            <option value="Chiclayo">
+                                Chiclayo
+                            </option>
+
+                            <option value="Piura">
+                                Piura
+                            </option>
+
+                            <option value="Cusco">
+                                Cusco
+                            </option>
+
+                            <option value="Iquitos">
+                                Iquitos
+                            </option>
+
+                            <option value="Huancayo">
+                                Huancayo
+                            </option>
+
+                            <option value="Tacna">
+                                Tacna
+                            </option>
+
+                            <option value="Otra">
+                                Otra ciudad
+                            </option>
+
+                        </select>
+
+                        <label for="registerCity">
+                            Ciudad
+                        </label>
+
+                    </div>
+
+
+                    <!-- DIRECCION -->
+
+                    <div class="input-group">
+
+                        <input
+                            type="text"
+                            id="registerAddress"
+                            required>
+
+                        <label for="registerAddress">
+                            Dirección
+                        </label>
+
+                    </div>
+
+
+                    <!-- FECHA -->
+
+                    <div class="input-group">
+
+                        <input
+                            type="date"
+                            id="registerBirth"
+                            required>
+
+                        <label for="registerBirth">
+                        </label>
+
+                    </div>
+
+
+                    <!-- GENERO -->
+
+                    <div class="input-group select-group">
+
+                        <select
+                            id="registerGender"
+                            required>
+
+                            <option value="" disabled selected>
+                         
+                            </option>
+
+                            <option value="Masculino">
+                                Masculino
+                            </option>
+
+                            <option value="Femenino">
+                                Femenino
+                            </option>
+
+
+                        </select>
+
+                        <label for="registerGender">
+                            Género
+                        </label>
+
+                    </div>
+
+
+                    <!-- CONTRASEÑA -->
+
+                    <div class="input-group password-full">
+
+                        <input
+                            type="password"
+                            id="registerPassword"
+                            minlength="5"
+                            required>
+
+                        <label for="registerPassword">
+                            Contraseña
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="btn">
+
+                    <i class="fa-solid fa-user-plus"></i>
+
+                    Crear cuenta
+
+                </button>
+
+
+                <p class="register-text">
+
+                    ¿Ya tienes una cuenta?
+
+                    <a
+                        href="#"
+                        id="showLogin">
+
+                        Inicia sesión
+
+                    </a>
+
+                </p>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script src="js/login.js"></script>
+
+</body>
+
+</html>

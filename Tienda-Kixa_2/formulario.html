@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulario Kixa</title>
+<link rel="stylesheet" href="css/diseño.css">
+<link rel="stylesheet" href="css/formulario.css">
+
+</head>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<body>
+
+    <div class="top-bar">
+  <div class="top-links">
+    <a href="ayuda.html">Ayuda</a>
+    <span>|</span>
+    <a href="formulario.html">Formulario</a>
+    <span>|</span>
+    <a href="login.html">Iniciar sesión</a>
+  </div>
+</div>
+
+  <!-- HEADER -->
+  <header class="navbar">
+    <div class="logo">
+      <img src="assets/web.jpg" alt="Logo de la tienda" />
+       <a href="index.html"><span>Tienda Kixa</span></a>
+    </div>
+
+    <nav class="nav-links">
+      <a href="mujer.html">Mujer</a>
+      <a href="hombre.html" class="active">Hombre</a>
+      <a href="niños.html">Niños</a>
+      <a href="deporte.html">Deporte</a>
+      
+    </nav>
+
+    <div class="search-bar">
+      <input type="text" placeholder="Buscar" />
+      <button><i class="fa fa-search"></i></button>
+    </div>
+
+     <div class="icons">
+
+      <a href="carrito.html" title="Carrito"><i class="fa fa-shopping-cart"></i></a>
+
+      <a href="cuenta.html" title="Cuenta"><i class="fa fa-user"></i></a>
+  
+    </div>
+
+</header>
+
+
+
+<div class="form-container">
+    <h2>Contáctanos - Kixa</h2>
+    <form id="contactForm">
+        <label for="nombre">Nombre completo:</label>
+        <input type="text" id="nombre" name="nombre" placeholder="Nombre completo" required>
+
+        <label for="telefono">Número de teléfono:</label>
+        <input type="tel" id="telefono" name="telefono" placeholder="+51 000 000 000" required>
+
+        <label for="direccion">Dirección:</label>
+        <input type="text" id="direccion" name="direccion" placeholder="Tu dirección" required>
+
+        <label for="mensaje">Mensaje:</label>
+        <textarea id="mensaje" name="mensaje" placeholder="Escribe tu mensaje" required></textarea>
+
+        <button type="submit">Enviar</button>
+    </form>
+</div>
+
+<script src="js/formulario.js"></script>
+</body>
+</html>

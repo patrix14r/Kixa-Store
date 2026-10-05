@@ -1,0 +1,1924 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Deporte | Tienda Kixa</title>
+
+  <link rel="stylesheet" href="css/diseño.css">
+  <link rel="stylesheet" href="css/deporte.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  >
+</head>
+
+<body>
+
+  <!-- ==========================================
+       BARRA SUPERIOR
+  =========================================== -->
+
+  <div class="top-bar">
+
+    <div class="top-links">
+
+      <a href="ayuda.html">Ayuda</a>
+
+      <span>|</span>
+
+      <a href="formulario.html">Formulario</a>
+
+      <span>|</span>
+
+      <a href="login.html">Iniciar sesión</a>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==========================================
+       NAVBAR
+  =========================================== -->
+
+  <header class="navbar">
+
+    <div class="logo">
+
+      <img
+        src="assets/web.jpg"
+        alt="Logo de Tienda Kixa"
+      >
+
+      <a href="index.html">
+        <span>Tienda Kixa</span>
+      </a>
+
+    </div>
+
+
+    <nav class="nav-links">
+
+      <a href="mujer.html">
+        Mujer
+      </a>
+
+      <a href="hombre.html">
+        Hombre
+      </a>
+
+      <a href="niños.html">
+        Niños
+      </a>
+
+      <a href="deporte.html" class="active">
+        Deporte
+      </a>
+
+    </nav>
+
+
+    <div class="search-bar">
+
+      <input
+        type="text"
+        placeholder="Buscar"
+      >
+
+      <button aria-label="Buscar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+
+    </div>
+
+
+    <div class="icons">
+
+      <a
+        href="carrito.html"
+        title="Carrito"
+      >
+        <i class="fa-solid fa-bag-shopping"></i>
+      </a>
+
+      <a
+        href="cuenta.html"
+        title="Cuenta"
+      >
+        <i class="fa-solid fa-user"></i>
+      </a>
+
+    </div>
+
+  </header>
+
+
+  <!-- ==========================================
+       HERO
+  =========================================== -->
+
+  <section class="deporte-hero">
+
+    <div class="hero-slider">
+
+      <img
+        src="assets/dsa1.jpg"
+        class="hero-slide active"
+        alt="Colección deportiva Kixa"
+      >
+
+      <img
+        src="assets/dsa2.jpg"
+        class="hero-slide"
+        alt="Zapatillas deportivas Kixa"
+      >
+
+      <img
+        src="assets/das3.jpg"
+        class="hero-slide"
+        alt="Colección Deporte Kixa"
+      >
+
+    </div>
+
+
+    <div class="hero-overlay"></div>
+
+
+    <!-- LINEAS DECORATIVAS -->
+
+    <div class="hero-lines">
+
+      <span></span>
+      <span></span>
+      <span></span>
+
+    </div>
+
+
+    <!-- CONTENIDO HERO -->
+
+    <div class="deporte-hero-content">
+
+      <span class="hero-small">
+        KIXA SPORT
+      </span>
+
+      <h1>
+        DEPORTE
+        <br>
+        <em>FUERZA</em>
+        <strong>SIN LÍMITES.</strong>
+      </h1>
+
+      <p>
+        Las mejores zapatillas para entrenar,
+        competir y darlo todo en cada partido.
+      </p>
+
+      <a
+        href="#productos"
+        class="hero-btn"
+      >
+
+        Ver colección
+
+        <i class="fa-solid fa-arrow-right"></i>
+
+      </a>
+
+    </div>
+
+
+    <!-- TEXTO LATERAL -->
+
+    <div class="hero-side-text">
+
+      PLAY<br>
+      TRAIN<br>
+      WIN
+
+    </div>
+
+
+    <!-- FLECHA ANTERIOR -->
+
+    <button
+      class="hero-arrow hero-prev"
+      aria-label="Anterior"
+    >
+
+      <i class="fa-solid fa-chevron-left"></i>
+
+    </button>
+
+
+    <!-- FLECHA SIGUIENTE -->
+
+    <button
+      class="hero-arrow hero-next"
+      aria-label="Siguiente"
+    >
+
+      <i class="fa-solid fa-chevron-right"></i>
+
+    </button>
+
+
+    <!-- DOTS -->
+
+    <div class="hero-dots">
+
+      <span class="dot active"></span>
+
+      <span class="dot"></span>
+
+      <span class="dot"></span>
+
+    </div>
+
+  </section>
+
+
+  <!-- ==========================================
+       TITULO COLECCION
+  =========================================== -->
+
+  <section
+    class="coleccion-header"
+    id="productos"
+  >
+
+    <div class="section-title">
+
+      <span></span>
+
+      <p>COLECCIÓN</p>
+
+      <span></span>
+
+    </div>
+
+
+    <h2>
+      Deporte <strong>2026</strong>
+    </h2>
+
+
+    <p class="section-description">
+      Zapatillas cómodas para tus entrenos y partidos.
+    </p>
+
+  </section>
+
+
+  <!-- ==========================================
+       FILTROS
+  =========================================== -->
+
+  <section class="filtros">
+
+    <button
+      class="filtro activo"
+      data-filtro="todos"
+    >
+      Todos
+    </button>
+
+    <button
+      class="filtro"
+      data-filtro="nike"
+    >
+      Nike
+    </button>
+
+    <button
+      class="filtro"
+      data-filtro="adidas"
+    >
+      Adidas
+    </button>
+
+    <button
+      class="filtro"
+      data-filtro="puma"
+    >
+      Puma
+    </button>
+
+    <button
+      class="filtro"
+      data-filtro="umbro"
+    >
+      Umbro
+    </button>
+
+    <button
+      class="filtro"
+      data-filtro="kipsta"
+    >
+      Kipsta
+    </button>
+
+  </section>
+
+
+  <!-- ==========================================
+       PRODUCTOS
+  =========================================== -->
+
+  <main class="productos-container">
+
+    <div class="grid-productos">
+
+
+      <!-- ======================================
+           PRODUCTO 1
+      ======================================= -->
+
+      <article
+        class="producto"
+        data-marca="nike"
+      >
+
+        <div class="producto-img">
+
+          <img
+            src="assets/f1.jpg"
+            alt="Nike Tiempo Legend 9 Academy IC"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Tiempo Legend 9 Academy IC">
+
+              Ver producto
+
+              <i class="fa-solid fa-arrow-right"></i>
+
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>
+            Nike Tiempo Legend 9 Academy IC / Grey
+          </h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">
+              S/159
+            </span>
+
+            <a
+              href="producto.html?id=Nike Tiempo Legend 9 Academy IC"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 2 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img
+            src="assets/f2.jpg"
+            alt="Nike SB Gato Black"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike SB Gato Black">
+
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike SB Gato / Black</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/89</span>
+
+            <a
+              href="producto.html?id=Nike SB Gato Black"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 3 -->
+
+      <article class="producto" data-marca="umbro">
+
+        <div class="producto-img">
+
+          <img
+            src="assets/f3.jpg"
+            alt="Umbro Classico XIII LT TF"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Umbro Classico XIII LT TF">
+
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">UMBRO</span>
+
+          <h3>Umbro Classico XIII LT TF / White and Blue</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/100</span>
+
+            <a
+              href="producto.html?id=Umbro Classico XIII LT TF"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 4 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img
+            src="assets/f4.jpg"
+            alt="Nike Tiempo Legend 9 Academy IC Pink"
+          >
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Tiempo Legend 9 Academy IC Pink">
+
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Tiempo Legend 9 Academy IC / Pink</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/120</span>
+
+            <a
+              href="producto.html?id=Nike Tiempo Legend 9 Academy IC Pink"
+              class="mini-btn"
+            >
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 5 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f5.jpg" alt="Nike Tiempo Legend 10 Club Turf Black">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Tiempo Legend 10 Club Turf Black">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Tiempo Legend 10 Club Turf / Black</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/120</span>
+
+            <a href="producto.html?id=Nike Tiempo Legend 10 Club Turf Black" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 6 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f6.jpg" alt="Nike Total 90 SP">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Total 90 SP">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Total 90 SP</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/95</span>
+
+            <a href="producto.html?id=Nike Total 90 SP" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 7 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f7.jpg" alt="Nike Phantom 6 Low Club IC Black">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Phantom 6 Low Club IC Black">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Phantom 6 Low Club IC / Black</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/120</span>
+
+            <a href="producto.html?id=Nike Phantom 6 Low Club IC Black" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 8 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f8.jpg" alt="Nike Total 90 III SP Black Gum">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Total 90 III SP Black Gum">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Total 90 III SP Black Gum</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/89</span>
+
+            <a href="producto.html?id=Nike Total 90 III SP Black Gum" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 9 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f9.jpg" alt="Nike Zoom Mercurial Superfly 9 Pro FG Yellow">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Zoom Mercurial Superfly 9 Pro FG Yellow">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Zoom Mercurial Superfly 9 Pro FG / Yellow</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/159</span>
+
+            <a href="producto.html?id=Nike Zoom Mercurial Superfly 9 Pro FG Yellow" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 10 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f10.jpg" alt="Nike Zoom Mercurial Superfly 9 Pro FG Lemon Yellow">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Zoom Mercurial Superfly 9 Pro FG Lemon Yellow">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Zoom Mercurial Superfly 9 Pro FG / Lemon Yellow</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/150</span>
+
+            <a href="producto.html?id=Nike Zoom Mercurial Superfly 9 Pro FG Lemon Yellow" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 11 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f11.jpg" alt="Nike Phantom GT Elite DF SG PRO White">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Phantom GT Elite DF SG-PRO White">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Phantom GT Elite DF SG-PRO / White</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/200</span>
+
+            <a href="producto.html?id=Nike Phantom GT Elite DF SG-PRO White" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 12 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f12.jpg" alt="Nike Mercurial Zoom Vapor 15 Elite FG Lemon Green">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Mercurial Zoom Vapor 15 Elite FG Lemon Green">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Mercurial Zoom Vapor 15 Elite FG / Lemon Green</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/170</span>
+
+            <a href="producto.html?id=Nike Mercurial Zoom Vapor 15 Elite FG Lemon Green" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 13 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f13.jpg" alt="Nike Tiempo Legend 10 Elite FG">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Tiempo Legend 10 Elite FG">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Tiempo Legend 10 Elite FG</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/190</span>
+
+            <a href="producto.html?id=Nike Tiempo Legend 10 Elite FG" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 14 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f14.jpg" alt="Nike Phantom GT2 Elite FG">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Phantom GT2 Elite FG">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Phantom GT2 Elite FG</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/182</span>
+
+            <a href="producto.html?id=Nike Phantom GT2 Elite FG" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 15 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f15.jpg" alt="Nike Mercurial Vapor 13 Elite Neymar Jr FG">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Mercurial Vapor 13 Elite Neymar Jr.FG">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Mercurial Vapor 13 Elite Neymar Jr.FG</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/356</span>
+
+            <a href="producto.html?id=Nike Mercurial Vapor 13 Elite Neymar Jr.FG" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 16 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f16.jpg" alt="Nike Phantom GX II Academy FG MG">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Phantom GX II Academy FG/MG">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Phantom GX II Academy FG/MG</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/239</span>
+
+            <a href="producto.html?id=Nike Phantom GX II Academy FG/MG" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 17 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f17.jpg" alt="Nike Jr Mercurial Superfly 8 Academy MG">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Jr. Mercurial Superfly 8 Academy MG">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Jr. Mercurial Superfly 8 Academy MG</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/111</span>
+
+            <a href="producto.html?id=Nike Jr. Mercurial Superfly 8 Academy MG" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 18 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f18.jpg" alt="Nike Phantom GT Academy DF FG MG">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Phantom GT Academy DF FG/MG">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Phantom GT Academy DF FG/MG</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/225</span>
+
+            <a href="producto.html?id=Nike Phantom GT Academy DF FG/MG" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 19 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f19.jpg" alt="Nike Jr Phantom Luna 2 Academy TF">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Jr. Phantom Luna 2 Academy TF">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Jr. Phantom Luna 2 Academy TF</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/120</span>
+
+            <a href="producto.html?id=Nike Jr. Phantom Luna 2 Academy TF" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 20 -->
+
+      <article class="producto" data-marca="adidas">
+
+        <div class="producto-img">
+
+          <img src="assets/f20.jpg" alt="Adidas X Crazyfast 1">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Adidas X Crazyfast.1">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">ADIDAS</span>
+
+          <h3>Adidas X Crazyfast.1</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/111</span>
+
+            <a href="producto.html?id=Adidas X Crazyfast.1" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 21 -->
+
+      <article class="producto" data-marca="puma">
+
+        <div class="producto-img">
+
+          <img src="assets/f21.jpg" alt="Puma Classico FG White">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Puma Classico FG White">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">PUMA</span>
+
+          <h3>Puma Classico FG / White</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/119</span>
+
+            <a href="producto.html?id=Puma Classico FG White" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 22 -->
+
+      <article class="producto" data-marca="puma">
+
+        <div class="producto-img">
+
+          <img src="assets/f22.jpg" alt="Puma Attacanto II TT Black">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Puma Attacanto II TT Black">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">PUMA</span>
+
+          <h3>Puma Attacanto II TT / Black</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/195</span>
+
+            <a href="producto.html?id=Puma Attacanto II TT Black" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 23 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f23.jpg" alt="Nike Mercurial Superfly 10 Elite Black">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Mercurial Superfly 10 Elite Black">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Mercurial Superfly 10 Elite / Black</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/225</span>
+
+            <a href="producto.html?id=Nike Mercurial Superfly 10 Elite Black" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 24 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f24.jpg" alt="Nike Mercurial Superfly 9 Club TF">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Mercurial Superfly 9 Club TF">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Mercurial Superfly 9 Club TF</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/150</span>
+
+            <a href="producto.html?id=Nike Mercurial Superfly 9 Club TF" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 25 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f25.jpg" alt="Nike Mercurial Superfly 7">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Mercurial Superfly 7">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Mercurial Superfly 7</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/159</span>
+
+            <a href="producto.html?id=Nike Mercurial Superfly 7" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 26 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f26.jpg" alt="Nike Phantom GX Pro FG">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=fútbol Nike Phantom GX Pro FG">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Fútbol Nike Phantom GX Pro FG</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/310</span>
+
+            <a href="producto.html?id=fútbol Nike Phantom GX Pro FG" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 27 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f27.jpg" alt="Nike Mercurial Superfly 10 Elite FG">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Mercurial Superfly 10 Elite FG">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Mercurial Superfly 10 Elite FG</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/180</span>
+
+            <a href="producto.html?id=Nike Mercurial Superfly 10 Elite FG" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 28 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f28.jpg" alt="Nike Zoom Mercurial Superfly 9 Academy">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Zoom Mercurial Superfly 9 Academy">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Zoom Mercurial Superfly 9 Academy</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/210</span>
+
+            <a href="producto.html?id=Nike Zoom Mercurial Superfly 9 Academy" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 29 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f29.jpg" alt="Nike Phantom GX 2 Elite LV8">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Phantom GX 2 Elite LV8">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Phantom GX 2 Elite LV8</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/120</span>
+
+            <a href="producto.html?id=Nike Phantom GX 2 Elite LV8" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 30 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f30.jpg" alt="Nike Gripknit Phantom GX 2">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Gripknit Phantom GX 2">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Gripknit Phantom GX 2</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/95</span>
+
+            <a href="producto.html?id=Nike Gripknit Phantom GX 2" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 31 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f31.jpg" alt="Nike Zoom Mercurial Superfly 9">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Zoom Mercurial Superfly 9">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Zoom Mercurial Superfly 9</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/95</span>
+
+            <a href="producto.html?id=Nike Zoom Mercurial Superfly 9" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 32 -->
+
+      <article class="producto" data-marca="umbro">
+
+        <div class="producto-img">
+
+          <img src="assets/f32.jpg" alt="Umbro Classico 13 TF">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Umbro Classico 13 TF">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">UMBRO</span>
+
+          <h3>Umbro Classico 13 TF</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/85</span>
+
+            <a href="producto.html?id=Umbro Classico 13 TF" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 33 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f33.jpg" alt="Nike Zoom Mercurial Superfly 9 Academy TF">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Zoom Mercurial Superfly 9 Academy TF">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Zoom Mercurial Superfly 9 Academy TF</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/95</span>
+
+            <a href="producto.html?id=Nike Zoom Mercurial Superfly 9 Academy TF" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 34 -->
+
+      <article class="producto" data-marca="nike">
+
+        <div class="producto-img">
+
+          <img src="assets/f34.jpg" alt="Nike Zoom Mercurial Superfly 9 Academy TF">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Nike Zoom Mercurial Superfly 9 Academy TF 34">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">NIKE</span>
+
+          <h3>Nike Zoom Mercurial Superfly 9 Academy TF</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/130</span>
+
+            <a href="producto.html?id=Nike Zoom Mercurial Superfly 9 Academy TF 34" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 35 -->
+
+      <article class="producto" data-marca="puma">
+
+        <div class="producto-img">
+
+          <img src="assets/f35.jpg" alt="Puma Attacanto">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Puma Attacanto">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">PUMA</span>
+
+          <h3>Puma Attacanto</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/130</span>
+
+            <a href="producto.html?id=Puma Attacanto" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 36 -->
+
+      <article class="producto" data-marca="puma">
+
+        <div class="producto-img">
+
+          <img src="assets/f36.jpg" alt="Puma Monarch II Red">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Puma Monarch II Red">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">PUMA</span>
+
+          <h3>Puma Monarch II / Red</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/110</span>
+
+            <a href="producto.html?id=Puma Monarch II Red" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 37 -->
+
+      <article class="producto" data-marca="puma">
+
+        <div class="producto-img">
+
+          <img src="assets/f37.jpg" alt="Puma Monarch II Black">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Puma Monarch II Black">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">PUMA</span>
+
+          <h3>Puma Monarch II / Black</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/110</span>
+
+            <a href="producto.html?id=Puma Monarch II Black" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- 38 -->
+
+      <article class="producto" data-marca="kipsta">
+
+        <div class="producto-img">
+
+          <img src="assets/f38.jpg" alt="Kipsta Viralto II Matador">
+
+          <div class="producto-action">
+
+            <a href="producto.html?id=Kipsta Viralto II Matador">
+              Ver producto
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+        <div class="producto-info">
+
+          <span class="marca">KIPSTA</span>
+
+          <h3>Kipsta Viralto II Matador</h3>
+
+          <div class="producto-bottom">
+
+            <span class="precio">S/95</span>
+
+            <a href="producto.html?id=Kipsta Viralto II Matador" class="mini-btn">
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+    </div>
+
+  </main>
+
+
+  
+
+
+  <!-- JAVASCRIPT -->
+
+  <script src="js/deporte.js"></script>
+
+</body>
+
+</html>

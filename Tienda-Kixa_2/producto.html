@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Producto | Tienda Kixa</title>
+
+  <link rel="stylesheet" href="css/diseño.css">
+  <link rel="stylesheet" href="css/producto.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+
+    /* =====================================================
+       PRODUCTO KIXA
+       DISEÑO OSCURO IGUAL AL RESTO DE LA TIENDA
+    ===================================================== */
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #090a0b;
+      color: #fff;
+    }
+
+    /* =====================================================
+       CONTENEDOR PRINCIPAL
+    ===================================================== */
+
+    .page {
+      width: min(1200px, 92%);
+      margin: 0 auto;
+      padding: 75px 0 90px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 55px;
+      align-items: start;
+    }
+
+    /* =====================================================
+       GALERÍA
+    ===================================================== */
+
+    .gallery {
+      display: flex;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .thumbs {
+      width: 82px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+
+    .thumbs img {
+      width: 82px;
+      height: 82px;
+      object-fit: contain;
+      background: #111315;
+      border: 1px solid #292c2f;
+      border-radius: 10px;
+      cursor: pointer;
+      padding: 6px;
+      transition: .25s ease;
+    }
+
+    .thumbs img:hover {
+      border-color: #ed001b;
+      transform: translateY(-2px);
+    }
+
+    .thumbs img.active {
+      border: 2px solid #ed001b;
+      box-shadow: 0 0 18px rgba(237, 0, 27, .18);
+    }
+
+    .main-img {
+      flex: 1;
+      min-height: 550px;
+      border-radius: 14px;
+      overflow: hidden;
+
+      background:
+        radial-gradient(
+          circle at center,
+          #1a1c1e 0%,
+          #101112 55%,
+          #0c0d0e 100%
+        );
+
+      border: 1px solid #292c2f;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      position: relative;
+    }
+
+    .main-img::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(255,255,255,.025),
+          transparent 40%
+        );
+    }
+
+    .main-img img {
+      width: 100%;
+      height: 100%;
+      max-height: 550px;
+      object-fit: contain;
+      padding: 25px;
+
+      transition: transform .35s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .main-img:hover img {
+      transform: scale(1.035);
+    }
+
+    /* =====================================================
+       PANEL DERECHO
+    ===================================================== */
+
+    .panel {
+      padding: 8px 0;
+    }
+
+    .brand {
+      color: #999;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .panel h1 {
+      font-size: 34px;
+      line-height: 1.15;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .price {
+      color: #ed001b;
+      font-size: 25px;
+      font-weight: 700;
+      margin: 15px 0 20px;
+    }
+
+    #productDescription {
+      color: #aaa !important;
+      font-size: 14px;
+      line-height: 1.8;
+      margin-bottom: 28px;
+    }
+
+    /* =====================================================
+       TALLAS
+    ===================================================== */
+
+    .panel label {
+      display: block;
+      color: #fff !important;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px !important;
+    }
+
+    .sizes {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .size-btn {
+      min-height: 46px;
+      border-radius: 8px;
+
+      border: 1px solid #303336;
+      background: #111315;
+      color: #fff;
+
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+
+      transition: .2s ease;
+    }
+
+    .size-btn:hover:not(.disabled) {
+      border-color: #ed001b;
+      color: #fff;
+      transform: translateY(-2px);
+    }
+
+    .size-btn.selected {
+      background: #ed001b;
+      color: #fff;
+      border-color: #ed001b;
+
+      box-shadow:
+        0 8px 20px rgba(237, 0, 27, .22);
+    }
+
+    .size-btn.disabled {
+      background: #0d0e0f;
+      color: #555;
+      border-color: #202224;
+      cursor: not-allowed;
+      opacity: .5;
+    }
+
+    /* =====================================================
+       BOTONES
+    ===================================================== */
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .btn-primary {
+      flex: 1;
+
+      padding: 15px 20px;
+
+      border: none;
+      border-radius: 7px;
+
+      background: #ed001b;
+      color: #fff;
+
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+
+      cursor: pointer;
+
+      transition: .25s ease;
+
+      box-shadow:
+        0 8px 22px rgba(237, 0, 27, .18);
+    }
+
+    .btn-primary:hover {
+      background: #ff1630;
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-outline {
+      padding: 15px 20px;
+
+      border-radius: 7px;
+      border: 1px solid #36393c;
+
+      background: #111315;
+      color: #fff;
+
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+
+      cursor: pointer;
+
+      transition: .25s ease;
+    }
+
+    .btn-outline:hover {
+      border-color: #ed001b;
+      color: #ed001b;
+    }
+
+    /* =====================================================
+       INFORMACIÓN DE ENVÍO
+    ===================================================== */
+
+    .meta {
+      margin-top: 22px;
+
+      padding-top: 20px;
+
+      border-top: 1px solid #292c2f;
+
+      color: #888;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    /* =====================================================
+       TOAST
+    ===================================================== */
+
+    .toast {
+      position: fixed;
+      right: 25px;
+      bottom: 25px;
+
+      background: #ed001b;
+      color: #fff;
+
+      padding: 14px 20px;
+
+      border-radius: 7px;
+
+      box-shadow:
+        0 10px 30px rgba(0,0,0,.35);
+
+      display: none;
+
+      align-items: center;
+      gap: 10px;
+
+      font-size: 13px;
+      font-weight: 600;
+
+      z-index: 9999;
+    }
+
+    /* =====================================================
+       FOOTER
+    ===================================================== */
+
+    .footer {
+      background: #111;
+      border-top: 1px solid #252525;
+    }
+
+    .footer-container {
+      width: min(1180px, 92%);
+      margin: auto;
+
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 50px;
+
+      padding: 55px 0 45px;
+    }
+
+    .footer-column h3 {
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+
+    .footer-column ul {
+      list-style: none;
+    }
+
+    .footer-column li {
+      margin-bottom: 11px;
+    }
+
+    .footer-column a {
+      color: #858585;
+      text-decoration: none;
+      font-size: 12px;
+      transition: .2s ease;
+    }
+
+    .footer-column a:hover {
+      color: #ed001b;
+    }
+
+    .footer .social .icons {
+      display: flex;
+      gap: 15px;
+    }
+
+    .footer .social .icons a {
+      color: #aaa;
+      font-size: 16px;
+    }
+
+    .footer .social .icons a:hover {
+      color: #ed001b;
+    }
+
+    .footer-bottom {
+      border-top: 1px solid #242424;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .footer-bottom p {
+      color: #666;
+      font-size: 11px;
+    }
+
+    /* =====================================================
+       RESPONSIVE
+    ===================================================== */
+
+    @media (max-width: 1000px) {
+
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 45px;
+      }
+
+      .main-img {
+        min-height: 500px;
+      }
+
+      .main-img img {
+        max-height: 500px;
+      }
+
+      .panel {
+        max-width: 700px;
+      }
+    }
+
+    @media (max-width: 700px) {
+
+      .page {
+        padding: 45px 0 65px;
+      }
+
+      .gallery {
+        flex-direction: column-reverse;
+      }
+
+      .thumbs {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+      }
+
+      .thumbs img {
+        width: 70px;
+        height: 70px;
+        flex-shrink: 0;
+      }
+
+      .main-img {
+        min-height: 400px;
+      }
+
+      .main-img img {
+        max-height: 400px;
+      }
+
+      .panel h1 {
+        font-size: 28px;
+      }
+
+      .footer-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 35px;
+      }
+    }
+
+    @media (max-width: 480px) {
+
+      .page {
+        width: 94%;
+      }
+
+      .main-img {
+        min-height: 320px;
+      }
+
+      .main-img img {
+        max-height: 320px;
+        padding: 15px;
+      }
+
+      .panel h1 {
+        font-size: 24px;
+      }
+
+      .price {
+        font-size: 22px;
+      }
+
+      .sizes {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .btn-outline {
+        width: 100%;
+      }
+
+      .footer-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- =====================================================
+       TOP BAR
+  ====================================================== -->
+
+  <div class="top-bar">
+    <div class="top-links">
+      <a href="ayuda.html">Ayuda</a>
+      <span>|</span>
+
+      <a href="formulario.html">Formulario</a>
+      <span>|</span>
+
+      <a href="login.html">Iniciar sesión</a>
+    </div>
+  </div>
+
+
+  <!-- =====================================================
+       NAVBAR
+  ====================================================== -->
+
+  <header class="navbar">
+
+    <div class="logo">
+
+      <img src="assets/web.jpg" alt="Logo Tienda Kixa">
+
+      <a href="index.html">
+        <span>Tienda Kixa</span>
+      </a>
+
+    </div>
+
+
+    <nav class="nav-links">
+
+      <a href="mujer.html">Mujer</a>
+
+      <a href="hombre.html">Hombre</a>
+
+      <a href="niños.html">Niños</a>
+
+      <a href="deporte.html">Deporte</a>
+
+    </nav>
+
+
+    <div class="search-bar">
+
+      <input
+        type="text"
+        placeholder="Buscar"
+      >
+
+      <button>
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+
+    </div>
+
+
+    <div class="icons">
+
+      <a href="carrito.html" title="Carrito">
+        <i class="fa fa-shopping-cart"></i>
+      </a>
+
+      <a href="login.html" title="Cuenta">
+        <i class="fa fa-user"></i>
+      </a>
+
+    </div>
+
+  </header>
+
+
+  <!-- =====================================================
+       PRODUCTO
+  ====================================================== -->
+
+  <main class="page">
+
+    <div class="grid">
+
+
+      <!-- =================================================
+           GALERÍA
+      ================================================== -->
+
+      <div class="gallery">
+
+        <div
+          class="thumbs"
+          id="thumbs">
+        </div>
+
+
+        <div
+          class="main-img"
+          id="mainImg">
+
+          <img
+            id="mainImage"
+            src=""
+            alt="Producto Tienda Kixa">
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           INFORMACIÓN
+      ================================================== -->
+
+      <aside class="panel">
+
+        <div
+          class="brand"
+          id="productBrand">
+        </div>
+
+
+        <h1 id="productName"></h1>
+
+
+        <div
+          class="price"
+          id="productPrice">
+        </div>
+
+
+        <p
+          id="productDescription">
+        </p>
+
+
+        <!-- TALLAS -->
+
+        <div>
+
+          <label>
+            Selecciona tu talla
+          </label>
+
+          <div
+            class="sizes"
+            id="sizes">
+          </div>
+
+        </div>
+
+
+        <!-- BOTONES -->
+
+        <div class="actions">
+          <button class="btn-primary" id="addBtn">Agregar al Carrito</button>
+            </div>
+
+
+
+        <!-- ENVÍO -->
+
+        <div class="meta">
+
+          <i class="fa-solid fa-truck"></i>
+
+          Envío gratis a partir de S/ 200.
+          Entrega en 3-5 días.
+
+        </div>
+
+      </aside>
+
+    </div>
+
+  </main>
+
+
+  <!-- =====================================================
+       TOAST
+  ====================================================== -->
+
+  <div
+    id="toast"
+    class="toast">
+
+    <i class="fa-solid fa-circle-check"></i>
+
+    Añadido al carrito
+
+  </div>
+
+
+  <!-- =====================================================
+       FOOTER
+  ====================================================== -->
+
+  <footer class="footer">
+
+    <div class="footer-container">
+
+
+      <div class="footer-column">
+
+        <h3>Buscar tienda</h3>
+
+        <ul>
+
+          <li>
+            <a href="#">
+              Tiendas cercanas
+            </a>
+          </li>
+
+        </ul>
+
+      </div>
+
+
+      <div class="footer-column">
+
+        <h3>Obtener ayuda</h3>
+
+        <ul>
+
+          <li>
+            <a href="ayuda.html">
+              Estado del pedido
+            </a>
+          </li>
+
+          <li>
+            <a href="ayuda.html">
+              Envío y entrega
+            </a>
+          </li>
+
+          <li>
+            <a href="ayuda.html">
+              Cambios y devoluciones
+            </a>
+          </li>
+
+          <li>
+            <a href="ayuda.html">
+              Opciones de pago
+            </a>
+          </li>
+
+          <li>
+            <a href="ayuda.html">
+              Preguntas frecuentes
+            </a>
+          </li>
+
+          <li>
+            <a href="ayuda.html">
+              Contáctanos
+            </a>
+          </li>
+
+        </ul>
+
+      </div>
+
+
+      <div class="footer-column">
+
+        <h3>Acerca de la tienda</h3>
+
+        <ul>
+
+          <li>
+            <a href="ayuda.html">
+              Empleo
+            </a>
+          </li>
+
+          <li>
+            <a href="#">
+              Nosotros
+            </a>
+          </li>
+
+        </ul>
+
+      </div>
+
+
+      <div class="footer-column social">
+
+        <h3>Síguenos</h3>
+
+        <div class="icons">
+
+          <a
+            href="https://www.facebook.com/people/Zapatillas-Kixa/pfbid0246fZ4YBwM2GBdeEQf8FfUFJUdLqgaXgWAMwz5UrPMX37SW7AabDdAATinm152jZCl/"
+            target="_blank">
+
+            <i class="fab fa-facebook"></i>
+
+          </a>
+
+
+          <a
+            href="https://www.instagram.com/zapatillas.kixa/"
+            target="_blank">
+
+            <i class="fab fa-instagram"></i>
+
+          </a>
+
+
+          <a
+            href="https://www.tiktok.com/@zapatillaskixa"
+            target="_blank">
+
+            <i class="fab fa-tiktok"></i>
+
+          </a>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+      <p>
+        © 2026 - Tienda Kixa. Todos los derechos reservados.
+      </p>
+
+    </div>
+
+  </footer>
+
+
+  <!-- =====================================================
+       JAVASCRIPT ORIGINAL
+  ====================================================== -->
+
+  <script src="js/producto-dinamico.js"></script>
+
+</body>
+</html>
