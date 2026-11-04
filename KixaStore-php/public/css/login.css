@@ -1,0 +1,496 @@
+/* LOGIN KIXA */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    font-family: 'Poppins', sans-serif;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+/* FONDO */
+
+.background {
+
+    background:
+        url('../assets/789.png')
+        no-repeat
+        center center / cover;
+
+    width: 100%;
+
+    min-height: calc(100vh - 70px);
+
+    position: relative;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    padding: 45px 20px;
+
+}
+
+.overlay {
+
+    position: absolute;
+
+    width: 100%;
+    height: 100%;
+
+    top: 0;
+    left: 0;
+
+    background:
+        rgba(0, 0, 0, .58);
+
+}
+
+/* CAJA */
+
+.login-box {
+
+    position: relative;
+
+    z-index: 2;
+
+    width: 95%;
+
+    max-width: 680px;
+
+    max-height: 85vh;
+
+    overflow-y: auto;
+
+    padding: 35px 42px;
+
+    color: #fff;
+
+    text-align: center;
+
+    background:
+        rgba(255, 255, 255, .13);
+
+    border:
+        1px solid rgba(255, 255, 255, .2);
+
+    border-radius: 22px;
+
+    backdrop-filter:
+        blur(14px);
+
+    -webkit-backdrop-filter:
+        blur(14px);
+
+    box-shadow:
+        0 15px 45px rgba(0, 0, 0, .45);
+
+}
+
+/* SCROLL */
+
+.login-box::-webkit-scrollbar {
+    width: 5px;
+}
+
+.login-box::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, .35);
+
+    border-radius: 10px;
+}
+
+/* FORMULARIOS */
+
+.form {
+
+    display: none;
+
+    animation:
+        fadeIn .5s ease;
+
+}
+
+.form.active {
+    display: block;
+}
+
+/* ICONO */
+
+.form-icon {
+
+    width: 55px;
+    height: 55px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto 15px;
+
+    background: rgba(255, 255, 255, .12);
+
+    border:
+        1px solid rgba(255, 255, 255, .2);
+
+    border-radius: 50%;
+
+    color: #fff;
+
+    font-size: 20px;
+
+}
+
+/* TITULOS */
+
+h2 {
+
+    font-size: 25px;
+
+    font-weight: 600;
+
+}
+
+h2 span {
+    color: #ff2020;
+}
+
+.subtitle {
+
+    color: #ddd;
+
+    margin-top: 7px;
+
+    margin-bottom: 25px;
+
+    font-size: 12px;
+
+}
+
+/* GRID REGISTRO */
+
+.registro-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    column-gap: 20px;
+
+}
+
+/* INPUTS */
+
+.input-group {
+
+    position: relative;
+
+    margin-bottom: 23px;
+
+}
+
+.input-group input,
+.input-group select {
+
+    width: 100%;
+
+    height: 47px;
+
+    padding:
+        10px 5px;
+
+    background: transparent;
+
+    border: none;
+
+    border-bottom:
+        2px solid rgba(255, 255, 255, .55);
+
+    outline: none;
+
+    color: #fff;
+
+    font-size: 12px;
+
+    transition: .25s;
+
+}
+
+.input-group input:focus,
+.input-group input:valid,
+.input-group select:focus {
+
+    border-color: #ff1515;
+
+}
+
+/* LABEL */
+
+.input-group label {
+
+    position: absolute;
+
+    left: 5px;
+
+    top: 50%;
+
+    transform:
+        translateY(-50%);
+
+    color: #ccc;
+
+    font-size: 11px;
+
+    pointer-events: none;
+
+    transition: .25s;
+
+}
+
+.input-group input:focus + label,
+.input-group input:valid + label {
+
+    top: -5px;
+
+    font-size: 9px;
+
+    color: #fff;
+
+}
+
+/* SELECT */
+
+.select-group select {
+
+    cursor: pointer;
+
+    appearance: none;
+
+}
+
+.select-group select option {
+
+    color: #111;
+
+    background: #fff;
+
+}
+
+.select-group select:valid + label {
+
+    top: -5px;
+
+    font-size: 9px;
+
+    color: #fff;
+
+}
+
+/* FECHA */
+
+input[type="date"] {
+
+    color-scheme: dark;
+
+}
+
+input[type="date"]:valid + label {
+
+    top: -5px;
+
+    font-size: 9px;
+
+    color: #fff;
+
+}
+
+/* CONTRASEÑA COMPLETA */
+
+.password-full {
+
+    grid-column:
+        span 2;
+
+}
+
+/* BOTON */
+
+.btn {
+
+    width: 100%;
+
+    min-height: 47px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 9px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff1717,
+            #480000
+        );
+
+    color: #fff;
+
+    border: none;
+
+    padding: 12px;
+
+    border-radius: 10px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: .25s;
+
+}
+
+.btn:hover {
+
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 8px 20px
+        rgba(255, 0, 0, .25);
+
+}
+
+/* TEXTO REGISTRO */
+
+.register-text {
+
+    margin-top: 20px;
+
+    font-size: 11px;
+
+    color: #ddd;
+
+}
+
+.register-text a {
+
+    color: #ff2222;
+
+    text-decoration: none;
+
+    font-weight: 600;
+
+}
+
+.register-text a:hover {
+
+    text-decoration: underline;
+
+}
+
+/* ANIMACION */
+
+@keyframes fadeIn {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(12px);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0);
+
+    }
+
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 650px) {
+
+    .background {
+
+        min-height:
+            calc(100vh - 60px);
+
+        padding:
+            30px 12px;
+
+        align-items:
+            flex-start;
+
+    }
+
+    .login-box {
+
+        margin-top: 20px;
+
+        padding:
+            30px 22px;
+
+        max-height:
+            88vh;
+
+    }
+
+    .registro-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+    .password-full {
+
+        grid-column:
+            span 1;
+
+    }
+
+    h2 {
+
+        font-size:
+            21px;
+
+    }
+
+}
+
+@media (max-width: 400px) {
+
+    .login-box {
+
+        padding:
+            25px 18px;
+
+    }
+
+    .subtitle {
+
+        font-size:
+            10px;
+
+    }
+
+}
