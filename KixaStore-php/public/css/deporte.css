@@ -1,0 +1,861 @@
+/* KIXA DEPORTE
+   MISMO DISEÑO QUE MUJER */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #090a0b;
+  color: #fff;
+}
+
+/* HERO */
+
+.deporte-hero {
+  position: relative;
+  height: 470px;
+  overflow: hidden;
+  background: #080909;
+}
+
+.hero-slider {
+  position: absolute;
+  inset: 0;
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  opacity: 0;
+  transform: scale(1.05);
+
+  transition:
+    opacity .8s ease,
+    transform 5s ease;
+}
+
+.hero-slide.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* OSCURECER IMAGEN */
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.92) 0%,
+      rgba(0,0,0,.72) 35%,
+      rgba(0,0,0,.20) 75%,
+      rgba(0,0,0,.55) 100%
+    );
+
+  z-index: 1;
+}
+
+/* LINEAS DECORATIVAS */
+
+.hero-lines {
+  position: absolute;
+  left: -20px;
+  top: 120px;
+
+  z-index: 2;
+
+  transform: rotate(-25deg);
+}
+
+.hero-lines span {
+  display: block;
+
+  width: 130px;
+  height: 12px;
+
+  margin: 18px 0;
+
+  background: #e60012;
+
+  opacity: .7;
+}
+
+/* CONTENIDO HERO */
+
+.deporte-hero-content {
+  position: absolute;
+
+  z-index: 3;
+
+  top: 50%;
+  left: 12%;
+
+  transform: translateY(-50%);
+
+  max-width: 560px;
+}
+
+.hero-small {
+  display: block;
+
+  margin-bottom: 12px;
+
+  color: #ff1025;
+
+  font-size: .78rem;
+  font-weight: 700;
+
+  letter-spacing: 4px;
+}
+
+.deporte-hero-content h1 {
+  margin: 0;
+
+  font-size: clamp(3.3rem, 6vw, 5.5rem);
+
+  line-height: .88;
+
+  font-weight: 800;
+
+  letter-spacing: -3px;
+}
+
+.deporte-hero-content h1 em {
+  font-style: normal;
+  color: #eee;
+}
+
+.deporte-hero-content h1 strong {
+  color: #e90018;
+}
+
+.deporte-hero-content p {
+  max-width: 440px;
+
+  margin: 24px 0;
+
+  color: #d4d4d4;
+
+  font-size: .9rem;
+
+  line-height: 1.7;
+}
+
+/* BOTON HERO */
+
+.hero-btn {
+  display: inline-flex;
+
+  align-items: center;
+  gap: 13px;
+
+  padding: 13px 22px;
+
+  background: #ed001b;
+  color: white;
+
+  border-radius: 5px;
+
+  text-decoration: none;
+
+  font-size: .8rem;
+  font-weight: 700;
+
+  transition: .3s;
+}
+
+.hero-btn:hover {
+  background: #ff1e35;
+
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 10px 30px rgba(230,0,20,.25);
+}
+
+.hero-btn i {
+  transition: .3s;
+}
+
+.hero-btn:hover i {
+  transform: translateX(5px);
+}
+
+/* TEXTO LATERAL */
+
+.hero-side-text {
+  position: absolute;
+
+  z-index: 3;
+
+  right: 5%;
+
+  top: 50%;
+
+  transform: translateY(-50%) rotate(-5deg);
+
+  color: rgba(255,255,255,.28);
+
+  font-size: 2.8rem;
+
+  font-weight: 800;
+
+  line-height: .9;
+
+  text-align: center;
+
+  letter-spacing: -2px;
+}
+
+/* FLECHAS */
+
+.hero-arrow {
+  position: absolute;
+
+  z-index: 5;
+
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  width: 42px;
+  height: 42px;
+
+  border: 1px solid rgba(255,255,255,.3);
+
+  border-radius: 50%;
+
+  background: rgba(0,0,0,.35);
+
+  color: white;
+
+  cursor: pointer;
+
+  transition: .3s;
+}
+
+.hero-arrow:hover {
+  background: #e60018;
+
+  border-color: #e60018;
+}
+
+.hero-prev {
+  left: 25px;
+}
+
+.hero-next {
+  right: 25px;
+}
+
+/* DOTS */
+
+.hero-dots {
+  position: absolute;
+
+  z-index: 5;
+
+  bottom: 20px;
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  display: flex;
+
+  gap: 7px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+
+  padding: 0;
+  border: 0;
+
+  border-radius: 10px;
+
+  background: rgba(255,255,255,.35);
+
+  transition: .3s;
+
+  cursor: pointer;
+}
+
+.dot.active {
+  width: 25px;
+
+  background: #ed001b;
+}
+
+/* TITULO COLECCION */
+
+.coleccion-header {
+  padding: 55px 20px 20px;
+
+  text-align: center;
+
+  background: #090a0b;
+}
+
+.section-title {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  gap: 18px;
+}
+
+.section-title span {
+  width: 55px;
+  height: 1px;
+
+  background: #e50018;
+}
+
+.section-title p {
+  margin: 0;
+
+  color: #ed001b;
+
+  font-size: .7rem;
+
+  font-weight: 700;
+
+  letter-spacing: 5px;
+}
+
+.coleccion-header h2 {
+  margin: 8px 0;
+
+  font-size: 2.3rem;
+
+  line-height: 1;
+
+  font-weight: 700;
+}
+
+.coleccion-header h2 strong {
+  color: white;
+}
+
+.section-description {
+  margin: 12px 0 0;
+
+  color: #888;
+
+  font-size: .78rem;
+}
+
+/* FILTROS */
+
+.filtros {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+  padding: 18px 20px 35px;
+
+  background: #090a0b;
+}
+
+.filtro {
+  min-width: 75px;
+
+  padding: 8px 19px;
+
+  border: 1px solid #444;
+
+  border-radius: 25px;
+
+  background: transparent;
+
+  color: #ddd;
+
+  font-family: 'Poppins', sans-serif;
+
+  font-size: .72rem;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: .3s;
+}
+
+.filtro:hover {
+  border-color: #e60018;
+
+  color: white;
+}
+
+.filtro.activo {
+  background: #ed001b;
+
+  border-color: #ed001b;
+
+  color: white;
+
+  box-shadow:
+    0 5px 18px rgba(237,0,27,.22);
+}
+
+/* CONTENEDOR PRODUCTOS */
+
+.productos-container {
+  width: min(1180px, 92%);
+
+  margin: auto;
+
+  padding: 0 0 75px;
+
+  background: transparent;
+}
+
+/* GRID */
+
+.grid-productos {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 20px;
+}
+
+/* TARJETA */
+
+.producto {
+  position: relative;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      145deg,
+      #141618,
+      #0d0f10
+    );
+
+  border: 1px solid #292c2f;
+
+  border-radius: 7px;
+
+  transition:
+    transform .35s ease,
+    border-color .35s ease,
+    box-shadow .35s ease;
+}
+
+.producto:hover {
+  transform: translateY(-6px);
+
+  border-color: #444;
+
+  box-shadow:
+    0 18px 35px rgba(0,0,0,.35);
+}
+
+/* IMAGEN PRODUCTO */
+
+.producto-img {
+  position: relative;
+
+  height: 220px;
+
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 16px;
+
+  background:
+    radial-gradient(
+      circle at center,
+      #1d2022,
+      #101213 70%
+    );
+}
+
+.producto-img img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  border-radius: 12px;
+
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.55),
+    0 0 0 1px rgba(255,255,255,.05);
+
+  transition:
+    transform .5s ease;
+}
+
+.producto:hover .producto-img img {
+  transform: scale(1.05);
+}
+
+/* BADGES */
+
+.badge {
+  position: absolute;
+
+  z-index: 3;
+
+  top: 10px;
+  left: 10px;
+
+  padding: 5px 9px;
+
+  border-radius: 4px;
+
+  color: white;
+
+  font-size: .58rem;
+
+  font-weight: 700;
+
+  letter-spacing: .5px;
+}
+
+.badge.nuevo {
+  background: #ed001b;
+}
+
+.badge.oferta {
+  background: #ed001b;
+}
+
+/* BOTON VER PRODUCTO */
+
+.producto-action {
+  position: absolute;
+
+  z-index: 4;
+
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+
+  opacity: 0;
+
+  transform: translateY(12px);
+
+  transition: .3s;
+}
+
+.producto:hover .producto-action {
+  opacity: 1;
+
+  transform: translateY(0);
+}
+
+.producto-action a {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  width: 100%;
+
+  padding: 9px;
+
+  border-radius: 4px;
+
+  background: #ed001b;
+
+  color: white;
+
+  text-decoration: none;
+
+  font-size: .67rem;
+
+  font-weight: 600;
+
+  transition: .3s;
+}
+
+.producto-action a:hover {
+  background: #ff1730;
+}
+
+/* INFORMACION */
+
+.producto-info {
+  padding: 14px 15px 16px;
+}
+
+.marca {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #777;
+
+  font-size: .58rem;
+
+  font-weight: 600;
+
+  letter-spacing: 1px;
+}
+
+.producto h3 {
+  min-height: 38px;
+
+  margin: 0;
+
+  color: #f2f2f2;
+
+  font-size: .76rem;
+
+  font-weight: 600;
+
+  line-height: 1.4;
+}
+
+/* PRECIO */
+
+.producto-bottom {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  margin-top: 9px;
+}
+
+.precio {
+  color: #ff1029;
+
+  font-size: .95rem;
+
+  font-weight: 700;
+}
+
+/* MINI BOTON */
+
+.mini-btn {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  width: 27px;
+  height: 27px;
+
+  border: 1px solid #444;
+
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: white;
+
+  text-decoration: none;
+
+  font-size: .58rem;
+
+  transition: .3s;
+}
+
+.mini-btn:hover {
+  background: #ed001b;
+
+  border-color: #ed001b;
+}
+
+/* FOOTER */
+
+.footer {
+  border-top: 1px solid #292b2d;
+
+  background: #070808;
+
+  padding: 25px 7%;
+}
+
+.footer-content {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-logo {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+}
+
+.footer-logo img {
+  width: 32px;
+  height: 32px;
+
+  object-fit: contain;
+
+  filter: grayscale(1) brightness(4);
+}
+
+.footer-logo span {
+  color: white;
+
+  font-size: .9rem;
+
+  font-weight: 700;
+}
+
+.footer p {
+  margin: 0;
+
+  color: #777;
+
+  font-size: .65rem;
+}
+
+/* PRODUCTO OCULTO */
+
+.producto.oculto {
+  display: none;
+}
+
+.producto.mostrar {
+  animation: aparecer .4s ease;
+}
+
+/* ANIMACION */
+
+@keyframes aparecer {
+
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+}
+
+/* TABLET */
+
+@media (max-width: 1000px) {
+
+  .grid-productos {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .hero-side-text {
+    display: none;
+  }
+
+}
+
+/* MOVIL */
+
+@media (max-width: 700px) {
+
+  .deporte-hero {
+    height: 430px;
+  }
+
+  .deporte-hero-content {
+    left: 8%;
+    right: 8%;
+  }
+
+  .deporte-hero-content h1 {
+    font-size: 3.3rem;
+  }
+
+  .grid-productos {
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 12px;
+  }
+
+  .producto-img {
+    height: 190px;
+  }
+
+  .producto-info {
+    padding: 12px;
+  }
+
+  .producto h3 {
+    font-size: .7rem;
+  }
+
+  .precio {
+    font-size: .85rem;
+  }
+
+  .producto-action {
+    display: none;
+  }
+
+  .hero-lines {
+    opacity: .4;
+  }
+
+}
+
+/* MOVIL PEQUEÑO */
+
+@media (max-width: 450px) {
+
+  .grid-productos {
+    grid-template-columns: 1fr;
+  }
+
+  .producto-img {
+    height: 280px;
+  }
+
+  .coleccion-header h2 {
+    font-size: 1.9rem;
+  }
+
+  .filtros {
+    gap: 7px;
+  }
+
+  .filtro {
+    padding: 7px 13px;
+  }
+
+  .footer-content {
+    flex-direction: column;
+
+    gap: 15px;
+
+    text-align: center;
+  }
+
+}
