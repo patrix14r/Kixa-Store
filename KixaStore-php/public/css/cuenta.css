@@ -1,5 +1,9 @@
-/* CUENTA KIXA  DISEÑO OSCURO */
+/* ==========================================================================
+   TIENDA KIXA - HOJA DE ESTILOS (CUENTA.CSS)
+   Diseño deportivo, optimizado e interactivo estilo Puma / Nike
+   ========================================================================== */
 
+========================================================================== */
 * {
     box-sizing: border-box;
 }
@@ -11,9 +15,7 @@ body {
     color: #fff;
 }
 
-
-/* CONTENEDOR */
-
+/* [BLOQUE]: CONTENEDOR */
 .cuenta-container {
     min-height: calc(100vh - 100px);
     padding: 50px 20px 80px;
@@ -25,9 +27,7 @@ body {
     margin: auto;
 }
 
-
-/* HEADER */
-
+/* [BLOQUE]: HEADER */
 .cuenta-header {
     display: flex;
     align-items: center;
@@ -71,9 +71,7 @@ body {
     font-size: 19px;
 }
 
-
-/* GRID */
-
+/* [BLOQUE]: GRID */
 .cuenta-grid {
     display: grid;
     grid-template-columns: 310px 1fr;
@@ -81,9 +79,7 @@ body {
     align-items: start;
 }
 
-
-/* TARJETA PERFIL */
-
+/* [BLOQUE]: TARJETA PERFIL */
 .perfil-card {
     overflow: hidden;
     background: #111315;
@@ -112,9 +108,7 @@ body {
     text-align: center;
 }
 
-
-/* FOTO */
-
+/* [BLOQUE]: FOTO */
 .foto-container {
     position: relative;
     margin-top: -58px;
@@ -142,9 +136,7 @@ body {
     display: none;
 }
 
-
-/* CAMARA */
-
+/* [BLOQUE]: CAMARA */
 .icono-camara {
     width: 35px;
     height: 35px;
@@ -168,9 +160,7 @@ body {
     background: #ff1730;
 }
 
-
-/* PERFIL TEXTO */
-
+/* [BLOQUE]: PERFIL TEXTO */
 .perfil-texto h2 {
     margin: 0;
     color: #fff;
@@ -188,9 +178,7 @@ body {
     margin-right: 4px;
 }
 
-
-/* FOTO BOTON */
-
+/* [BLOQUE]: FOTO BOTON */
 .btn-foto {
     display: inline-flex;
     align-items: center;
@@ -213,9 +201,7 @@ body {
     color: #fff;
 }
 
-
-/* ESTADO */
-
+/* [BLOQUE]: ESTADO */
 .estado-cuenta {
     display: flex;
     align-items: center;
@@ -234,9 +220,7 @@ body {
     border-radius: 50%;
 }
 
-
-/* INFORMACION */
-
+/* [BLOQUE]: INFORMACION */
 .informacion-card {
     padding: 28px;
     background: #111315;
@@ -245,9 +229,7 @@ body {
     box-shadow: 0 15px 35px rgba(0, 0, 0, .25);
 }
 
-
-/* TITULO INFORMACION */
-
+/* [BLOQUE]: TITULO INFORMACION */
 .seccion-titulo {
     display: flex;
     align-items: center;
@@ -277,9 +259,7 @@ body {
     font-size: 19px;
 }
 
-
-/* GRID INFORMACION */
-
+/* [BLOQUE]: GRID INFORMACION */
 .informacion {
     padding-top: 25px;
     display: grid;
@@ -295,9 +275,7 @@ body {
     grid-column: span 2;
 }
 
-
-/* LABEL */
-
+/* [BLOQUE]: LABEL */
 .dato-label {
     display: block;
     margin-bottom: 8px;
@@ -311,9 +289,7 @@ body {
     color: #ed001b;
 }
 
-
-/* CAMPOS */
-
+/* [BLOQUE]: CAMPOS */
 .campo {
     width: 100%;
     height: 45px;
@@ -342,9 +318,7 @@ body {
     color: #fff;
 }
 
-
-/* EMAIL */
-
+/* [BLOQUE]: EMAIL */
 .email-box {
     min-height: 45px;
     display: flex;
@@ -378,9 +352,7 @@ body {
     font-weight: 600;
 }
 
-
-/* GUARDAR */
-
+/* [BLOQUE]: GUARDAR */
 .guardar-container {
     display: flex;
     justify-content: flex-end;
@@ -415,9 +387,7 @@ body {
     transform: translateY(0);
 }
 
-
-/* OPCIONES */
-
+/* [BLOQUE]: OPCIONES */
 .acciones {
     margin-top: 30px;
     padding-top: 24px;
@@ -433,9 +403,7 @@ body {
     letter-spacing: 1.6px;
 }
 
-
-/* OPCION */
-
+/* [BLOQUE]: OPCION */
 .opcion,
 .cerrar-sesion {
     width: 100%;
@@ -462,9 +430,7 @@ body {
     transform: translateX(3px);
 }
 
-
-/* ICONOS */
-
+/* [BLOQUE]: ICONOS */
 .opcion-icono {
     width: 38px;
     height: 38px;
@@ -478,9 +444,7 @@ body {
     font-size: 13px;
 }
 
-
-/* TEXTO */
-
+/* [BLOQUE]: TEXTO */
 .opcion-info {
     flex: 1;
 }
@@ -504,9 +468,7 @@ body {
     font-size: 9px;
 }
 
-
-/* CERRAR SESION */
-
+/* [BLOQUE]: CERRAR SESION */
 .cerrar-sesion {
     margin-top: 6px;
     background: rgba(237, 0, 27, .06);
@@ -524,88 +486,65 @@ body {
     transform: translateX(3px);
 }
 
-
-/* RESPONSIVE */
-
+/* [BLOQUE]: RESPONSIVE */
 @media (max-width: 900px) {
-
     .cuenta-grid {
         grid-template-columns: 1fr;
     }
-
     .perfil-card {
         width: 100%;
         max-width: 500px;
         margin: auto;
     }
-
 }
 
-
 @media (max-width: 650px) {
-
     .cuenta-container {
         padding: 35px 15px 55px;
     }
-
     .cuenta-wrapper {
         width: 100%;
     }
-
     .cuenta-header h1 {
         font-size: 28px;
     }
-
     .cuenta-header p {
         font-size: 11px;
     }
-
     .icono-header {
         width: 45px;
         height: 45px;
         font-size: 16px;
     }
-
     .informacion-card {
         padding: 20px;
     }
-
     .informacion {
         grid-template-columns: 1fr;
     }
-
     .dato-completo {
         grid-column: span 1;
     }
-
     .guardar-container {
         justify-content: stretch;
     }
-
     .btn-guardar {
         width: 100%;
     }
-
     .email-box {
         flex-direction: column;
         align-items: flex-start;
     }
-
 }
 
-
 @media (max-width: 400px) {
-
     .cuenta-header {
         align-items: flex-start;
     }
-
     .icono-header {
         display: none;
     }
-
     .cuenta-header h1 {
         font-size: 25px;
     }
-
 }

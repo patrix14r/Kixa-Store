@@ -1011,149 +1011,133 @@ const productosData = {
 
 };
 
-     Obtener id de la URL ========
+// ==========================================================================
+// [BLOQUE]: CARGA DINÁMICA DE DETALLE DE PRODUCTO Y CARRITO
+// ==========================================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    // [CAMBIO]: Obtener el ID del producto desde los parámetros de la URL (?id=...)
     const urlParams = new URLSearchParams(window.location.search);
     const pid = urlParams.get("id");
 
     if (!pid || !productosData[pid]) {
-      // si no encuentra el producto, mostrar mensaje y salir
-      document.querySelector(".page").innerHTML = "<div style='padding:40px;text-align:center'><h2>Producto no encontrado</h2><p>Vuelve al catálogo.</p></div>";
-      throw new Error("Producto no encontrado");
+        const pageEl = document.querySelector(".page");
+        if (pageEl) {
+            pageEl.innerHTML = "<div style='padding:40px;text-align:center'><h2>Producto no encontrado</h2><p>El calzado solicitado no está disponible en este momento.</p><a href='/catalogo' style='color:#000;text-decoration:underline;'>Volver al catálogo</a></div>";
+        }
+        return;
     }
 
     const producto = productosData[pid];
 
-     Poner datos en HTML ========
-    document.getElementById("productBrand").innerText = producto.marca || "";
-    document.getElementById("productName").innerText = producto.nombre || "";
-    document.getElementById("productPrice").innerText = "S/ " + (producto.precio ?? "");
-    document.getElementById("productDescription").innerText = producto.descripcion || "";
+    // [CAMBIO]: Renderizado de datos del producto en el DOM
+    const brandEl = document.getElementById("productBrand");
+    const nameEl = document.getElementById("productName");
+    const priceEl = document.getElementById("productPrice");
+    const descEl = document.getElementById("productDescription");
 
-     Miniaturas y main image ========
+    if (brandEl) brandEl.innerText = producto.marca || "";
+    if (nameEl) nameEl.innerText = producto.nombre || "";
+    if (priceEl) priceEl.innerText = "S/ " + (producto.precio ?? "");
+    if (descEl) descEl.innerText = producto.descripcion || "";
+
+    // [CAMBIO]: Galería de imágenes (miniatura y principal)
     const thumbs = document.getElementById("thumbs");
     const mainImage = document.getElementById("mainImage");
 
-    // limpiar
-    thumbs.innerHTML = "";
+    if (thumbs) thumbs.innerHTML = "";
 
-    // establecer principal
-    if (producto.imagenes && producto.imagenes.length) {
-      const firstImg = producto.imagenes[0];
-      mainImage.src = firstImg.startsWith("assets/") ? firstImg : "assets/" + firstImg;
-    } else {
-      mainImage.src = ""; // o alguna placeholder
+    if (mainImage) {
+        if (producto.imagenes && producto.imagenes.length) {
+            const firstImg = producto.imagenes[0];
+            mainImage.src = firstImg.startsWith("assets/") ? firstImg : "assets/" + firstImg;
+        } else {
+            mainImage.src = "";
+        }
     }
 
-    // crear miniaturas
-    (producto.imagenes || []).forEach((src, i) => {
-      const imgPath = src.startsWith("assets/") ? src : "assets/" + src;
-      const img = document.createElement("img");
-      img.src = imgPath;
-      img.dataset.large = imgPath;
-      if (i === 0) img.classList.add("active");
-      img.addEventListener("click", () => {
-        // set main
-        mainImage.src = imgPath;
-        // active class
-        thumbs.querySelectorAll("img").forEach(t => t.classList.remove("active"));
-        img.classList.add("active");
-      });
-      thumbs.appendChild(img);
-    });
+    if (thumbs && producto.imagenes) {
+        producto.imagenes.forEach((src, i) => {
+            const imgPath = src.startsWith("assets/") ? src : "assets/" + src;
+            const img = document.createElement("img");
+            img.src = imgPath;
+            img.dataset.large = imgPath;
+            if (i === 0) img.classList.add("active");
 
-     TALLAS (usar mismas tallas que tenías) ========
-    const tallas = ["36","36.5","37","37.5","38","38.5","39","40","40.5","41","42","43"];
-    const disabled = new Set(["36.5","37.5","40.5"]); // opcional
+            img.addEventListener("click", () => {
+                if (mainImage) mainImage.src = imgPath;
+                thumbs.querySelectorAll("img").forEach(t => t.classList.remove("active"));
+                img.classList.add("active");
+            });
+
+            thumbs.appendChild(img);
+        });
+    }
+
+    // [CAMBIO]: Selector interactivo de tallas
+    const tallas = ["36", "36.5", "37", "37.5", "38", "38.5", "39", "40", "40.5", "41", "42", "43"];
+    const disabled = new Set(["36.5", "37.5", "40.5"]);
     let selectedSize = null;
     const sizesContainer = document.getElementById("sizes");
 
-    // limpiar y recrear botones
-    sizesContainer.innerHTML = "";
-    tallas.forEach(sz => {
-      const btn = document.createElement("button");
-      btn.className = "size-btn" + (disabled.has(sz) ? " disabled" : "");
-      btn.innerText = sz;
-      btn.disabled = disabled.has(sz);
-      btn.addEventListener("click", () => {
-        if (btn.classList.contains("disabled")) return;
-        document.querySelectorAll(".size-btn").forEach(b => b.classList.remove("selected"));
-        btn.classList.add("selected");
-        selectedSize = sz;
-      });
-      sizesContainer.appendChild(btn);
-    });
+    if (sizesContainer) {
+        sizesContainer.innerHTML = "";
+        tallas.forEach(sz => {
+            const btn = document.createElement("button");
+            btn.className = "size-btn" + (disabled.has(sz) ? " disabled" : "");
+            btn.innerText = sz;
+            btn.disabled = disabled.has(sz);
 
-     AGREGAR AL CARRITO ========
+            btn.addEventListener("click", () => {
+                if (btn.classList.contains("disabled")) return;
+                document.querySelectorAll(".size-btn").forEach(b => b.classList.remove("selected"));
+                btn.classList.add("selected");
+                selectedSize = sz;
+            });
 
-// AGREGAR AL CARRITOconst addBtn = document.getElementById("addBtn");
-const toast = document.getElementById("toast");
-
-addBtn.addEventListener("click", () => {
-
-        // COMPROBAR SI HAY SESIÓN
-        const sesion = localStorage.getItem("usuarioLogueado");
-
-    if (!sesion) {
-
-        alert(
-            "⚠️ Debes iniciar sesión antes de comprar."
-        );
-
-        window.location.href = "login.html";
-
-        return;
+            sizesContainer.appendChild(btn);
+        });
     }
 
-        // COMPROBAR TALLA
-        if (!selectedSize) {
+    // [CAMBIO]: Botón para agregar producto al carrito de compras
+    const addBtn = document.getElementById("addBtn");
+    const toast = document.getElementById("toast");
 
-        alert(
-            "⚠️ Por favor selecciona una talla."
-        );
+    if (addBtn) {
+        addBtn.addEventListener("click", () => {
+            const sesion = localStorage.getItem("usuarioLogueado");
 
-        return;
+            if (!sesion) {
+                alert("⚠️ Debes iniciar sesión antes de agregar productos al carrito.");
+                window.location.href = "/login";
+                return;
+            }
+
+            if (!selectedSize) {
+                alert("⚠️ Por favor selecciona una talla antes de continuar.");
+                return;
+            }
+
+            const item = {
+                id: producto.id,
+                nombre: producto.nombre,
+                precio: producto.precio,
+                talla: selectedSize,
+                imagen: mainImage ? mainImage.src : ""
+            };
+
+            const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+            carrito.push(item);
+            localStorage.setItem("carrito", JSON.stringify(carrito));
+
+            if (toast) {
+                toast.innerText = `${item.nombre} (Talla ${item.talla}) agregado al carrito ✅`;
+                toast.style.display = "flex";
+
+                setTimeout(() => {
+                    toast.style.display = "none";
+                }, 2000);
+            }
+        });
     }
-
-        // CREAR PRODUCTO
-        const item = {
-
-        id: producto.id,
-
-        nombre: producto.nombre,
-
-        precio: producto.precio,
-
-        talla: selectedSize,
-
-        imagen: mainImage.src
-
-    };
-
-        // OBTENER CARRITO
-        const carrito =
-        JSON.parse(
-            localStorage.getItem("carrito")
-        ) || [];
-
-        // AGREGAR PRODUCTO
-        carrito.push(item);
-
-        // GUARDAR CARRITO
-        localStorage.setItem(
-        "carrito",
-        JSON.stringify(carrito)
-    );
-
-        // MOSTRAR MENSAJE
-        toast.innerText =
-        `${item.nombre} (Talla ${item.talla}) agregado`;
-
-    toast.style.display = "flex";
-
-    setTimeout(() => {
-
-        toast.style.display = "none";
-
-    }, 1800);
-
 });

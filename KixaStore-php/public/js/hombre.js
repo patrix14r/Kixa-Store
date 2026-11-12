@@ -1,179 +1,117 @@
-// KIXA — HOMBRE 2026// SLIDER + FILTROS DE MARCA
-// SLIDER
-const slides = document.querySelectorAll(".hero-slide");
-const dots = document.querySelectorAll(".hero-dots .dot");
-const nextButton = document.querySelector(".hero-next");
-const prevButton = document.querySelector(".hero-prev");
 
-let currentSlide = 0;
-let slideInterval;
+// TIENDA KIXA - CATÁLOGO HOMBRE 2026 (HOMBRE.JS)
+// Slider de cabecera y filtrado dinámico de zapatillas por marca
 
-// Mostrar slide
-function showSlide(index) {
 
-  if (slides.length === 0) return;
+document.addEventListener("DOMContentLoaded", () => {
 
-  // Mantener el índice dentro del rango
-  if (index >= slides.length) {
-    currentSlide = 0;
+    // [BLOQUE 1]: CONTROL DEL SLIDER HERO (SECCIÓN HOMBRE)
+    
+    const slides = document.querySelectorAll(".hero-slide");
+    const dots = document.querySelectorAll(".hero-dots .dot");
+    const nextButton = document.querySelector(".hero-next");
+    const prevButton = document.querySelector(".hero-prev");
 
-  } else if (index < 0) {
-    currentSlide = slides.length - 1;
+    let currentSlide = 0;
+    let slideInterval = null;
 
-  } else {
-    currentSlide = index;
-  }
+    // [CAMBIO] Victor : Función para mostrar el slide correspondiente al índice
+    function showSlide(index) {
+        if (!slides || slides.length === 0) return;
 
-  // Cambiar imágenes
-  slides.forEach((slide, i) => {
+        if (index >= slides.length) {
+            currentSlide = 0;
+        } else if (index < 0) {
+            currentSlide = slides.length - 1;
+        } else {
+            currentSlide = index;
+        }
 
-    slide.classList.toggle(
-      "active",
-      i === currentSlide
-    );
+        slides.forEach((slide, i) => {
+            slide.classList.toggle("active", i === currentSlide);
+        });
 
-  });
-
-  // Cambiar indicadores
-  dots.forEach((dot, i) => {
-
-    dot.classList.toggle(
-      "active",
-      i === currentSlide
-    );
-
-  });
-
-}
-
-// Siguiente
-function nextSlide() {
-
-  showSlide(currentSlide + 1);
-
-}
-
-// Anterior
-function prevSlide() {
-
-  showSlide(currentSlide - 1);
-
-}
-
-// Reiniciar temporizador
-function restartSlider() {
-
-  clearInterval(slideInterval);
-
-  slideInterval = setInterval(() => {
-
-    nextSlide();
-
-  }, 4000);
-
-}
-
-// Botón siguiente
-if (nextButton) {
-
-  nextButton.addEventListener("click", () => {
-
-    nextSlide();
-    restartSlider();
-
-  });
-
-}
-
-// Botón anterior
-if (prevButton) {
-
-  prevButton.addEventListener("click", () => {
-
-    prevSlide();
-    restartSlider();
-
-  });
-
-}
-
-// Puntos del slider
-dots.forEach((dot, index) => {
-
-  dot.addEventListener("click", () => {
-
-    showSlide(index);
-    restartSlider();
-
-  });
-
-});
-
-// Mostrar primera imagen
-showSlide(0);
-
-// Iniciar slider automático
-restartSlider();
-
-// FILTROS DE PRODUCTOSconst filtros = document.querySelectorAll(".filtros button");
-const productos = document.querySelectorAll(".producto");
-
-// Función para filtrar productos
-function filtrarProductos(marcaSeleccionada) {
-
-  productos.forEach((producto) => {
-
-    const marcaProducto = producto.dataset.marca;
-
-    // Mostrar todos
-    if (marcaSeleccionada === "todos") {
-
-      producto.style.display = "";
-
+        dots.forEach((dot, i) => {
+            dot.classList.toggle("active", i === currentSlide);
+        });
     }
 
-    // Mostrar solamente la marca seleccionada
-    else if (marcaProducto === marcaSeleccionada) {
-
-      producto.style.display = "";
-
+    // Funciones de navegación del slider
+    function nextSlide() {
+        showSlide(currentSlide + 1);
     }
 
-    // Ocultar los demás
-    else {
-
-      producto.style.display = "none";
-
+    function prevSlide() {
+        showSlide(currentSlide - 1);
     }
 
-  });
+    // [CAMBIO]: Reinicio del temporizador automático
+    function restartSlider() {
+        if (slideInterval) clearInterval(slideInterval);
+        if (slides.length > 0) {
+            slideInterval = setInterval(nextSlide, 4000);
+        }
+    }
 
-}
+    // Asignación de eventos en botones del slider
+    if (nextButton) {
+        nextButton.addEventListener("click", () => {
+            nextSlide();
+            restartSlider();
+        });
+    }
 
-// Detectar clic en cada filtro
-filtros.forEach((boton) => {
+    if (prevButton) {
+        prevButton.addEventListener("click", () => {
+            prevSlide();
+            restartSlider();
+        });
+    }
 
-  boton.addEventListener("click", () => {
-
-    // Quitar active de todos
-    filtros.forEach((btn) => {
-
-      btn.classList.remove("active");
-
+    dots.forEach((dot, index) => {
+        dot.addEventListener("click", () => {
+            showSlide(index);
+            restartSlider();
+        });
     });
 
-    // Activar botón seleccionado
-    boton.classList.add("active");
+    if (slides.length > 0) {
+        showSlide(0);
+        restartSlider();
+    }
 
-    // Obtener la marca
-    const marca = boton.dataset.filtro;
+    // [BLOQUE 2]: FILTRADO DINÁMICO DE PRODUCTOS POR MARCA
+    
+    // Victor: Se corrigió la línea donde el comentario ocultaba 'const filtros' y 'const productos' en la línea siguiente
+    const filtros = document.querySelectorAll(".filtros button");
+    const productos = document.querySelectorAll(".producto");
 
-    // Filtrar productos
-    filtrarProductos(marca);
+    // Victor: Función para filtrar y mostrar productos según la marca elegida
+    function filtrarProductos(marcaSeleccionada) {
+        productos.forEach((producto) => {
+            const marcaProducto = producto.dataset.marca;
 
-  });
+            if (marcaSeleccionada === "todos" || marcaProducto === marcaSeleccionada) {
+                producto.style.display = "";
+            } else {
+                producto.style.display = "none";
+            }
+        });
+    }
 
+    // Eventos para cada botón de filtro (Nike, Adidas, Puma, etc.)
+    filtros.forEach((boton) => {
+        boton.addEventListener("click", () => {
+            filtros.forEach((btn) => btn.classList.remove("active"));
+            boton.classList.add("active");
+
+            const marca = boton.dataset.filtro || "todos";
+            filtrarProductos(marca);
+        });
+    });
+
+    // Filtro inicial: mostrar todos los productos
+    if (productos.length > 0) {
+        filtrarProductos("todos");
+    }
 });
-
-// FILTRO INICIAL// Mostrar todos al cargar
-filtrarProductos("todos");

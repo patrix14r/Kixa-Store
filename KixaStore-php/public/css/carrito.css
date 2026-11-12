@@ -1,5 +1,9 @@
-/* CARRITO KIXA */
+/* ==========================================================================
+   TIENDA KIXA - HOJA DE ESTILOS (CARRITO.CSS)
+   Diseño deportivo, optimizado e interactivo estilo Puma / Nike
+   ========================================================================== */
 
+========================================================================== */
 * {
     box-sizing: border-box;
 }
@@ -11,8 +15,7 @@ body {
     background: #090a0b !important;
 }
 
-/* CONTENEDOR */
-
+/* [BLOQUE]: CONTENEDOR */
 .carrito-page {
     width: 92%;
     max-width: 1180px;
@@ -20,8 +23,7 @@ body {
     padding: 55px 0 90px;
 }
 
-/* CABECERA */
-
+/* [BLOQUE]: CABECERA */
 .carrito-header {
     margin-bottom: 38px;
 }
@@ -57,8 +59,7 @@ body {
     font-size: 13px;
 }
 
-/* LAYOUT */
-
+/* [BLOQUE]: LAYOUT */
 .carrito-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 350px;
@@ -66,8 +67,7 @@ body {
     align-items: start;
 }
 
-/* PRODUCTOS */
-
+/* [BLOQUE]: PRODUCTOS */
 .productos-section {
     min-width: 0;
 }
@@ -95,16 +95,14 @@ body {
     font-size: 11px;
 }
 
-/* LISTA */
-
+/* [BLOQUE]: LISTA */
 .carrito-contenedor {
     display: flex;
     flex-direction: column;
     gap: 14px;
 }
 
-/* PRODUCTO */
-
+/* [BLOQUE]: PRODUCTO */
 .item {
     display: flex;
     align-items: center;
@@ -123,8 +121,7 @@ body {
     box-shadow: 0 15px 35px rgba(0, 0, 0, .25);
 }
 
-/* IMAGEN */
-
+/* [BLOQUE]: IMAGEN */
 .imagen-producto {
     width: 145px;
     height: 132px;
@@ -148,8 +145,7 @@ body {
     transform: scale(1.05);
 }
 
-/* INFORMACIÓN */
-
+/* [BLOQUE]: INFORMACIÓN */
 .info-producto {
     flex: 1;
     padding: 3px 22px;
@@ -187,8 +183,7 @@ body {
     color: #ddd;
 }
 
-/* ELIMINAR */
-
+/* [BLOQUE]: ELIMINAR */
 .eliminar {
     display: inline-flex;
     align-items: center;
@@ -210,8 +205,7 @@ body {
     color: #ed001b;
 }
 
-/* PRECIO */
-
+/* [BLOQUE]: PRECIO */
 .precio-producto {
     min-width: 115px;
     padding-right: 7px;
@@ -231,8 +225,7 @@ body {
     font-weight: 700;
 }
 
-/* RESUMEN */
-
+/* [BLOQUE]: RESUMEN */
 .resumen {
     position: sticky;
     top: 25px;
@@ -263,8 +256,7 @@ body {
     font-size: 16px;
 }
 
-/* RESUMEN  LÍNEAS */
-
+/* [BLOQUE]: RESUMEN  LÍNEAS */
 .resumen-linea {
     display: flex;
     justify-content: space-between;
@@ -290,8 +282,7 @@ body {
     background: #272a2d;
 }
 
-/* TOTAL */
-
+/* [BLOQUE]: TOTAL */
 .total-final {
     display: flex;
     justify-content: space-between;
@@ -311,8 +302,7 @@ body {
     font-weight: 700;
 }
 
-/* COMPRAR */
-
+/* [BLOQUE]: COMPRAR */
 .btn-comprar-principal {
     width: 100%;
     display: flex;
@@ -345,8 +335,7 @@ body {
     transform: translateX(4px);
 }
 
-/* SEGURIDAD */
-
+/* [BLOQUE]: SEGURIDAD */
 .seguridad {
     display: flex;
     align-items: center;
@@ -373,8 +362,7 @@ body {
     font-size: 9px;
 }
 
-/* CARRITO VACÍO */
-
+/* [BLOQUE]: CARRITO VACÍO */
 .carrito-vacio {
     padding: 75px 20px;
     background: #111315;
@@ -425,8 +413,7 @@ body {
     background: #ff1730;
 }
 
-/* MODAL */
-
+/* [BLOQUE]: MODAL */
 .modal,
 .alerta {
     display: none;
@@ -462,15 +449,13 @@ body {
         opacity: 0;
         transform: translateY(22px) scale(.97);
     }
-
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
     }
 }
 
-/* CERRAR */
-
+/* [BLOQUE]: CERRAR */
 .cerrar {
     position: absolute;
     top: 15px;
@@ -494,8 +479,7 @@ body {
     color: #fff;
 }
 
-/* TITULO MODAL */
-
+/* [BLOQUE]: TITULO MODAL */
 .modal-titulo {
     display: flex;
     align-items: center;
@@ -527,8 +511,7 @@ body {
     font-size: 10px;
 }
 
-/* OPCIONES */
-
+/* [BLOQUE]: OPCIONES */
 .opciones {
     display: flex;
     flex-direction: column;
@@ -591,8 +574,7 @@ body {
     font-size: 10px;
 }
 
-/* PAGO */
-
+/* [BLOQUE]: PAGO */
 .pago-form {
     margin-top: 18px;
     padding-top: 18px;
@@ -651,8 +633,7 @@ body {
     gap: 11px;
 }
 
-/* CONFIRMAR */
-
+/* [BLOQUE]: CONFIRMAR */
 .btn-confirmar {
     width: 100%;
     display: flex;
@@ -676,8 +657,7 @@ body {
     background: #ff1730;
 }
 
-/* YAPE */
-
+/* [BLOQUE]: YAPE */
 .yape-form {
     text-align: center;
 }
@@ -710,8 +690,7 @@ body {
     color: #ed001b;
 }
 
-/* ALERTA */
-
+/* [BLOQUE]: ALERTA */
 .alerta-contenido {
     width: 100%;
     max-width: 380px;
@@ -771,112 +750,89 @@ body {
     background: #ff1730;
 }
 
-/* ANIMACIÓN */
-
+/* [BLOQUE]: ANIMACIÓN */
 @keyframes aparecer {
     from {
         opacity: 0;
         transform: translateY(10px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-/* RESPONSIVE */
-
+/* [BLOQUE]: RESPONSIVE */
 @media (max-width: 900px) {
-
     .carrito-layout {
         grid-template-columns: 1fr;
     }
-
     .resumen {
         position: static;
     }
 }
 
 @media (max-width: 600px) {
-
     .carrito-page {
         width: 94%;
         padding-top: 35px;
     }
-
     .carrito-header h1 {
         font-size: 27px;
     }
-
     .item {
         align-items: flex-start;
         padding: 13px;
     }
-
     .imagen-producto {
         width: 100px;
         height: 100px;
     }
-
     .info-producto {
         padding: 0 12px;
     }
-
     .nombre {
         font-size: 14px;
     }
-
     .detalle-producto {
         font-size: 10px;
     }
-
     .precio-producto {
         position: absolute;
         right: 13px;
         bottom: 15px;
     }
-
     .precio-producto span {
         display: none;
     }
-
     .precio-producto strong {
         font-size: 16px;
     }
-
     .eliminar {
         margin-top: 10px;
     }
-
     .resumen {
         padding: 20px;
     }
-
     .modal-contenido {
         padding: 23px;
     }
 }
 
 @media (max-width: 430px) {
-
     .item {
         min-height: 130px;
     }
-
     .imagen-producto {
         width: 82px;
         height: 82px;
     }
-
     .categoria-producto {
         font-size: 8px;
     }
-
     .nombre {
         font-size: 12px;
     }
-
     .eliminar {
         font-size: 10px;
     }

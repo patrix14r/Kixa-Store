@@ -1,36 +1,36 @@
-/* ESTILOS GENERALES */
+/* ==========================================================================
+   TIENDA KIXA - FORMULARIO DE CONTACTO (FORMULARIO.CSS)
+   Diseño original de Kixa con fondo translúcido y acentos rojos
+   ========================================================================== */
 
-body {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-
-    background-image: url("../assets/789.png");
+.contacto-page {
+    background-image: url("../images/ui/backgrounds/789.png");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
-
-    min-height: 100vh;
+    min-height: calc(100vh - 120px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
 }
 
+/* [BLOQUE]: CONTENEDOR GLASSMORPHISM */
 .form-container {
-    background-color: rgba(0, 0, 0, 0.25);
+    background-color: rgba(0, 0, 0, 0.35);
     border-radius: 25px;
-    padding: 30px 50px;
-    width: 420px;
-
-    margin: 60px auto;
-
-    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    padding: 35px 50px;
+    width: 440px;
+    max-width: 95%;
+    margin: 0 auto;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(12px);
-
-    color: #fff;
-
+    -webkit-backdrop-filter: blur(12px);
+    color: #ffffff;
     animation: slideUp 0.6s ease forwards;
-    transform: translateY(50px);
+    transform: translateY(20px);
 }
-
-/* Animación */
 
 @keyframes slideUp {
     to {
@@ -38,60 +38,57 @@ body {
     }
 }
 
-/* TÍTULO */
-
+/* [BLOQUE]: TÍTULO */
 .form-container h2 {
     text-align: center;
     color: #cc0000;
     font-size: 28px;
-    margin-bottom: 35px;
+    margin-bottom: 30px;
     font-weight: 700;
 }
 
-/* LABELS */
-
+/* [BLOQUE]: ETIQUETAS */
 .form-container label {
     display: block;
-    margin-top: 20px;
+    margin-top: 18px;
     font-weight: 500;
     color: #ffffff;
+    font-size: 13px;
 }
 
-/* INPUTS Y TEXTAREA */
-
+/* [BLOQUE]: INPUTS Y TEXTAREA */
 .form-container input,
 .form-container textarea {
     width: 100%;
     padding: 10px 0;
     margin-top: 5px;
     border: none;
-    border-bottom: 2px solid #ccc;
+    border-bottom: 2px solid #cccccc;
     font-size: 14px;
     background: transparent;
     transition: all 0.3s ease;
-    color: #bebebe;
+    color: #ffffff;
     font-family: 'Poppins', sans-serif;
+    outline: none;
 }
 
 .form-container input:focus,
 .form-container textarea:focus {
     border-bottom: 2px solid #ad0202;
-    outline: none;
 }
 
 .form-container textarea {
-    min-height: 100px;
+    min-height: 90px;
     resize: vertical;
 }
 
-/* BOTÓN DEL FORMULARIO */
-
+/* [BLOQUE]: BOTÓN DEL FORMULARIO */
 .form-container button {
     width: 100%;
     padding: 14px;
-    margin-top: 30px;
+    margin-top: 28px;
     background: linear-gradient(135deg, #ff0000, #3b0000);
-    color: white;
+    color: #ffffff;
     font-size: 16px;
     font-weight: 700;
     border: none;
@@ -101,15 +98,14 @@ body {
 }
 
 .form-container button:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 20px rgba(255,111,97,0.3);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(255, 111, 97, 0.4);
 }
 
-/* RESPONSIVE */
-
+/* [BLOQUE]: RESPONSIVE */
 @media (max-width: 480px) {
     .form-container {
-        width: 85%;
-        padding: 20px;
+        width: 100%;
+        padding: 25px 20px;
     }
 }

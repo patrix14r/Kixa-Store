@@ -1,250 +1,109 @@
-/* =========================================================
-   SLIDER
-========================================================= */
+// ==========================================================================
+// TIENDA KIXA - CATÁLOGO NIÑOS 2026 (NIÑOS.JS)
+// Slider interactivo y filtrado visual de zapatillas infantiles
+// ==========================================================================
 
-const slides = document.querySelectorAll(".hero-slide");
+document.addEventListener("DOMContentLoaded", () => {
+    // ----------------------------------------------------------------------
+    // [BLOQUE 1]: CONTROL DEL SLIDER HERO (SECCIÓN NIÑOS)
+    // ----------------------------------------------------------------------
+    const slides = document.querySelectorAll(".hero-slide");
+    const dots = document.querySelectorAll(".dot");
+    const nextButton = document.querySelector(".hero-next");
+    const prevButton = document.querySelector(".hero-prev");
 
-const dots = document.querySelectorAll(".dot");
+    let currentSlide = 0;
+    let autoSlide = null;
 
-const nextButton =
-  document.querySelector(".hero-next");
+    // [CAMBIO]: Función para activar el slide actual e indicador
+    function showSlide(index) {
+        if (!slides || slides.length === 0) return;
 
-const prevButton =
-  document.querySelector(".hero-prev");
+        slides.forEach((slide, i) => {
+            slide.classList.toggle("active", i === index);
+        });
 
-let currentSlide = 0;
+        dots.forEach((dot, i) => {
+            dot.classList.toggle("active", i === index);
+        });
 
-let autoSlide;
+        currentSlide = index;
+    }
 
-/* =========================================================
-   MOSTRAR SLIDE
-========================================================= */
+    function nextSlide() {
+        if (!slides || slides.length === 0) return;
+        currentSlide = (currentSlide + 1) % slides.length;
+        showSlide(currentSlide);
+    }
 
-function showSlide(index) {
+    function prevSlide() {
+        if (!slides || slides.length === 0) return;
+        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+        showSlide(currentSlide);
+    }
 
-  slides.forEach((slide, i) => {
+    // [CAMBIO]: Control de temporizador automático
+    function startSlider() {
+        if (autoSlide) clearInterval(autoSlide);
+        if (slides.length > 0) {
+            autoSlide = setInterval(nextSlide, 5000);
+        }
+    }
 
-    slide.classList.toggle(
-      "active",
-      i === index
-    );
+    if (nextButton) {
+        nextButton.addEventListener("click", () => {
+            nextSlide();
+            startSlider();
+        });
+    }
 
-  });
+    if (prevButton) {
+        prevButton.addEventListener("click", () => {
+            prevSlide();
+            startSlider();
+        });
+    }
 
-  dots.forEach((dot, i) => {
+    dots.forEach((dot, index) => {
+        dot.addEventListener("click", () => {
+            showSlide(index);
+            startSlider();
+        });
+    });
 
-    dot.classList.toggle(
-      "active",
-      i === index
-    );
-
-  });
-
-  currentSlide = index;
-
-}
-
-/* =========================================================
-   SIGUIENTE SLIDE
-========================================================= */
-
-function nextSlide() {
-
-  currentSlide++;
-
-  if (currentSlide >= slides.length) {
-    currentSlide = 0;
-  }
-
-  showSlide(currentSlide);
-
-}
-
-/* =========================================================
-   SLIDE ANTERIOR
-========================================================= */
-
-function prevSlide() {
-
-  currentSlide--;
-
-  if (currentSlide < 0) {
-    currentSlide = slides.length - 1;
-  }
-
-  showSlide(currentSlide);
-
-}
-
-/* =========================================================
-   SLIDER AUTOMÁTICO
-========================================================= */
-
-function startSlider() {
-
-  clearInterval(autoSlide);
-
-  autoSlide = setInterval(
-    nextSlide,
-    5000
-  );
-
-}
-
-/* =========================================================
-   BOTÓN SIGUIENTE
-========================================================= */
-
-nextButton.addEventListener(
-  "click",
-  () => {
-
-    nextSlide();
-
-    startSlider();
-
-  }
-);
-
-/* =========================================================
-   BOTÓN ANTERIOR
-========================================================= */
-
-prevButton.addEventListener(
-  "click",
-  () => {
-
-    prevSlide();
-
-    startSlider();
-
-  }
-);
-
-/* =========================================================
-   PUNTOS
-========================================================= */
-
-dots.forEach(
-  (dot, index) => {
-
-    dot.addEventListener(
-      "click",
-      () => {
-
-        showSlide(index);
-
+    if (slides.length > 0) {
+        showSlide(0);
         startSlider();
+    }
 
-      }
-    );
+    // ----------------------------------------------------------------------
+    // [BLOQUE 2]: FILTRADO POR MARCA CON TRANSICIONES CSS
+    // ----------------------------------------------------------------------
+    const filtros = document.querySelectorAll(".filtro");
+    const productos = document.querySelectorAll(".producto");
 
-  }
-);
+    filtros.forEach((filtro) => {
+        filtro.addEventListener("click", () => {
+            filtros.forEach((boton) => boton.classList.remove("activo"));
+            filtro.classList.add("activo");
 
-/* =========================================================
-   INICIAR SLIDER
-========================================================= */
+            const marca = filtro.dataset.filtro || "todos";
 
-showSlide(0);
+            productos.forEach((producto) => {
+                const marcaProducto = producto.dataset.marca;
 
-startSlider();
+                if (marca === "todos" || marcaProducto === marca) {
+                    producto.classList.remove("oculto");
+                    producto.classList.remove("mostrar");
 
-/* =========================================================
-   FILTROS POR MARCA
-========================================================= */
-
-const filtros =
-  document.querySelectorAll(".filtro");
-
-const productos =
-  document.querySelectorAll(".producto");
-
-filtros.forEach(
-  (filtro) => {
-
-    filtro.addEventListener(
-      "click",
-      () => {
-
-        /* -----------------------------
-           BOTÓN ACTIVO
-        ----------------------------- */
-
-        filtros.forEach(
-          (boton) => {
-
-            boton.classList.remove(
-              "activo"
-            );
-
-          }
-        );
-
-        filtro.classList.add(
-          "activo"
-        );
-
-        /* -----------------------------
-           OBTENER MARCA
-        ----------------------------- */
-
-        const marca =
-          filtro.dataset.filtro;
-
-        /* -----------------------------
-           FILTRAR PRODUCTOS
-        ----------------------------- */
-
-        productos.forEach(
-          (producto) => {
-
-            const marcaProducto =
-              producto.dataset.marca;
-
-            if (
-              marca === "todos" ||
-              marcaProducto === marca
-            ) {
-
-              producto.classList.remove(
-                "oculto"
-              );
-
-              producto.classList.remove(
-                "mostrar"
-              );
-
-              setTimeout(
-                () => {
-
-                  producto.classList.add(
-                    "mostrar"
-                  );
-
-                },
-                10
-              );
-
-            }
-
-            else {
-
-              producto.classList.add(
-                "oculto"
-              );
-
-              producto.classList.remove(
-                "mostrar"
-              );
-
-            }
-
-          }
-        );
-
-      }
-    );
-
-  }
-);
+                    setTimeout(() => {
+                        producto.classList.add("mostrar");
+                    }, 10);
+                } else {
+                    producto.classList.add("oculto");
+                    producto.classList.remove("mostrar");
+                }
+            });
+        });
+    });
+});

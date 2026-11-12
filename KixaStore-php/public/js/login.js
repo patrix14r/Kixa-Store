@@ -1,393 +1,189 @@
-// ELEMENTOSconst loginForm =
-    document.getElementById("loginForm");
+// ==========================================================================
+// TIENDA KIXA - AUTENTICACIÓN Y REGISTRO DE USUARIOS (LOGIN.JS)
+// Conmutación entre formularios, validaciones de seguridad y login local
+// ==========================================================================
 
-const registerForm =
-    document.getElementById("registerForm");
+document.addEventListener("DOMContentLoaded", () => {
+    // ----------------------------------------------------------------------
+    // [BLOQUE 1]: ELEMENTOS DEL DOM
+    // ----------------------------------------------------------------------
+    // [CORRECCIÓN]: Se corrigieron las declaraciones donde '//' comentaba la variable
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const showRegister = document.getElementById("showRegister");
+    const showLogin = document.getElementById("showLogin");
 
-const showRegister =
-    document.getElementById("showRegister");
-
-const showLogin =
-    document.getElementById("showLogin");
-
-// CAMBIAR ENTRE LOGIN Y REGISTROshowRegister.addEventListener("click", (e) => {
-
-    e.preventDefault();
-
-    loginForm.classList.remove("active");
-
-    registerForm.classList.add("active");
-
-});
-
-showLogin.addEventListener("click", (e) => {
-
-    e.preventDefault();
-
-    registerForm.classList.remove("active");
-
-    loginForm.classList.add("active");
-
-});
-
-// REGISTRO DE USUARIOregisterForm.addEventListener("submit", (e) => {
-
-    e.preventDefault();
-
-        // OBTENER DATOS
-        const nombre =
-        document
-            .getElementById("registerName")
-            .value
-            .trim();
-
-    const email =
-        document
-            .getElementById("registerEmail")
-            .value
-            .trim()
-            .toLowerCase();
-
-    const telefono =
-        document
-            .getElementById("registerPhone")
-            .value
-            .trim();
-
-    const dni =
-        document
-            .getElementById("registerDni")
-            .value
-            .trim();
-
-    const ciudad =
-        document
-            .getElementById("registerCity")
-            .value;
-
-    const direccion =
-        document
-            .getElementById("registerAddress")
-            .value
-            .trim();
-
-    const fechaNacimiento =
-        document
-            .getElementById("registerBirth")
-            .value;
-
-    const genero =
-        document
-            .getElementById("registerGender")
-            .value;
-
-    const password =
-        document
-            .getElementById("registerPassword")
-            .value;
-
-        // VALIDAR CAMPOS
-        if (
-        nombre === "" ||
-        email === "" ||
-        telefono === "" ||
-        dni === "" ||
-        ciudad === "" ||
-        direccion === "" ||
-        fechaNacimiento === "" ||
-        genero === "" ||
-        password === ""
-    ) {
-
-        alert(
-            "⚠️ Debes completar todos los campos."
-        );
-
-        return;
-
+    // ----------------------------------------------------------------------
+    // [BLOQUE 2]: CAMBIO ENTRE PESTAÑA LOGIN Y REGISTRO
+    // ----------------------------------------------------------------------
+    if (showRegister && loginForm && registerForm) {
+        showRegister.addEventListener("click", (e) => {
+            e.preventDefault();
+            loginForm.classList.remove("active");
+            registerForm.classList.add("active");
+        });
     }
 
-        // VALIDAR TELEFONO
-        if (!/^\d{9}$/.test(telefono)) {
-
-        alert(
-            "⚠️ El número de teléfono debe tener 9 números."
-        );
-
-        document
-            .getElementById("registerPhone")
-            .focus();
-
-        return;
-
+    if (showLogin && loginForm && registerForm) {
+        showLogin.addEventListener("click", (e) => {
+            e.preventDefault();
+            registerForm.classList.remove("active");
+            loginForm.classList.add("active");
+        });
     }
 
-        // VALIDAR DNI
-        if (!/^\d{8}$/.test(dni)) {
+    // ----------------------------------------------------------------------
+    // [BLOQUE 3]: REGISTRO DE NUEVO USUARIO
+    // ----------------------------------------------------------------------
+    if (registerForm) {
+        registerForm.addEventListener("submit", (e) => {
+            e.preventDefault();
 
-        alert(
-            "⚠️ El DNI debe tener exactamente 8 números."
-        );
+            // Obtención de valores ingresados
+            const nombre = document.getElementById("registerName") ? document.getElementById("registerName").value.trim() : "";
+            const email = document.getElementById("registerEmail") ? document.getElementById("registerEmail").value.trim().toLowerCase() : "";
+            const telefono = document.getElementById("registerPhone") ? document.getElementById("registerPhone").value.trim() : "";
+            const dni = document.getElementById("registerDni") ? document.getElementById("registerDni").value.trim() : "";
+            const ciudad = document.getElementById("registerCity") ? document.getElementById("registerCity").value : "";
+            const direccion = document.getElementById("registerAddress") ? document.getElementById("registerAddress").value.trim() : "";
+            const fechaNacimiento = document.getElementById("registerBirth") ? document.getElementById("registerBirth").value : "";
+            const genero = document.getElementById("registerGender") ? document.getElementById("registerGender").value : "";
+            const password = document.getElementById("registerPassword") ? document.getElementById("registerPassword").value : "";
 
-        document
-            .getElementById("registerDni")
-            .focus();
+            // Validación de campos vacíos
+            if (!nombre || !email || !telefono || !dni || !ciudad || !direccion || !fechaNacimiento || !genero || !password) {
+                alert("⚠️ Debes completar todos los campos del registro.");
+                return;
+            }
 
-        return;
+            // Validación de celular (9 dígitos)
+            if (!/^\d{9}$/.test(telefono.replace(/\s+/g, ""))) {
+                alert("⚠️ El número de celular debe contener 9 dígitos.");
+                if (document.getElementById("registerPhone")) document.getElementById("registerPhone").focus();
+                return;
+            }
 
+            // Validación de DNI (8 dígitos)
+            if (!/^\d{8}$/.test(dni)) {
+                alert("⚠️ El DNI debe contener 8 dígitos numéricos.");
+                if (document.getElementById("registerDni")) document.getElementById("registerDni").focus();
+                return;
+            }
+
+            // Validación de longitud mínima de contraseña
+            if (password.length < 5) {
+                alert("⚠️ La contraseña debe tener al menos 5 caracteres.");
+                if (document.getElementById("registerPassword")) document.getElementById("registerPassword").focus();
+                return;
+            }
+
+            // Verificar si el correo ya existe registrado en LocalStorage
+            const usuarioGuardado = localStorage.getItem("usuarioKixa");
+            if (usuarioGuardado) {
+                const usuario = JSON.parse(usuarioGuardado);
+                if (usuario.email && usuario.email.toLowerCase() === email) {
+                    alert("⚠️ Este correo ya se encuentra registrado.");
+                    return;
+                }
+            }
+
+            // Estructura del nuevo usuario
+            const nuevoUsuario = {
+                nombre: nombre,
+                email: email,
+                password: password,
+                telefono: telefono,
+                dni: dni,
+                ciudad: ciudad,
+                direccion: direccion,
+                fechaNacimiento: fechaNacimiento,
+                genero: genero
+            };
+
+            // Almacenar usuario y datos complementarios
+            localStorage.setItem("usuarioKixa", JSON.stringify(nuevoUsuario));
+
+            const datosCuenta = {
+                telefono: telefono,
+                dni: dni,
+                ciudad: ciudad,
+                direccion: direccion,
+                fechaNacimiento: fechaNacimiento,
+                genero: genero
+            };
+            localStorage.setItem("datosCuentaKixa", JSON.stringify(datosCuenta));
+
+            alert(`¡Cuenta creada correctamente, ${nombre}! ✅`);
+
+            // Limpiar formulario y pasar a vista de login
+            registerForm.reset();
+            registerForm.classList.remove("active");
+            if (loginForm) {
+                loginForm.classList.add("active");
+                const loginEmailInput = document.getElementById("loginEmail");
+                if (loginEmailInput) loginEmailInput.value = email;
+            }
+        });
     }
 
-        // VALIDAR CONTRASEÑA
-        if (password.length < 5) {
-
-        alert(
-            "⚠️ La contraseña debe tener al menos 5 caracteres."
-        );
-
-        document
-            .getElementById("registerPassword")
-            .focus();
-
-        return;
-
-    }
-
-        // VERIFICAR CUENTA EXISTENTE
-        const usuarioGuardado =
-        localStorage.getItem("usuarioKixa");
-
-    if (usuarioGuardado) {
-
-        const usuario =
-            JSON.parse(usuarioGuardado);
-
-        if (
-            usuario.email.toLowerCase() ===
-            email
-        ) {
-
-            alert(
-                "⚠️ Este correo ya está registrado."
-            );
-
-            return;
-
-        }
-
-    }
-
-        // CREAR USUARIO
-        const nuevoUsuario = {
-
-        nombre: nombre,
-
-        email: email,
-
-        password: password,
-
-        telefono: telefono,
-
-        dni: dni,
-
-        ciudad: ciudad,
-
-        direccion: direccion,
-
-        fechaNacimiento: fechaNacimiento,
-
-        genero: genero
-
-    };
-
-        // GUARDAR USUARIO
-        localStorage.setItem(
-        "usuarioKixa",
-        JSON.stringify(nuevoUsuario)
-    );
-
-        // GUARDAR DATOS PARA CUENTA.HTML
-        const datosCuenta = {
-
-        telefono: telefono,
-
-        dni: dni,
-
-        ciudad: ciudad,
-
-        direccion: direccion,
-
-        fechaNacimiento: fechaNacimiento,
-
-        genero: genero
-
-    };
-
-    localStorage.setItem(
-        "datosCuentaKixa",
-        JSON.stringify(datosCuenta)
-    );
-
-        // MENSAJE
-        alert(
-        `Cuenta creada correctamente, ${nombre} ✅`
-    );
-
-        // LIMPIAR REGISTRO
-        registerForm.reset();
-
-        // MOSTRAR LOGIN
-        registerForm.classList.remove("active");
-
-    loginForm.classList.add("active");
-
-        // COLOCAR CORREO AUTOMÁTICAMENTE
-        document
-        .getElementById("loginEmail")
-        .value = email;
-
-    // Limpiar contraseña
-
-    document
-        .getElementById("loginPassword")
-        .value = "";
-
-});
-
-// INICIO DE SESIÓNloginForm.addEventListener("submit", (e) => {
-
-    e.preventDefault();
-
-        // OBTENER DATOS
-        const email =
-        document
-            .getElementById("loginEmail")
-            .value
-            .trim()
-            .toLowerCase();
-
-    const password =
-        document
-            .getElementById("loginPassword")
-            .value;
-
-        // CUENTA ADMINISTRADOR
-        if (
-        email === "admin@kixa.com" &&
-        password === "12345"
-    ) {
-
-        const administrador = {
-
-            nombre: "Administrador",
-
-            email: email,
-
-            tipo: "admin"
-
-        };
-
-        localStorage.setItem(
-            "usuarioLogueado",
-            JSON.stringify(administrador)
-        );
-
-        alert(
-            "Bienvenido administrador 👑"
-        );
-
-        window.location.href =
-            "index.html";
-
-        return;
-
-    }
-
-        // BUSCAR USUARIO
-        const usuarioGuardado =
-        localStorage.getItem("usuarioKixa");
-
-    if (!usuarioGuardado) {
-
-        alert(
-            "⚠️ No existe una cuenta registrada. Primero debes registrarte."
-        );
-
-        return;
-
-    }
-
-    const usuario =
-        JSON.parse(usuarioGuardado);
-
-        // COMPROBAR CREDENCIALES
-        if (
-        email === usuario.email.toLowerCase() &&
-        password === usuario.password
-    ) {
-
-                // CREAR SESION
+    // ----------------------------------------------------------------------
+    // [BLOQUE 4]: INICIO DE SESIÓN
+    // ----------------------------------------------------------------------
+    if (loginForm) {
+        loginForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById("loginEmail") ? document.getElementById("loginEmail").value.trim().toLowerCase() : "";
+            const password = document.getElementById("loginPassword") ? document.getElementById("loginPassword").value : "";
+
+            // Credenciales de Administrador para pruebas
+            if (email === "admin@kixa.com" && password === "12345") {
+                const administrador = {
+                    nombre: "Administrador Kixa",
+                    email: email,
+                    tipo: "admin"
+                };
+
+                localStorage.setItem("usuarioLogueado", JSON.stringify(administrador));
+                alert("Bienvenido administrador 👑");
+                window.location.href = "/";
+                return;
+            }
+
+            // Validar existencia de usuario en LocalStorage
+            const usuarioGuardado = localStorage.getItem("usuarioKixa");
+            if (!usuarioGuardado) {
+                alert("⚠️ No existe una cuenta registrada. Por favor regístrate primero.");
+                return;
+            }
+
+            const usuario = JSON.parse(usuarioGuardado);
+
+            // Verificación de credenciales
+            if (email === usuario.email.toLowerCase() && password === usuario.password) {
                 const usuarioActivo = {
+                    nombre: usuario.nombre,
+                    email: usuario.email,
+                    tipo: "cliente"
+                };
 
-            nombre:
-                usuario.nombre,
+                localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioActivo));
 
-            email:
-                usuario.email,
-
-            tipo:
-                "cliente"
-
-        };
-
-                // GUARDAR SESION
-                localStorage.setItem(
-            "usuarioLogueado",
-            JSON.stringify(usuarioActivo)
-        );
-
-                // RECUPERAR DATOS DE CUENTA
                 const datosCuenta = {
+                    telefono: usuario.telefono,
+                    dni: usuario.dni,
+                    ciudad: usuario.ciudad,
+                    direccion: usuario.direccion,
+                    fechaNacimiento: usuario.fechaNacimiento,
+                    genero: usuario.genero
+                };
+                localStorage.setItem("datosCuentaKixa", JSON.stringify(datosCuenta));
 
-            telefono:
-                usuario.telefono,
-
-            dni:
-                usuario.dni,
-
-            ciudad:
-                usuario.ciudad,
-
-            direccion:
-                usuario.direccion,
-
-            fechaNacimiento:
-                usuario.fechaNacimiento,
-
-            genero:
-                usuario.genero
-
-        };
-
-        localStorage.setItem(
-            "datosCuentaKixa",
-            JSON.stringify(datosCuenta)
-        );
-
-                // BIENVENIDA
-                alert(
-            `Bienvenido a Kixa, ${usuario.nombre} 👟`
-        );
-
-                // IR AL INICIO
-                window.location.href =
-            "index.html";
-
-    } else {
-
-        alert(
-            "❌ Correo o contraseña incorrectos."
-        );
-
+                alert(`Bienvenido a Tienda Kixa, ${usuario.nombre} 👟`);
+                window.location.href = "/";
+            } else {
+                alert("❌ Correo electrónico o contraseña incorrectos.");
+            }
+        });
     }
-
 });
