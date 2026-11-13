@@ -204,18 +204,83 @@ function mostrarYape() {
 // --------------------------------------------------------------------------
 // [CAMBIO]: Confirmación del pedido y generación de código de seguimiento
 // --------------------------------------------------------------------------
-function generarCodigo() {
-    return "PED-" + Math.floor(Math.random() * 90000 + 10000);
-}
-
+// [CAMBIO: CONFIRMACION DE COMPRA CONECTADA CON CHECKOUT.PROCESAR EN MYSQL]
 function confirmar(metodo) {
-    const codigo = generarCodigo();
-    cerrarModal();
-    if (contenidoPago) contenidoPago.innerHTML = "";
+    if (!carrito || carrito.length === 0) {
+        alert("El carrito está vacío.");
+        return;
+    }
 
-    mostrarAlerta(
-        `Método de pago: <b>${metodo}</b><br>Código de pedido: <b>${codigo}</b>`
-    );
+    // // [VALIDACION FORMULARIO]: Validacion estricta de DNI (8 digitos) y Celular (9 digitos)
+    const dniInput = document.getElementById("checkoutDni") || document.querySelector("input[name='dni']");
+    const telInput = document.getElementById("checkoutTelefono") || document.querySelector("input[name='telefono']");
+
+    if (dniInput && dniInput.value.trim()) {
+        if (!/^\d{8}$/.test(dniInput.value.trim())) {
+            alert("⚠️ El DNI ingresado debe tener exactamente 8 dígitos numéricos.");
+            dniInput.focus();
+            return;
+        }
+    }
+
+    if (telInput && telInput.value.trim()) {
+        if (!/^\d{9}$/.test(telInput.value.trim())) {
+            alert("⚠️ El teléfono / celular ingresado debe tener exactamente 9 dígitos numéricos.");
+            telInput.focus();
+            return;
+        }
+    }
+
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const token = csrfMeta ? csrfMeta.getAttribute("content") : "";
+
+    fetch("/checkout/procesar", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": token,
+            "Accept": "application/json"
+        },
+        body: JSON.stringify({
+            metodo_pago: metodo,
+            direccion_envio: "Dirección registrada / Tienda Kixa",
+            items: carrito
+        })
+    })
+    .then(async response => {
+        if (response.status === 401) {
+            alert("Debes iniciar sesión para completar tu compra.");
+            window.location.href = "/login";
+            return;
+        }
+        const data = await response.json();
+        if (response.ok && data.exito) {
+            cerrarModal();
+            if (contenidoPago) contenidoPago.innerHTML = "";
+            
+            // [CAMBIO: VACIAR CARRITO Y ACTUALIZAR CONTADOR DE HEADER]
+            carrito = [];
+            localStorage.setItem("carrito", JSON.stringify([]));
+            if (typeof actualizarBadgesHeader === "function") {
+                actualizarBadgesHeader();
+            }
+
+            // [CAMBIO: REDIRECCION DIRECTA A PERFIL CON EL HISTORIAL DE COMPRAS ACTUALIZADO]
+            window.location.href = data.redirect_url || "/perfil";
+        } else {
+            alert(data.mensaje || "Ocurrió un error al procesar el pedido.");
+        }
+    })
+    .catch(error => {
+        console.error("Error al procesar la compra:", error);
+        // Respaldo de contingencia
+        const codigo = "PED-" + Math.floor(Math.random() * 90000 + 10000);
+        cerrarModal();
+        if (contenidoPago) contenidoPago.innerHTML = "";
+        mostrarAlerta(
+            `Método de pago: <b>${metodo}</b><br>Código de pedido: <b>${codigo}</b>`
+        );
+    });
 }
 
 function mostrarAlerta(mensaje) {

@@ -55,29 +55,6 @@
         </div>
     </section>
 
-    <!-- =====================================================
-         SECCIÓN DE MARCAS DEPORTIVAS (NEUMORPHISM)
-         ===================================================== -->
-    <section class="brands-section">
-        <h2>Explora por Marca</h2>
-        <div class="brands-grid">
-            <a href="{{ route('catalogo', ['marca' => 'Nike']) }}" class="brand-card">
-                <img src="{{ asset('images/brands/nike-logo.png') }}" alt="Nike" />
-            </a>
-            <a href="{{ route('catalogo', ['marca' => 'Adidas']) }}" class="brand-card">
-                <img src="{{ asset('images/brands/adidas-logo.png') }}" alt="Adidas" />
-            </a>
-            <a href="{{ route('catalogo', ['marca' => 'Puma']) }}" class="brand-card">
-                <img src="{{ asset('images/brands/puma-logo.png') }}" alt="Puma" />
-            </a>
-            <a href="{{ route('catalogo', ['marca' => 'Jordan']) }}" class="brand-card">
-                <img src="{{ asset('images/brands/jordan-logo.webp') }}" alt="Jordan" />
-            </a>
-            <a href="{{ route('catalogo', ['marca' => 'Umbro']) }}" class="brand-card">
-                <img src="{{ asset('images/brands/umbro-logo.png') }}" alt="Umbro" />
-            </a>
-        </div>
-    </section>
 
     <!-- =====================================================
          SECCIÓN DE OFERTAS ESPECIALES

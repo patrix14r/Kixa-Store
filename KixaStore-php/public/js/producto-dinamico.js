@@ -1012,131 +1012,125 @@ const productosData = {
 };
 
 // ==========================================================================
-// [BLOQUE]: CARGA DINÁMICA DE DETALLE DE PRODUCTO Y CARRITO
+// [BLOQUE]: INTERACTIVIDAD DE FICHA DE PRODUCTO Y AGREGAR AL CARRITO
 // ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    // [CAMBIO]: Obtener el ID del producto desde los parámetros de la URL (?id=...)
-    const urlParams = new URLSearchParams(window.location.search);
-    const pid = urlParams.get("id");
+    // [CAMBIO: SE DESACTIVA LA VALIDACION ANTIGUA QUE SOBREESCRIBIA EL HTML CON ERROR ESTATICO]
+    // [CAMBIO: LA INFORMACION AHORA SE MUESTRA DIRECTAMENTE DESDE EL MODELO ELOQUENT EN BLADE]
 
-    if (!pid || !productosData[pid]) {
-        const pageEl = document.querySelector(".page");
-        if (pageEl) {
-            pageEl.innerHTML = "<div style='padding:40px;text-align:center'><h2>Producto no encontrado</h2><p>El calzado solicitado no está disponible en este momento.</p><a href='/catalogo' style='color:#000;text-decoration:underline;'>Volver al catálogo</a></div>";
-        }
-        return;
-    }
+    // [CAMBIO: SELECCION INTERACTIVA DE TALLAS RENDERIZADAS POR BLADE]
+    let selectedSize = null;
+    const sizeButtons = document.querySelectorAll(".size-btn");
 
-    const producto = productosData[pid];
+    sizeButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            // [CAMBIO: NO PERMITIR SELECCIONAR TALLAS AGOTADAS O DESHABILITADAS]
+            if (btn.disabled || btn.classList.contains("disabled") || btn.classList.contains("agotado")) {
+                return;
+            }
 
-    // [CAMBIO]: Renderizado de datos del producto en el DOM
-    const brandEl = document.getElementById("productBrand");
+            sizeButtons.forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            selectedSize = btn.dataset.talla || btn.innerText.trim();
+        });
+    });
+
+    // [CAMBIO: BOTON PARA AGREGAR AL CARRITO CON DATOS REALES DE MYSQL]
+    const addBtn = document.getElementById("addBtn");
+    const favBtn = document.getElementById("favBtn");
+    const toast = document.getElementById("toast");
+    const mainImage = document.getElementById("mainImage");
     const nameEl = document.getElementById("productName");
     const priceEl = document.getElementById("productPrice");
-    const descEl = document.getElementById("productDescription");
+    const skuEl = document.getElementById("productSku");
 
-    if (brandEl) brandEl.innerText = producto.marca || "";
-    if (nameEl) nameEl.innerText = producto.nombre || "";
-    if (priceEl) priceEl.innerText = "S/ " + (producto.precio ?? "");
-    if (descEl) descEl.innerText = producto.descripcion || "";
-
-    // [CAMBIO]: Galería de imágenes (miniatura y principal)
-    const thumbs = document.getElementById("thumbs");
-    const mainImage = document.getElementById("mainImage");
-
-    if (thumbs) thumbs.innerHTML = "";
-
-    if (mainImage) {
-        if (producto.imagenes && producto.imagenes.length) {
-            const firstImg = producto.imagenes[0];
-            mainImage.src = firstImg.startsWith("assets/") ? firstImg : "assets/" + firstImg;
-        } else {
-            mainImage.src = "";
+    // Verificar si el producto ya está en favoritos para pintar el corazón
+    if (favBtn) {
+        const prodId = favBtn.dataset.id || (skuEl ? skuEl.innerText.trim() : "");
+        const favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
+        if (favoritos.some(f => f.id == prodId || f.sku == prodId)) {
+            favBtn.innerHTML = '<i class="fa-solid fa-heart" style="color: #ed001b;"></i>';
+            favBtn.style.borderColor = '#ed001b';
         }
-    }
 
-    if (thumbs && producto.imagenes) {
-        producto.imagenes.forEach((src, i) => {
-            const imgPath = src.startsWith("assets/") ? src : "assets/" + src;
-            const img = document.createElement("img");
-            img.src = imgPath;
-            img.dataset.large = imgPath;
-            if (i === 0) img.classList.add("active");
+        favBtn.addEventListener("click", () => {
+            let favs = JSON.parse(localStorage.getItem("favoritos")) || [];
+            const pId = favBtn.dataset.id || (skuEl ? skuEl.innerText.trim() : "");
+            const pSku = favBtn.dataset.sku || (skuEl ? skuEl.innerText.trim() : "");
+            const pNombre = favBtn.dataset.nombre || (nameEl ? nameEl.innerText.trim() : "Zapatilla");
+            const pPrecio = parseFloat(favBtn.dataset.precio || (priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : "0")) || 0;
+            const pImagen = favBtn.dataset.imagen || (mainImage ? mainImage.src : "");
+            const pMarca = favBtn.dataset.marca || "KIXA";
 
-            img.addEventListener("click", () => {
-                if (mainImage) mainImage.src = imgPath;
-                thumbs.querySelectorAll("img").forEach(t => t.classList.remove("active"));
-                img.classList.add("active");
-            });
+            const idx = favs.findIndex(f => f.id == pId || f.sku == pSku);
+            if (idx >= 0) {
+                favs.splice(idx, 1);
+                favBtn.innerHTML = '<i class="fa-regular fa-heart"></i>';
+                favBtn.style.borderColor = '#333';
+            } else {
+                favs.push({
+                    id: pId,
+                    sku: pSku,
+                    nombre: pNombre,
+                    precio: pPrecio,
+                    imagen: pImagen,
+                    marca: pMarca
+                });
+                favBtn.innerHTML = '<i class="fa-solid fa-heart" style="color: #ed001b;"></i>';
+                favBtn.style.borderColor = '#ed001b';
+            }
 
-            thumbs.appendChild(img);
+            localStorage.setItem("favoritos", JSON.stringify(favs));
+            if (typeof actualizarBadgesHeader === "function") {
+                actualizarBadgesHeader();
+            }
         });
     }
-
-    // [CAMBIO]: Selector interactivo de tallas
-    const tallas = ["36", "36.5", "37", "37.5", "38", "38.5", "39", "40", "40.5", "41", "42", "43"];
-    const disabled = new Set(["36.5", "37.5", "40.5"]);
-    let selectedSize = null;
-    const sizesContainer = document.getElementById("sizes");
-
-    if (sizesContainer) {
-        sizesContainer.innerHTML = "";
-        tallas.forEach(sz => {
-            const btn = document.createElement("button");
-            btn.className = "size-btn" + (disabled.has(sz) ? " disabled" : "");
-            btn.innerText = sz;
-            btn.disabled = disabled.has(sz);
-
-            btn.addEventListener("click", () => {
-                if (btn.classList.contains("disabled")) return;
-                document.querySelectorAll(".size-btn").forEach(b => b.classList.remove("selected"));
-                btn.classList.add("selected");
-                selectedSize = sz;
-            });
-
-            sizesContainer.appendChild(btn);
-        });
-    }
-
-    // [CAMBIO]: Botón para agregar producto al carrito de compras
-    const addBtn = document.getElementById("addBtn");
-    const toast = document.getElementById("toast");
 
     if (addBtn) {
         addBtn.addEventListener("click", () => {
-            const sesion = localStorage.getItem("usuarioLogueado");
-
-            if (!sesion) {
-                alert("⚠️ Debes iniciar sesión antes de agregar productos al carrito.");
-                window.location.href = "/login";
-                return;
-            }
-
+            // [CAMBIO: VALIDACION DE TALLA SELECCIONADA ANTES DE AGREGAR AL CARRITO]
             if (!selectedSize) {
-                alert("⚠️ Por favor selecciona una talla antes de continuar.");
+                alert("⚠️ Por favor selecciona una talla disponible antes de continuar.");
                 return;
             }
+
+            // Extraer datos con respaldo robusto
+            const rawPrice = addBtn.dataset.precio || (priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : "0");
+            const pId = addBtn.dataset.id || (skuEl ? skuEl.innerText.trim() : "PROD");
+            const pSku = addBtn.dataset.sku || (skuEl ? skuEl.innerText.trim() : "");
+            const pNombre = addBtn.dataset.nombre || (nameEl ? nameEl.innerText.trim() : "Zapatilla Kixa");
+            const pImagen = addBtn.dataset.imagen || (mainImage ? mainImage.src : "");
 
             const item = {
-                id: producto.id,
-                nombre: producto.nombre,
-                precio: producto.precio,
+                id: pId,
+                sku: pSku,
+                nombre: pNombre,
+                precio: parseFloat(rawPrice) || 0,
                 talla: selectedSize,
-                imagen: mainImage ? mainImage.src : ""
+                imagen: pImagen,
+                cantidad: 1
             };
 
             const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
             carrito.push(item);
             localStorage.setItem("carrito", JSON.stringify(carrito));
 
+            // [CAMBIO: ACTUALIZAR BADGE DE CONTADOR DEL CARRITO EN EL HEADER]
+            if (typeof actualizarBadgesHeader === "function") {
+                actualizarBadgesHeader();
+            }
+
+            // [CAMBIO: MOSTRAR TOAST CON NOTIFICACION DE AGREGADO CON EXITO]
             if (toast) {
-                toast.innerText = `${item.nombre} (Talla ${item.talla}) agregado al carrito ✅`;
+                const toastMsg = toast.querySelector(".alerta-mensaje") || toast;
+                toastMsg.innerText = `${item.nombre} (Talla ${item.talla}) agregado al carrito ✅`;
                 toast.style.display = "flex";
 
                 setTimeout(() => {
                     toast.style.display = "none";
-                }, 2000);
+                }, 2500);
             }
         });
     }

@@ -3,11 +3,33 @@
 @push('styles')
     {{-- [ORIGEN]: Estilos de cuenta de Tienda-Kixa_2/css/cuenta.css --}}
     <link rel="stylesheet" href="{{ asset('css/cuenta.css') }}">
+    <style>
+        .alert-success {
+            background: rgba(40, 167, 69, 0.15);
+            border: 1px solid #28a745;
+            color: #2ecc71;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .alert-error {
+            background: rgba(237, 0, 27, 0.15);
+            border: 1px solid #ed001b;
+            color: #ff4d5e;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+    </style>
 @endpush
 
 @section('contenido')
     {{-- [ORIGEN]: Extraído de Tienda-Kixa_2/cuenta.html (Líneas 127 a 663) --}}
-    {{-- [ADAPTADO]: Se adaptó a layouts.app eliminando header/footer y configurando enlaces y scripts de Laravel --}}
+    {{-- [CAMBIO: VISTA DE PERFIL VINCULADA A AUTHCONTROLLER Y TABLA USERS EN MYSQL] --}}
     <main class="cuenta-container">
         <div class="cuenta-wrapper">
 
@@ -16,13 +38,29 @@
                 <div>
                     <span class="mini-titulo">PERFIL</span>
                     <h1>Mi cuenta</h1>
-                    <p>Administra tu información personal y preferencias.</p>
+                    <p>Administra tu información personal y credenciales en KixaStore.</p>
                 </div>
 
                 <div class="icono-header">
                     <i class="fa-solid fa-user"></i>
                 </div>
             </div>
+
+            {{-- [CAMBIO: MENSAJE FLASH DE ACTUALIZACION EXITOSA] --}}
+            @if (session('exito'))
+                <div class="alert-success">
+                    <i class="fa-solid fa-circle-check"></i> {{ session('exito') }}
+                </div>
+            @endif
+
+            @if (isset($errors) && $errors->any())
+                <div class="alert-error">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    @foreach ($errors->all() as $error)
+                        <p style="margin: 0;">{{ $error }}</p>
+                    @endforeach
+                </div>
+            @endif
 
             <!-- GRID PRINCIPAL -->
             <div class="cuenta-grid">
@@ -40,32 +78,22 @@
                         <div class="foto-container">
                             <div class="foto-wrapper">
                                 <img id="fotoPerfil" src="{{ asset('images/ui/web.jpg') }}" alt="Foto de perfil">
-                                <label for="inputFoto" class="icono-camara" title="Cambiar foto">
-                                    <i class="fa-solid fa-camera"></i>
-                                </label>
                             </div>
-                            <input type="file" id="inputFoto" accept="image/*">
                         </div>
 
-                        <!-- NOMBRE -->
+                        <!-- NOMBRE REAL DE MYSQL -->
                         <div class="perfil-texto">
-                            <h2 id="nombrePerfil">Mi perfil</h2>
+                            <h2 id="nombrePerfil">{{ $usuario->name }}</h2>
                             <p>
                                 <i class="fa-regular fa-user"></i>
-                                Usuario Kixa
+                                Rol: <strong style="color: #ed001b; text-transform: uppercase;">{{ $usuario->rol ?? 'cliente' }}</strong>
                             </p>
                         </div>
-
-                        <!-- BOTÓN CAMBIAR FOTO -->
-                        <label for="inputFoto" class="btn-foto">
-                            <i class="fa-solid fa-camera"></i>
-                            Cambiar foto
-                        </label>
 
                         <!-- ESTADO -->
                         <div class="estado-cuenta">
                             <span class="punto"></span>
-                            Cuenta activa
+                            Cuenta activa en MySQL
                         </div>
                     </div>
                 </section>
@@ -80,138 +108,124 @@
                         <i class="fa-solid fa-id-card"></i>
                     </div>
 
-                    <div class="informacion">
-                        <!-- NOMBRE -->
-                        <div class="dato">
-                            <label class="dato-label" for="nombreUsuario">
-                                <i class="fa-regular fa-user"></i>
-                                Nombre completo
-                            </label>
-                            <input type="text" id="nombreUsuario" class="campo" placeholder="Ingresa tu nombre completo">
-                        </div>
+                    {{-- [CAMBIO: FORMULARIO REAL CONECTADO A ROUTE PERFIL.UPDATE CON METODO PUT Y @csrf] --}}
+                    <form method="POST" action="{{ route('perfil.update') }}">
+                        @csrf
+                        @method('PUT')
 
-                        <!-- EMAIL -->
-                        <div class="dato">
-                            <label class="dato-label">
-                                <i class="fa-regular fa-envelope"></i>
-                                Correo electrónico
-                            </label>
-                            <div class="email-box">
-                                <p id="emailUsuario">-</p>
-                                <span class="verificado">
-                                    <i class="fa-solid fa-circle-check"></i>
-                                    Cuenta activa
-                                </span>
+                        <div class="informacion">
+                            <!-- NOMBRE -->
+                            <div class="dato">
+                                <label class="dato-label" for="nombreUsuario">
+                                    <i class="fa-regular fa-user"></i>
+                                    Nombre completo
+                                </label>
+                                <input type="text" id="nombreUsuario" name="name" class="campo" value="{{ old('name', $usuario->name) }}" required>
+                            </div>
+
+                            <!-- EMAIL -->
+                            <div class="dato">
+                                <label class="dato-label" for="emailUsuario">
+                                    <i class="fa-regular fa-envelope"></i>
+                                    Correo electrónico
+                                </label>
+                                <input type="email" id="emailUsuario" name="email" class="campo" value="{{ old('email', $usuario->email) }}" required>
+                            </div>
+
+                            <!-- NUEVA CONTRASEÑA -->
+                            {{-- // [VALIDACION FORMULARIO]: Nueva contrasenia opcional con minimo 8 caracteres y mensaje de error --}}
+                            <div class="dato dato-completo">
+                                <label class="dato-label" for="password">
+                                    <i class="fa-solid fa-key"></i>
+                                    Nueva contraseña (Mínimo 8 caracteres, opcional)
+                                </label>
+                                <input type="password" id="password" name="password" class="campo" minlength="8" placeholder="Mínimo 8 caracteres (dejar en blanco para mantener la contraseña actual)">
+                                @error('password')
+                                    <span class="error-text" style="color: #ff4d5e; font-size: 12px; display: block; margin-top: 6px; font-weight: 600;">
+                                        <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
+                                    </span>
+                                @enderror
                             </div>
                         </div>
 
-                        <!-- TELEFONO -->
-                        <div class="dato">
-                            <label class="dato-label" for="telefonoUsuario">
-                                <i class="fa-solid fa-phone"></i>
-                                Número de teléfono
-                            </label>
-                            <input type="tel" id="telefonoUsuario" class="campo" placeholder="Ej. 999 999 999">
+                        <!-- BOTÓN GUARDAR -->
+                        <div class="guardar-container" style="margin-top: 20px;">
+                            <button class="btn-guardar" type="submit">
+                                <i class="fa-solid fa-check"></i>
+                                Guardar cambios
+                            </button>
                         </div>
-
-                        <!-- DNI -->
-                        <div class="dato">
-                            <label class="dato-label" for="dniUsuario">
-                                <i class="fa-solid fa-id-card"></i>
-                                DNI
-                            </label>
-                            <input type="text" id="dniUsuario" class="campo" maxlength="8" placeholder="Ingresa tu DNI">
-                        </div>
-
-                        <!-- CIUDAD -->
-                        <div class="dato">
-                            <label class="dato-label" for="ciudadUsuario">
-                                <i class="fa-solid fa-location-dot"></i>
-                                Ciudad
-                            </label>
-                            <select id="ciudadUsuario" class="campo">
-                                <option value="">Selecciona tu ciudad</option>
-                                <option value="Lima">Lima</option>
-                                <option value="Arequipa">Arequipa</option>
-                                <option value="Trujillo">Trujillo</option>
-                                <option value="Chiclayo">Chiclayo</option>
-                                <option value="Piura">Piura</option>
-                                <option value="Cusco">Cusco</option>
-                                <option value="Iquitos">Iquitos</option>
-                                <option value="Huancayo">Huancayo</option>
-                                <option value="Tacna">Tacna</option>
-                                <option value="Otra">Otra ciudad</option>
-                            </select>
-                        </div>
-
-                        <!-- DIRECCION -->
-                        <div class="dato dato-completo">
-                            <label class="dato-label" for="direccionUsuario">
-                                <i class="fa-solid fa-house"></i>
-                                Dirección
-                            </label>
-                            <input type="text" id="direccionUsuario" class="campo" placeholder="Ej. Av. Los Olivos 123">
-                        </div>
-
-                        <!-- FECHA -->
-                        <div class="dato">
-                            <label class="dato-label" for="fechaNacimiento">
-                                <i class="fa-regular fa-calendar"></i>
-                                Fecha de nacimiento
-                            </label>
-                            <input type="date" id="fechaNacimiento" class="campo">
-                        </div>
-
-                        <!-- GENERO -->
-                        <div class="dato">
-                            <label class="dato-label" for="generoUsuario">
-                                <i class="fa-solid fa-users"></i>
-                                Género
-                            </label>
-                            <select id="generoUsuario" class="campo">
-                                <option value="">Selecciona una opción</option>
-                                <option value="Masculino">Masculino</option>
-                                <option value="Femenino">Femenino</option>
-                                <option value="Prefiero no decirlo">Prefiero no decirlo</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- BOTÓN GUARDAR -->
-                    <div class="guardar-container">
-                        <button id="guardarNombre" class="btn-guardar" type="button">
-                            <i class="fa-solid fa-check"></i>
-                            Guardar cambios
-                        </button>
-                    </div>
+                    </form>
 
                     <!-- OPCIONES Y ACCIONES -->
-                    <div class="acciones">
-                        <span class="acciones-titulo">OPCIONES</span>
+                    <div class="acciones" style="margin-top: 30px;">
+                        <span class="acciones-titulo">OPCIONES Y GESTIÓN</span>
 
-                        <!-- MIS PEDIDOS -->
-                        <a href="{{ route('carrito') }}" class="opcion">
-                            <span class="opcion-icono">
-                                <i class="fa-solid fa-bag-shopping"></i>
-                            </span>
-                            <span class="opcion-info">
-                                <strong>Mis pedidos</strong>
-                                <small>Revisa tus compras</small>
-                            </span>
-                            <i class="fa-solid fa-chevron-right flecha"></i>
-                        </a>
+                        {{-- [CAMBIO: CONDICION PARA ACCESO AL PANEL DE ADMINISTRACION O HISTORIAL DE CLIENTE] --}}
+                        @if ($usuario->rol === 'admin')
+                            <a href="{{ route('admin.home') }}" class="opcion" style="border: 2px solid #ed001b; background: rgba(237, 0, 27, 0.05);">
+                                <span class="opcion-icono" style="background: #ed001b; color: #ffffff;">
+                                    <i class="fa-solid fa-gauge-high"></i>
+                                </span>
+                                <span class="opcion-info">
+                                    <strong style="color: #ed001b;">Ir al Panel de Administración</strong>
+                                    <small>Gestionar productos, categorías, tallas e inventario</small>
+                                </span>
+                                <i class="fa-solid fa-chevron-right flecha" style="color: #ed001b;"></i>
+                            </a>
+                        @else
+                            <!-- HISTORIAL DE PEDIDOS DEL CLIENTE -->
+                            <div class="pedidos-seccion" style="margin-bottom: 20px;">
+                                <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #ffffff;">
+                                    <i class="fa-solid fa-bag-shopping" style="color: #ed001b;"></i> Mis Pedidos Recientes
+                                </h3>
+                                @if (isset($pedidos) && $pedidos->isNotEmpty())
+                                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                                        @foreach ($pedidos as $pedido)
+                                            {{-- /* [FIX VISUAL] Tarjeta de pedido en fondo oscuro #18181b y texto legible */ --}}
+                                            <div style="background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 14px 18px; font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
+                                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                                    <span style="color: #ffffff; font-weight: 700; font-size: 14px; letter-spacing: 0.5px;">
+                                                        Orden: {{ $pedido->codigo_orden }}
+                                                    </span>
+                                                    <span style="color: #22c55e; font-weight: 600; font-size: 12px; background: rgba(34, 197, 94, 0.12); padding: 3px 8px; border-radius: 4px;">
+                                                        <i class="fa-solid fa-circle-check" style="font-size: 10px; margin-right: 4px;"></i>{{ $pedido->estado }}
+                                                    </span>
+                                                </div>
+                                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                                                    <span style="color: #a1a1aa;">
+                                                        <i class="fa-regular fa-calendar" style="margin-right: 5px;"></i>Fecha: {{ $pedido->created_at->format('d/m/Y') }}
+                                                    </span>
+                                                    <span style="color: #ffffff;">
+                                                        Total: <strong style="color: #e60012; font-weight: 700; font-size: 14px;">S/ {{ number_format($pedido->total, 2) }}</strong>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    {{-- /* [FIX VISUAL] Estado vacío en tono oscuro */ --}}
+                                    <div style="background: #18181b; border: 1px solid #27272a; padding: 16px; border-radius: 8px; font-size: 13px; color: #a1a1aa; text-align: center;">
+                                        Aún no has realizado ningún pedido. ¡Explora nuestro catálogo!
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
 
-                        <!-- CERRAR SESIÓN -->
-                        <button id="cerrarSesion" class="cerrar-sesion" type="button">
-                            <span class="opcion-icono">
-                                <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                            </span>
-                            <span class="opcion-info">
-                                <strong>Cerrar sesión</strong>
-                                <small>Salir de tu cuenta</small>
-                            </span>
-                            <i class="fa-solid fa-chevron-right flecha"></i>
-                        </button>
+                        {{-- [CAMBIO: BOTON DE CIERRE DE SESION LIMPIO Y UNICO] --}}
+                        <form method="POST" action="{{ route('logout') }}" style="display: block; margin-top: 15px;">
+                            @csrf
+                            <button class="cerrar-sesion" type="submit" style="width: 100%; text-align: left; background: transparent; border: none; cursor: pointer;">
+                                <span class="opcion-icono">
+                                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                </span>
+                                <span class="opcion-info">
+                                    <strong>Cerrar sesión</strong>
+                                    <small>Salir de tu cuenta de forma segura</small>
+                                </span>
+                                <i class="fa-solid fa-chevron-right flecha"></i>
+                            </button>
+                        </form>
                     </div>
                 </section>
 
@@ -219,8 +233,3 @@
         </div>
     </main>
 @endsection
-
-@push('scripts')
-    {{-- [ADAPTADO]: Lógica de perfil, carga y guardado local en public/js/cuenta.js --}}
-    <script src="{{ asset('js/cuenta.js') }}"></script>
-@endpush

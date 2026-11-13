@@ -1,48 +1,44 @@
 <?php
 
-use Illuminate\Http\Request;
+// [CAMBIO: IMPORTACION DE CONTROLADORES AUTH, CATALOGO Y CARRITO]
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CarritoController;
+use App\Http\Controllers\CatalogoController;
 use Illuminate\Support\Facades\Route;
 
 /*
-
-|Cada ruta cuenta con un nombre (->name()) para facilitar su
-| llamado desde las vistas Blade usando la función route('nombre').
+| Rutas web de KixaStore
+| Cada ruta cuenta con un nombre (->name()) para facilitar su llamado desde Blade.
 */
 
-// [RUTA]: Panel de administración
+// [CAMBIO: RUTA PROTEGIDA DEL PANEL DE ADMINISTRACION CON MIDDLEWARE ADMIN Y METRICAS DE MYSQL]
 Route::get('/admin', function () {
-    return view('admin.home');
-})->name('admin.home');
+    $totalProductos = \App\Models\Producto::count();
+    $totalCategorias = \App\Models\Categoria::count();
+    $totalProveedores = \App\Models\Proveedor::count();
+    $stockCritico = \App\Models\ProductoTalla::with('producto')->where('stock', '<=', 2)->get();
+
+    return view('admin.home', compact('totalProductos', 'totalCategorias', 'totalProveedores', 'stockCritico'));
+})->middleware(['auth', 'admin'])->name('admin.home');
 
 // [RUTA]: Página principal de la tienda (Home con carrusel y novedades)
 Route::get('/', function () {
     return view('cliente.home');
 })->name('home');
 
-// [RUTA]: Catálogo general con filtros opcionales (categoría, subcategoría, colección, marca)
-Route::get('/catalogo/{categoria?}', function (Request $request, $categoria = 'todos') {
-    $subcategoria = $request->query('sub');
-    $coleccion    = $request->query('coleccion');
-    $marca        = $request->query('marca');
-    return view('cliente.catalogo', compact('categoria', 'subcategoria', 'coleccion', 'marca'));
-})->name('catalogo');
+// [CAMBIO: RUTAS DE CATALOGO Y PRODUCTO VINCULADAS A CATALOGOCONTROLLER]
+Route::get('/catalogo/{categoria?}', [CatalogoController::class, 'index'])->name('catalogo');
+Route::get('/producto/{sku?}', [CatalogoController::class, 'show'])->name('producto.detalle');
 
-// [RUTA]: Detalle individual de un producto
-Route::get('/producto/{id?}', function ($id = 1) {
-    return view('cliente.producto', compact('id'));
-})->name('producto.detalle');
-
-// [RUTA]: Carrito de compras
-Route::get('/carrito', function () {
-    return view('cliente.carrito');
-})->name('carrito');
-
-// [RUTA]: Lista de favoritos
+// [CAMBIO: RUTAS DE CARRITO Y CHECKOUT VINCULADAS A CARRITOCONTROLLER]
+Route::get('/carrito', [CarritoController::class, 'index'])->name('carrito');
 Route::get('/favoritos', function () {
     return view('cliente.favoritos');
 })->name('favoritos');
+Route::get('/checkout', [CarritoController::class, 'checkout'])->name('checkout');
+Route::post('/checkout/procesar', [CarritoController::class, 'procesar'])->middleware('auth')->name('checkout.procesar');
 
-// [RUTA]: Centro de ayuda y preguntas frecuentes hhh
+// [RUTA]: Centro de ayuda y preguntas frecuentes
 Route::get('/ayuda', function () {
     return view('informativas.ayuda');
 })->name('ayuda');
@@ -52,23 +48,11 @@ Route::get('/contacto', function () {
     return view('informativas.contacto');
 })->name('contacto');
 
-// [RUTA]: Inicio de sesión de usuarios
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
-
-// [RUTA]: Registro de nuevos usuarios (separado de login)
-Route::get('/registro', function () {
-    return view('auth.registro');
-})->name('registro');
-
-// [RUTA]: Perfil y cuenta de usuario (separado de cuenta.html)
-Route::get('/perfil', function () {
-    return view('auth.perfil');
-})->name('perfil');
-
-// [RUTA]: Pasarela y confirmación de compra (checkout separado de carrito)
-Route::get('/checkout', function () {
-    return view('cliente.checkout');
-})->name('checkout');
-
+// [CAMBIO: RUTAS DE AUTENTICACION, REGISTRO, PERFIL Y LOGOUT CON AUTHCONTROLLER]
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/registro', [AuthController::class, 'showRegistro'])->name('registro');
+Route::post('/registro', [AuthController::class, 'registrar'])->name('registro.post');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/perfil', [AuthController::class, 'perfil'])->middleware('auth')->name('perfil');
+Route::put('/perfil', [AuthController::class, 'actualizarPerfil'])->middleware('auth')->name('perfil.update');

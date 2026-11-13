@@ -16,8 +16,17 @@
                 <label for="nombre">Nombre completo:</label>
                 <input type="text" id="nombre" name="nombre" placeholder="Nombre completo" required>
 
-                <label for="telefono">Número de teléfono:</label>
-                <input type="tel" id="telefono" name="telefono" placeholder="+51 000 000 000" required>
+                {{-- // [VALIDACION FORMULARIO]: DNI de exactamente 8 digitos numericos --}}
+                <label for="dni">DNI:</label>
+                <input type="text" id="dni" name="dni" placeholder="8 dígitos numéricos"
+                       maxlength="8" minlength="8" pattern="[0-9]{8}" inputmode="numeric"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+
+                {{-- // [VALIDACION FORMULARIO]: Telefono de exactamente 9 digitos numericos --}}
+                <label for="telefono">Número de teléfono / Celular:</label>
+                <input type="tel" id="telefono" name="telefono" placeholder="9 dígitos numéricos (ej. 987654321)"
+                       maxlength="9" minlength="9" pattern="[0-9]{9}" inputmode="numeric"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
 
                 <label for="direccion">Dirección:</label>
                 <input type="text" id="direccion" name="direccion" placeholder="Tu dirección" required>

@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
 
         const nombre = this.nombre ? this.nombre.value.trim() : "";
+        const dni = this.dni ? this.dni.value.trim() : "";
         const telefono = this.telefono ? this.telefono.value.trim() : "";
         const direccion = this.direccion ? this.direccion.value.trim() : "";
         const mensaje = this.mensaje ? this.mensaje.value.trim() : "";
@@ -24,9 +25,17 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // 2. Validar formato de teléfono (de 7 a 15 dígitos con prefijo opcional)
-        if (!/^\+?\d{7,15}$/.test(telefono.replace(/\s+/g, ""))) {
-            alert("⚠️ Por favor ingresa un número de teléfono o celular válido.");
+        // // [VALIDACION FORMULARIO]: DNI de exactamente 8 digitos numericos
+        if (dni && !/^\d{8}$/.test(dni)) {
+            alert("⚠️ Por favor ingresa un DNI válido de exactamente 8 dígitos numéricos.");
+            if (this.dni) this.dni.focus();
+            return;
+        }
+
+        // // [VALIDACION FORMULARIO]: Telefono de exactamente 9 digitos numericos
+        const telLimpio = telefono.replace(/\s+/g, "");
+        if (!/^\d{9}$/.test(telLimpio)) {
+            alert("⚠️ Por favor ingresa un número de teléfono / celular válido de exactamente 9 dígitos.");
             if (this.telefono) this.telefono.focus();
             return;
         }

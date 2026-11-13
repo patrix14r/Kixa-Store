@@ -859,3 +859,177 @@ body {
         max-width: 320px;
     }
 }
+
+/* ==========================================================================
+   [CAMBIO: REGLAS RESPONSIVE PARA EL MODO CLIENTE (MAX-WIDTH: 768PX)]
+   Garantiza que Header, Catálogo de Tarjetas y Carrito se adapten al 100% en móviles
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* 1. HEADER Y TOP-BAR RESPONSIVE */
+    .top-bar {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+
+    .top-links {
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .navbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        gap: 12px;
+    }
+
+    .logo {
+        width: auto;
+    }
+
+    .logo img {
+        width: 32px;
+        height: 32px;
+    }
+
+    .logo span {
+        font-size: 16px;
+    }
+
+    .icons {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .kixa-nav {
+        order: 3;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+    }
+
+    .kixa-menu {
+        display: flex;
+        gap: 16px;
+        white-space: nowrap;
+        justify-content: flex-start;
+        padding: 0 4px;
+    }
+
+    .search-bar {
+        order: 4;
+        width: 100% !important;
+        margin: 4px 0 0 0 !important;
+        max-width: 100%;
+    }
+
+    /* 2. CATALOGO DE PRODUCTOS Y TARJETAS */
+    .grid-productos {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 14px !important;
+        padding: 0 10px !important;
+    }
+
+    .producto {
+        border-radius: 10px;
+    }
+
+    .producto-img {
+        height: 180px !important;
+    }
+
+    .producto-img img {
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .producto-info {
+        padding: 12px 10px !important;
+    }
+
+    .producto-info h3 {
+        font-size: 13px !important;
+        line-height: 1.3;
+        min-height: 34px;
+    }
+
+    .producto-bottom .precio {
+        font-size: 14px !important;
+    }
+
+    .filtros {
+        overflow-x: auto;
+        white-space: nowrap;
+        justify-content: flex-start !important;
+        padding: 10px 12px !important;
+        gap: 8px;
+    }
+
+    .filtros-tallas {
+        overflow-x: auto;
+        white-space: nowrap;
+        justify-content: flex-start !important;
+        padding: 6px 12px 14px !important;
+    }
+
+    /* 3. CARRITO DE COMPRAS Y CHECKOUT */
+    .carrito-layout {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 24px !important;
+    }
+
+    .productos-section,
+    .resumen {
+        width: 100% !important;
+    }
+
+    .item {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        padding: 12px !important;
+    }
+
+    .item .img-item {
+        width: 70px !important;
+        height: 70px !important;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+
+    .item .nombre {
+        font-size: 14px !important;
+    }
+
+    .btn-comprar-principal {
+        width: 100% !important;
+        padding: 14px 20px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .grid-productos {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        padding: 0 6px !important;
+    }
+
+    .producto-img {
+        height: 150px !important;
+    }
+
+    .btn-fav-card {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 13px !important;
+        top: 8px !important;
+        right: 8px !important;
+    }
+}
+

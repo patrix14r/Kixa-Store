@@ -11,19 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('productos', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('categoria_id')->constrained('categorias')->restrictOnDelete();
-            $table->string('marca', 50);
-            $table->string('nombre', 120);
-            $table->string('sku', 30)->unique();
-            $table->decimal('precio', 10, 2);   
-            $table->text('descripcion')->nullable();
-            $table->string('imagen', 255);
-            $table->boolean('destacado')->default(false);
-            $table->boolean('activo')->default(true);
-            $table->timestamps();
-        });
+    Schema::create('productos', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('categoria_id')->constrained('categorias')->restrictOnDelete();
+        $table->foreignId('proveedor_id')->nullable()->constrained('proveedores')->nullOnDelete();
+        $table->string('marca', 50);
+        $table->string('nombre', 120);
+        $table->string('subcategoria', 50)->nullable();
+        $table->string('sku', 30)->unique();
+        $table->decimal('precio', 10, 2);
+        $table->text('descripcion')->nullable();
+        $table->string('imagen', 255)->nullable();
+        $table->boolean('destacado')->default(false);
+        $table->boolean('en_oferta')->default(false);
+         $table->boolean('activo')->default(true);
+         $table->timestamps();
+         });
     }
 
     /**

@@ -35,6 +35,29 @@
                         </div>
                     </div>
 
+                    {{-- // [VALIDACION FORMULARIO]: Datos obligatorios de DNI (8 digitos) y Celular (9 digitos) para la entrega --}}
+                    <div class="datos-cliente-checkout" style="margin-bottom: 25px; padding: 18px; background: #181a1d; border: 1px solid #2b2f33; border-radius: 12px;">
+                        <h3 style="color: #fff; font-size: 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-id-card" style="color: #ed001b;"></i> Datos de Identificación y Contacto
+                        </h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+                            <div>
+                                <label for="checkoutDni" style="display: block; font-size: 12px; color: #a1a1aa; margin-bottom: 5px;">DNI del titular:</label>
+                                <input type="text" id="checkoutDni" name="dni" placeholder="8 dígitos numéricos"
+                                       maxlength="8" minlength="8" pattern="[0-9]{8}" inputmode="numeric"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                       style="width: 100%; background: #0c0d0e; border: 1px solid #3a3f45; color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 13px;">
+                            </div>
+                            <div>
+                                <label for="checkoutTelefono" style="display: block; font-size: 12px; color: #a1a1aa; margin-bottom: 5px;">Teléfono / Celular:</label>
+                                <input type="tel" id="checkoutTelefono" name="telefono" placeholder="9 dígitos (ej. 987654321)"
+                                       maxlength="9" minlength="9" pattern="[0-9]{9}" inputmode="numeric"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                       style="width: 100%; background: #0c0d0e; border: 1px solid #3a3f45; color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 13px;">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="opciones" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 25px;">
                         <button onclick="mostrarContraentrega()" class="opcion" type="button">
                             <span class="opcion-icono">

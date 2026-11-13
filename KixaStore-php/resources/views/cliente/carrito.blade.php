@@ -58,10 +58,19 @@
                     <strong id="total">S/ 0.00</strong>
                 </div>
 
-                <button class="btn-comprar-principal" onclick="abrirModal()" type="button">
-                    <span>Continuar con la compra</span>
-                    <i class="fa-solid fa-arrow-right"></i>
-                </button>
+                {{-- [CAMBIO: REDIRECCION A LOGIN PARA INVITADOS O CHECKOUT PARA USUARIOS AUTENTICADOS] --}}
+                @guest
+                    <a href="{{ route('login') }}" class="btn-comprar-principal" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <span>Iniciar sesión para comprar</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                @endguest
+                @auth
+                    <a href="{{ route('checkout') }}" class="btn-comprar-principal" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <span>Continuar con la compra</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                @endauth
 
                 <div class="seguridad">
                     <i class="fa-solid fa-shield-halved"></i>
