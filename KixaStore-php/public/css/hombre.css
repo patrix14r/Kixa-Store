@@ -3,7 +3,6 @@
    Diseño deportivo, optimizado e interactivo estilo Puma / Nike
    ========================================================================== */
 
-========================================================================== */
 * {
     box-sizing: border-box;
 }
@@ -86,7 +85,7 @@ body {
     width: 130px;
     height: 12px;
     margin: 18px 0;
-    background: #e60012;
+    background: rgba(255, 255, 255, 0.12);
     opacity: .7;
 }
 
@@ -103,27 +102,33 @@ body {
 .hero-small {
     display: block;
     margin-bottom: 12px;
-    color: #ff1025;
-    font-size: .78rem;
-    font-weight: 700;
-    letter-spacing: 4px;
+    /* [Actualizado: Banner] Etiqueta en gris plata en vez de rojo */
+    color: #c7c7cc;
+    font-size: .74rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
 }
 
 .hombre-hero-content h1 {
     margin: 0;
-    font-size: clamp(3.3rem, 6vw, 5.5rem);
-    line-height: .88;
-    font-weight: 800;
-    letter-spacing: -3px;
+    /* [Actualizado: Banner] Tamaño proporcionado que no se corta en móvil */
+    font-size: clamp(2.1rem, 5vw, 4.2rem);
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #ffffff;
+    overflow-wrap: anywhere;
 }
 
 .hombre-hero-content h1 em {
     font-style: normal;
-    color: #eee;
+    color: #ffffff;
 }
 
 .hombre-hero-content h1 strong {
-    color: #e90018;
+    display: block;
+    color: #c7c7cc;
+    font-weight: 600;
 }
 
 .hombre-hero-content p {
@@ -139,21 +144,21 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 13px;
-    padding: 13px 22px;
-    background: #ed001b;
-    color: white;
-    border-radius: 5px;
+    /* [Actualizado: Banner] Botón blanco/negro minimalista estilo Nike */
+    padding: 13px 26px;
+    background: #ffffff;
+    color: #111111;
+    border-radius: 999px;
     text-decoration: none;
-    font-size: .8rem;
-    font-weight: 700;
+    font-size: .9rem;
+    font-weight: 600;
     transition: .3s;
 }
 
 .hero-btn:hover {
-    background: #ff1e35;
-    transform: translateY(-3px);
-    box-shadow:
-        0 10px 30px rgba(230,0,20,.25);
+    background: #e5e5e5;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
 }
 
 .hero-btn i {
@@ -173,7 +178,7 @@ body {
     transform: translateY(-50%) rotate(-5deg);
     color: rgba(255,255,255,.28);
     font-size: 2.8rem;
-    font-weight: 800;
+    font-weight: 700;
     line-height: .9;
     text-align: center;
     letter-spacing: -2px;
@@ -311,7 +316,7 @@ body {
     border-radius: 25px;
     background: transparent;
     color: #ddd;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: .72rem;
     font-weight: 600;
     cursor: pointer;
@@ -528,44 +533,6 @@ body {
     border-color: #ed001b;
 }
 
-/* [BLOQUE]: FOOTER */
-.footer {
-    border-top: 1px solid #292b2d;
-    background: #070808;
-    padding: 25px 7%;
-}
-
-.footer-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.footer-logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.footer-logo img {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    filter: grayscale(1) brightness(4);
-}
-
-.footer-logo span {
-    color: white;
-    font-size: .9rem;
-    font-weight: 700;
-}
-
-.footer p {
-    margin: 0;
-    color: #777;
-    font-size: .65rem;
-}
-
 /* [BLOQUE]: PRODUCTO OCULTO */
 .producto.oculto {
     display: none;
@@ -607,7 +574,7 @@ body {
         right: 8%;
     }
     .hombre-hero-content h1 {
-        font-size: 3.3rem;
+        font-size: clamp(1.9rem, 9vw, 2.6rem);
     }
     .grid-productos {
         grid-template-columns: repeat(2, 1fr);
@@ -650,11 +617,6 @@ body {
     .filtro,
     .filtros button {
         padding: 7px 13px;
-    }
-    .footer-content {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
     }
 }
 

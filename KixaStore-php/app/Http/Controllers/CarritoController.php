@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-// [CAMBIO: IMPORTACIONES PARA CARRITOCONTROLLER Y PROCESAMIENTO DE COMPRAS]
 use App\Models\DetallePedido;
 use App\Models\Pedido;
 use App\Models\Producto;
@@ -14,22 +13,39 @@ use Illuminate\Support\Str;
 
 class CarritoController extends Controller
 {
-    // [CAMBIO: VISTA DEL CARRITO DE COMPRAS]
+    private const MENSAJE_ADMIN = 'La cuenta Administrador es solo de gestión y no puede realizar compras de cliente.';
+
     public function index()
     {
         return view('cliente.carrito');
     }
 
-    // [CAMBIO: VISTA DE CHECKOUT PROTEGIDA PARA CLIENTES AUTENTICADOS]
     public function checkout()
     {
         if (!Auth::check()) {
-            return redirect()->route('login')->with('error', 'Debes iniciar sesión para proceder al pago.');
+            // [Actualizado: Login → Checkout] guest() guarda url.intended para volver aquí tras iniciar sesión
+            return redirect()->guest(route('login', ['redirect' => 'checkout']))->with('error', 'Debes iniciar sesión para proceder al pago.');
         }
-        return view('cliente.checkout');
+
+        // [Sem 11 - Migraciones, Seeders y Roles]: El rol admin no puede comprar en la tienda pública
+        if (Auth::user()->esAdmin()) {
+            return redirect()->route('carrito')->with('error', self::MENSAJE_ADMIN);
+        }
+
+        // [Actualizado: Checkout] Datos del cliente para pre-llenar Nombre, DNI, Teléfono y Dirección
+        $usuario = Auth::user();
+
+        // [Actualizado: Blindaje] Token de un solo uso: si el usuario vuelve con "Atrás" tras comprar, no puede reenviar el pedido
+        $tokenCompra = (string) Str::uuid();
+        session(['checkout_token' => $tokenCompra]);
+
+        return response()
+            ->view('cliente.checkout', compact('usuario', 'tokenCompra'))
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
-    // [CAMBIO: PROCESAR COMPRA Y REGISTRAR PEDIDO CON DETALLES Y DECREMENTO DE STOCK]
     public function procesar(Request $request)
     {
         if (!Auth::check()) {
@@ -43,26 +59,41 @@ class CarritoController extends Controller
             return redirect()->route('login')->with('error', 'Inicia sesión para finalizar tu compra.');
         }
 
+        // [Sem 11 - Migraciones, Seeders y Roles]: Bloqueo de compra para el Administrador (también vía AJAX)
+        if (Auth::user()->esAdmin()) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['exito' => false, 'mensaje' => self::MENSAJE_ADMIN], 403);
+            }
+            return redirect()->route('carrito')->with('error', self::MENSAJE_ADMIN);
+        }
+
+        // [Actualizado: Blindaje] Cantidades enteras de 1 a 10, talla obligatoria y al menos 1 producto
         $request->validate([
             'metodo_pago'      => ['required', 'string', 'max:50'],
             'direccion_envio'  => ['nullable', 'string', 'max:255'],
-            'items'            => ['required'],
+            'dni'              => ['nullable', 'regex:/^[0-9]{8}$/'],
+            'telefono'         => ['nullable', 'regex:/^[0-9]{9}$/'],
+            'token_compra'     => ['required', 'string'],
+            'items'            => ['required', 'array', 'min:1', 'max:30'],
+            'items.*.id'       => ['required'],
+            'items.*.talla'    => ['required', 'numeric', 'min:1'],
+            'items.*.cantidad' => ['required', 'integer', 'min:1', 'max:10'],
+        ], [
+            'items.required'         => 'El carrito está vacío.',
+            'items.*.cantidad.min'   => 'La cantidad mínima por producto es 1.',
+            'items.*.cantidad.integer' => 'La cantidad debe ser un número entero.',
+            'token_compra.required'  => 'La sesión de pago expiró. Vuelve a abrir el checkout.',
         ]);
 
-        $items = $request->input('items');
-        if (is_string($items)) {
-            $items = json_decode($items, true);
+        // [Actualizado: Blindaje] El token se consume ANTES de crear el pedido: un segundo envío (doble clic o "Atrás") se rechaza
+        if (! hash_equals((string) session()->pull('checkout_token'), (string) $request->input('token_compra'))) {
+            return $this->rechazar($request, 'Esta compra ya fue procesada o la sesión de pago expiró. Revisa tu historial de pedidos.', 409);
         }
 
-        if (empty($items) || !is_array($items)) {
-            if ($request->expectsJson() || $request->ajax()) {
-                return response()->json([
-                    'exito' => false,
-                    'mensaje' => 'El carrito está vacío o el formato de productos es inválido.'
-                ], 422);
-            }
-            return back()->withErrors(['items' => 'El carrito no contiene productos válidos.']);
-        }
+        // [Actualizado: Checkout] Se recuerdan DNI y teléfono para pre-llenar la próxima compra
+        Auth::user()->fill(array_filter($request->only(['dni', 'telefono'])))->save();
+
+        $items = $request->input('items');
 
         try {
             $pedido = DB::transaction(function () use ($request, $items) {
@@ -71,39 +102,46 @@ class CarritoController extends Controller
                 $lineasProcesadas = [];
 
                 foreach ($items as $item) {
-                    $productoId = $item['id'] ?? $item['producto_id'] ?? null;
-                    $talla = $item['talla'] ?? 40;
-                    $cantidad = max(1, intval($item['cantidad'] ?? 1));
-                    $precio = floatval($item['precio'] ?? 0);
+                    $cantidad = (int) $item['cantidad'];
+                    $talla    = (float) $item['talla'];
 
-                    // [CAMBIO: BUSQUEDA ROBUSTA POR ID NUMERICO O SKU DEL PRODUCTO]
-                    $prod = null;
-                    if ($productoId) {
-                        $prod = Producto::where('id', $productoId)
-                            ->orWhere('sku', $productoId)
-                            ->first();
-                        if ($prod) {
-                            $productoId = $prod->id;
-                            $precio = floatval($prod->precio);
-                        }
+                    // [Sem 12 - Eloquent ORM]: El precio sale SIEMPRE de la BD (nunca del navegador)
+                    $prod = Producto::activos()
+                        ->where(fn ($q) => $q->where('sku', $item['id'])->orWhere('id', is_numeric($item['id']) ? (int) $item['id'] : 0))
+                        ->first();
+                    if (! $prod) {
+                        throw new \DomainException('Uno de los productos ya no está disponible.');
                     }
 
+                    // Bloqueo de fila para que dos compras simultáneas no vendan el mismo stock
+                    $tallaRecord = ProductoTalla::where('producto_id', $prod->id)->where('talla', $talla)->lockForUpdate()->first();
+                    if (! $tallaRecord || $tallaRecord->stock < $cantidad) {
+                        throw new \DomainException("Stock insuficiente de {$prod->nombre} en talla " . rtrim(rtrim(number_format($talla, 1), '0'), '.') . '.');
+                    }
+
+                    $precio = (float) $prod->precio;
                     $lineaSubtotal = round($precio * $cantidad, 2);
                     $subtotal += $lineaSubtotal;
 
                     $lineasProcesadas[] = [
-                        'producto_id'     => $productoId,
+                        'producto_id'     => $prod->id,
                         'talla'           => $talla,
                         'cantidad'        => $cantidad,
                         'precio_unitario' => $precio,
                         'subtotal'        => $lineaSubtotal,
+                        'talla_record'    => $tallaRecord,
                     ];
                 }
 
-                $igv = round($subtotal * 0.18, 2);
-                $total = round($subtotal + $igv, 2);
+                if ($subtotal <= 0) {
+                    throw new \DomainException('No se puede generar un pedido en cero.');
+                }
 
-                // [CAMBIO: GENERACION DE CODIGO DE ORDEN OFICIAL PED-XXXXXX]
+                // [Actualizado: IGV] Los precios ya incluyen IGV: IGV = total * 0.18 / 1.18
+                $total = round($subtotal, 2);
+                $igv = round($total * 0.18 / 1.18, 2);
+                $subtotal = round($total - $igv, 2);
+
                 $codigoOrden = 'PED-' . strtoupper(Str::random(6));
 
                 $pedido = Pedido::create([
@@ -117,7 +155,6 @@ class CarritoController extends Controller
                     'metodo_pago'     => $request->input('metodo_pago'),
                 ]);
 
-                // [CAMBIO: INSERCION DE ITEMS EN ORDER_ITEMS Y DESCUENTO DE STOCK EN PRODUCTO_TALLAS]
                 foreach ($lineasProcesadas as $linea) {
                     DetallePedido::create([
                         'pedido_id'       => $pedido->id,
@@ -128,26 +165,16 @@ class CarritoController extends Controller
                         'subtotal'        => $linea['subtotal'],
                     ]);
 
-                    // Descontar inventario de la talla si existe
-                    if ($linea['producto_id']) {
-                        $tallaRecord = ProductoTalla::where('producto_id', $linea['producto_id'])
-                            ->where(function ($q) use ($linea) {
-                                $q->where('talla', $linea['talla'])
-                                  ->orWhere('talla', floatval($linea['talla']));
-                            })
-                            ->first();
-
-                        if ($tallaRecord) {
-                            $nuevoStock = max(0, $tallaRecord->stock - $linea['cantidad']);
-                            $tallaRecord->update(['stock' => $nuevoStock]);
-                        }
-                    }
+                    // Descontar inventario (ya validado y bloqueado arriba)
+                    $linea['talla_record']->decrement('stock', $linea['cantidad']);
                 }
 
                 return $pedido;
             });
 
-            // [CAMBIO: GUARDAR MENSAJE FLASH PARA MOSTRAR AL REDIRIGIR AL PERFIL]
+            // [Actualizado: Carrito limpio] El token ya se consumió; se marca en sesión para que la vista vacíe el carrito local
+            session()->forget('checkout_token');
+            session()->flash('carrito_vaciado', true);
             session()->flash('exito', '¡Tu pedido ' . $pedido->codigo_orden . ' ha sido confirmado y registrado con éxito!');
 
             if ($request->expectsJson() || $request->ajax()) {
@@ -156,12 +183,17 @@ class CarritoController extends Controller
                     'mensaje'      => '¡Pedido ' . $pedido->codigo_orden . ' registrado con éxito!',
                     'codigo_orden' => $pedido->codigo_orden,
                     'total'        => number_format($pedido->total, 2),
-                    'redirect_url' => route('perfil'),
+                    'redirect_url' => route('perfil', 'pedidos'),
                 ]);
             }
 
-            return redirect()->route('perfil')->with('exito', '¡Tu pedido #' . $pedido->codigo_orden . ' se procesó exitosamente!');
+            return redirect()->route('perfil', 'pedidos')->with('exito', '¡Tu pedido #' . $pedido->codigo_orden . ' se procesó exitosamente!');
 
+        } catch (\DomainException $e) {
+            // Stock o producto inválido: se devuelve el token para que pueda corregir el carrito y reintentar
+            session(['checkout_token' => $request->input('token_compra')]);
+
+            return $this->rechazar($request, $e->getMessage(), 422);
         } catch (\Throwable $e) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -172,5 +204,14 @@ class CarritoController extends Controller
 
             return back()->withErrors(['error' => 'Ocurrió un error al procesar la compra. Inténtalo nuevamente.']);
         }
+    }
+
+    private function rechazar(Request $request, string $mensaje, int $codigo)
+    {
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['exito' => false, 'mensaje' => $mensaje, 'redirect_url' => route('perfil', 'pedidos')], $codigo);
+        }
+
+        return redirect()->route('perfil', 'pedidos')->with('error', $mensaje);
     }
 }

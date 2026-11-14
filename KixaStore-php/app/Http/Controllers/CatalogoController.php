@@ -2,64 +2,199 @@
 
 namespace App\Http\Controllers;
 
-// [CAMBIO: IMPORTACION DE MODELOS CATEGORIA Y PRODUCTO]
 use App\Models\Categoria;
 use App\Models\Producto;
+use App\Models\ProductoTalla;
 use Illuminate\Http\Request;
 
+// [Sem 09 - Controladores y MVC]: Catálogo con filtros por Request; la vista solo recibe datos ya preparados
 class CatalogoController extends Controller
 {
-    // [CAMBIO: METODO INDEX PARA LISTAR PRODUCTOS CON FILTROS Y BUSQUEDA GENERAL]
+    private const BANNERS = [
+        'mujer' => [
+            'clase' => 'mujer-hero',
+            'subtitulo' => 'KIXA WOMEN',
+            'titulo_principal' => 'MUJER',
+            'enfasis' => 'ESTILO',
+            'slogan' => 'SIN LÍMITES.',
+            'descripcion' => 'Las mejores marcas, los modelos más top y la comodidad que necesitas en cada paso.',
+            'imagenes' => [
+                'images/banners/mujer/dsa3.webp',
+                'images/banners/mujer/dsa4.avif',
+                'images/banners/mujer/dsa33.avif',
+            ],
+        ],
+        'ninos' => [
+            'clase' => 'ninos-hero',
+            'subtitulo' => 'KIXA KIDS',
+            'titulo_principal' => 'NIÑOS',
+            'enfasis' => 'ENERGÍA',
+            'slogan' => 'Y DIVERSIÓN.',
+            'descripcion' => 'Calzado escolar y urbano ultrarresistente con amortiguación y máxima seguridad para los más chicos.',
+            'imagenes' => [
+                'images/banners/ninos/123.jpg',
+                'images/banners/ninos/qwe.jpg',
+            ],
+        ],
+        'deporte' => [
+            'clase' => 'deporte-hero',
+            'subtitulo' => 'KIXA SPORT',
+            'titulo_principal' => 'DEPORTE',
+            'enfasis' => 'MÁXIMO',
+            'slogan' => 'RENDIMIENTO.',
+            'descripcion' => 'Chimpunes, running y calzado de alto rendimiento para fútbol, futsal, gimnasio y running.',
+            'imagenes' => [
+                'images/banners/deporte/dsa1.jpg',
+                'images/banners/deporte/dsa2.jpg',
+                'images/banners/deporte/das3.jpg',
+            ],
+        ],
+        'hombre' => [
+            'clase' => 'hombre-hero',
+            'subtitulo' => 'KIXA MEN',
+            'titulo_principal' => 'HOMBRE',
+            'enfasis' => 'ACTITUD',
+            'slogan' => 'Y EXCLUSIVIDAD.',
+            'descripcion' => 'Ediciones limitadas, zapatillas urbanas y de básquetbol con la mayor presencia del mercado.',
+            'imagenes' => [
+                'images/banners/hombre/hombre6.jpg',
+                'images/banners/hombre/hombre5.jpg',
+                'images/banners/hombre/87.png',
+            ],
+        ],
+    ];
+
+    // [Actualizado: Catálogo] Al filtrar, la página vuelve directo a la grilla (nunca al banner)
+    private const ANCLA = '#zona-catalogo';
+
+    // [Actualizado: Catálogo] Títulos sin contador
+    private const TITULOS = [
+        'hombre'  => 'Zapatillas Hombre',
+        'mujer'   => 'Zapatillas Mujer',
+        'ninos'   => 'Zapatillas Niños',
+        'deporte' => 'Calzado Deportivo',
+    ];
+
+    // [Actualizado: Filtros estilo Nike] Opciones de orden del desplegable "Ordenar por"
+    private const ORDENES = [
+        'destacados'  => 'Destacados',
+        'precio_asc'  => 'Precio: menor a mayor',
+        'precio_desc' => 'Precio: mayor a menor',
+        'nuevo'       => 'Lo más nuevo',
+    ];
+
+    // [Sem 09 - Controladores y MVC]: index() recibe la categoría por la ruta y los filtros por Request (?marca, ?sub, ?talla, ?orden)
     public function index(Request $request, $categoria = 'todos')
     {
         $subcategoria = $request->query('sub');
-        $coleccion    = $request->query('coleccion');
         $marca        = $request->query('marca');
         $talla        = $request->query('talla');
-        $buscar       = $request->query('buscar');
+        $orden        = array_key_exists($request->query('orden'), self::ORDENES) ? $request->query('orden') : 'destacados';
+        $buscar       = trim((string) $request->query('buscar'));
 
-        // [CAMBIO: CONSULTA BASE CON SCOPE ACTIVOS Y CARGA IMPACIENTE]
-        $query = Producto::activos()->with(['categoria', 'tallas']);
+        $catObj = ($categoria && $categoria !== 'todos') ? Categoria::where('slug', $categoria)->first() : null;
 
-        // [CAMBIO: BUSCADOR GENERAL SIN RESTRINGIR A UNA SOLA CATEGORIA SI BUSCO DESDE EL HEADER]
-        if ($buscar) {
-            $query->where(function ($q) use ($buscar) {
-                $q->where('nombre', 'like', "%{$buscar}%")
-                  ->orWhere('marca', 'like', "%{$buscar}%")
-                  ->orWhere('sku', 'like', "%{$buscar}%");
-            });
-        } elseif ($categoria && $categoria !== 'todos') {
-            // [CAMBIO: FILTRO POR CATEGORIA SLUG SOLO SI NO SE ESTA BUSCANDO GENERALMENTE]
-            $catObj = Categoria::where('slug', $categoria)->first();
-            if ($catObj) {
-                $query->where('categoria_id', $catObj->id);
+        // Consulta base (categoría o búsqueda): de ella salen las opciones dinámicas del sidebar
+        $base = Producto::activos()->whereHas('categoria', fn ($c) => $c->where('activo', true));
+
+        // [Sem 12 - Eloquent ORM]: Buscador del header; cada palabra debe aparecer en modelo, marca, SKU o categoría
+        if ($buscar !== '') {
+            foreach (preg_split('/\s+/', $buscar) as $palabra) {
+                $base->where(function ($q) use ($palabra) {
+                    $q->where('nombre', 'like', "%{$palabra}%")
+                      ->orWhere('marca', 'like', "%{$palabra}%")
+                      ->orWhere('sku', 'like', "%{$palabra}%")
+                      ->orWhereHas('categoria', fn ($c) => $c->where('nombre', 'like', "%{$palabra}%"));
+                });
             }
+        } elseif ($catObj) {
+            $base->where('categoria_id', $catObj->id);
         }
 
-        // [CAMBIO: FILTRO OPCIONAL POR SUBCATEGORIA]
+        // [Actualizado: Filtros estilo Nike] Opciones reales obtenidas de los productos (sin listas fijas)
+        $marcasDisponibles = (clone $base)->distinct()->orderBy('marca')->pluck('marca')->all();
+        $subsDisponibles   = (clone $base)->whereNotNull('subcategoria')->distinct()->orderBy('subcategoria')->pluck('subcategoria')->all();
+        $tallasDisponibles = ProductoTalla::whereIn('producto_id', (clone $base)->select('id'))
+            ->where('stock', '>', 0)->distinct()->orderBy('talla')->pluck('talla')
+            ->map(fn ($t) => $this->formatoTalla($t))->unique()->values()->all();
+
+        $query = (clone $base)->with(['categoria', 'tallas']);
+
         if ($subcategoria) {
             $query->where('subcategoria', $subcategoria);
         }
 
-        // [CAMBIO: FILTRO OPCIONAL POR MARCA]
         if ($marca) {
             $query->where('marca', $marca);
         }
 
-        // [CAMBIO: FILTRO POR TALLA DISPONIBLE CON STOCK MAYOR A CERO]
         if ($talla) {
-            $query->whereHas('tallas', fn($q) => $q->where('talla', $talla)->where('stock', '>', 0));
+            $query->whereHas('tallas', fn ($q) => $q->where('talla', $talla)->where('stock', '>', 0));
         }
+
+        match ($orden) {
+            'precio_asc'  => $query->orderBy('precio'),
+            'precio_desc' => $query->orderByDesc('precio'),
+            'nuevo'       => $query->latest('id'),
+            default       => $query->orderByDesc('destacado')->orderBy('nombre'),
+        };
 
         $productos = $query->get();
 
-        return view('cliente.catalogo', compact('productos', 'categoria', 'subcategoria', 'coleccion', 'marca', 'talla', 'buscar'));
+        $bannerActual = self::BANNERS[strtolower($categoria ?? 'todos')] ?? self::BANNERS['hombre'];
+
+        $titulo = $buscar !== ''
+            ? 'Resultados para "' . $buscar . '"'
+            : ($catObj ? self::TITULOS[$catObj->slug] ?? 'Zapatillas ' . $catObj->nombre : 'Todas las zapatillas');
+
+        // [Actualizado: Filtro inteligente] En Hombre/Mujer/Niños el acordeón de Categoría es redundante
+        $mostrarCategoria = ! $catObj || ! in_array($catObj->slug, ['hombre', 'mujer', 'ninos'], true) || $buscar !== '';
+
+        // Enlaces del sidebar: categoría cambia la ruta; el resto alterna su parámetro en la query
+        $filtrosCategoria = Categoria::where('activo', true)->orderBy('id')->get()->map(fn ($c) => [
+            'etiqueta' => $c->nombre,
+            'activo'   => $catObj?->id === $c->id && $buscar === '',
+            'url'      => route('catalogo', array_merge(['categoria' => $c->slug], $request->except(['buscar', 'marca', 'sub', 'talla']))) . self::ANCLA,
+        ])->prepend([
+            'etiqueta' => 'Todos',
+            'activo'   => ! $catObj && $buscar === '',
+            'url'      => route('catalogo', ['categoria' => 'todos'] + $request->only('orden')) . self::ANCLA,
+        ])->all();
+
+        $filtrosMarca = $this->filtros($request, $categoria, 'marca', $marcasDisponibles);
+        $filtrosSub   = $this->filtros($request, $categoria, 'sub', $subsDisponibles, fn ($s) => Producto::nombreSubcategoria($s));
+        $filtrosTalla = $this->filtros($request, $categoria, 'talla', $tallasDisponibles);
+
+        $ordenes          = self::ORDENES;
+        $parametrosOrden  = $request->except('orden');
+        // [Actualizado: Limpiar filtros] Quita marca, disciplina, talla y búsqueda; conserva el orden y vuelve a #zona-catalogo
+        $hayFiltros       = (bool) ($marca || $subcategoria || $talla || $buscar !== '');
+        $urlLimpiar       = route('catalogo', ['categoria' => $categoria] + $request->only('orden')) . self::ANCLA;
+
+        return view('cliente.catalogo', compact(
+            'productos', 'categoria', 'subcategoria', 'marca', 'talla', 'buscar', 'orden', 'titulo',
+            'bannerActual', 'filtrosCategoria', 'filtrosMarca', 'filtrosSub', 'filtrosTalla',
+            'ordenes', 'parametrosOrden', 'hayFiltros', 'urlLimpiar', 'mostrarCategoria'
+        ));
     }
 
-    // [CAMBIO: METODO SHOW PARA EL DETALLE DEL PRODUCTO Y SUS RECOMENDADOS]
+    // [Actualizado: Favoritos] Tallas con stock de un producto en JSON (para elegir talla desde Favoritos)
+    public function tallas(string $sku)
+    {
+        $producto = Producto::activos()->with(['tallas' => fn ($q) => $q->where('stock', '>', 0)->orderBy('talla'), 'categoria'])
+            ->where('sku', $sku)->firstOrFail();
+
+        return response()->json([
+            'sku'    => $producto->sku,
+            'nombre' => $producto->nombre,
+            'precio' => (float) $producto->precio,
+            'tipo'   => $producto->tipo_calzado . ' • ' . $producto->categoria?->nombre,
+            'tallas' => $producto->tallas->map(fn ($t) => $this->formatoTalla($t->talla))->values(),
+        ]);
+    }
+
     public function show($sku = null)
     {
-        // [CAMBIO: BUSQUEDA POR SKU O ID CON RELACIONES COMPLETAS]
         $producto = null;
         if ($sku) {
             $producto = Producto::with(['categoria', 'proveedor', 'tallas'])
@@ -68,19 +203,16 @@ class CatalogoController extends Controller
                 ->first();
         }
 
-        // [CAMBIO: FALLBACK SEGURO SI NO EXISTE EL PRODUCTO]
         if (!$producto) {
             $producto = Producto::with(['categoria', 'proveedor', 'tallas'])->first();
         }
 
-        // [CAMBIO: OBTENCION DE 4 RECOMENDADOS DE LA MISMA CATEGORIA]
         $recomendados = Producto::activos()
             ->where('id', '!=', $producto->id)
             ->where('categoria_id', $producto->categoria_id)
             ->take(4)
             ->get();
 
-        // [CAMBIO: COMPLETAR RECOMENDADOS SI LA CATEGORIA TIENE MENOS DE 4]
         if ($recomendados->count() < 4) {
             $faltantes = 4 - $recomendados->count();
             $adicionales = Producto::activos()
@@ -91,6 +223,35 @@ class CatalogoController extends Controller
             $recomendados = $recomendados->merge($adicionales);
         }
 
+        $recomendados->load('categoria');
+
         return view('cliente.producto', compact('producto', 'recomendados'));
+    }
+
+    // Arma los enlaces de filtro: si el valor ya está activo, el enlace lo quita; si no, lo agrega
+    private function filtros(Request $request, ?string $categoria, string $parametro, array $valores, ?callable $etiqueta = null): array
+    {
+        return array_map(function ($valor) use ($request, $categoria, $parametro, $etiqueta) {
+            $activo = (string) $request->query($parametro) === (string) $valor;
+            $params = $request->query();
+
+            if ($activo) {
+                unset($params[$parametro]);
+            } else {
+                $params[$parametro] = $valor;
+            }
+
+            return [
+                'etiqueta' => $etiqueta ? $etiqueta($valor) : $valor,
+                'activo'   => $activo,
+                'url'      => route('catalogo', array_merge(['categoria' => $categoria], $params)) . self::ANCLA,
+            ];
+        }, $valores);
+    }
+
+    // 39.0 -> "39" y 39.5 -> "39.5"
+    private function formatoTalla($talla): string
+    {
+        return rtrim(rtrim(number_format((float) $talla, 1, '.', ''), '0'), '.');
     }
 }

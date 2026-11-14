@@ -1,32 +1,11 @@
 @extends('layouts.app')
 
 @push('styles')
-    {{-- [ORIGEN]: Estilos de la ficha de producto de Tienda-Kixa_2/css/producto.css y grid de hombre.css --}}
+    {{-- [Actualizado: Modo claro] Ya no carga hombre.css (forzaba el fondo negro del body) --}}
     <link rel="stylesheet" href="{{ asset('css/producto.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/hombre.css') }}">
-    <style>
-        /* [CAMBIO: ESTILOS VISUALES PARA TALLAS AGOTADAS O DESHABILITADAS] */
-        .size-btn.agotado, .size-btn:disabled {
-            opacity: 0.35 !important;
-            cursor: not-allowed !important;
-            background: #151618 !important;
-            border-color: #2b2c2d !important;
-            color: #777 !important;
-            text-decoration: line-through;
-        }
-        .size-btn.selected {
-            background: #ed001b !important;
-            border-color: #ed001b !important;
-            color: #ffffff !important;
-            box-shadow: 0 0 12px rgba(237, 0, 27, 0.4);
-        }
-    </style>
 @endpush
 
 @section('contenido')
-    {{-- [ORIGEN]: Extraído de Tienda-Kixa_2/producto.html (Líneas 612 a 723) --}}
-    {{-- [SEPARADO]: El toast de confirmación flotante se extrajo hacia el componente Blade <x-alerta> --}}
-    {{-- [ADAPTADO]: Integrado con Eloquent en Laravel 13 sin depender de JSONs estáticos --}}
 
     <main class="page">
         <div class="grid">
@@ -35,53 +14,48 @@
             <div class="gallery">
                 <div class="thumbs" id="thumbs">
                     <img src="{{ asset($producto->imagen) }}" class="active" alt="{{ $producto->nombre }}">
+                    {{-- [Actualizado: Galería] Imágenes secundarias subidas desde el Panel Admin --}}
+                    @foreach ($producto->galeria_imagenes ?? [] as $ruta)
+                        <img src="{{ asset($ruta) }}" alt="{{ $producto->nombre }}" loading="lazy">
+                    @endforeach
                 </div>
 
                 <div class="main-img" id="mainImg">
-                    {{-- [CAMBIO: RENDERIZADO DE IMAGEN PRINCIPAL REAL DESDE MYSQL] --}}
                     <img id="mainImage" src="{{ asset($producto->imagen) }}" alt="{{ $producto->nombre }}">
                 </div>
             </div>
 
             <!-- PANEL DE INFORMACIÓN Y COMPRA -->
             <aside class="panel">
-                {{-- [CAMBIO: MARCA, CATEGORIA REAL (NOMBRE TEXTUAL, NUNCA ID) Y SKU] --}}
-                <div class="brand-meta" style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
-                    <span class="brand" id="productBrand" style="margin-bottom: 0;">{{ strtoupper($producto->marca) }}</span>
-                    <span style="color: #555;">•</span>
-                    <span class="categoria-badge" style="color: #ed001b; font-size: 13px; text-transform: uppercase; font-weight: 700;">
-                        {{ $producto->categoria->nombre }}
-                    </span>
-                    <span style="color: #555;">•</span>
-                    <span style="color: #888; font-size: 13px;">
-                        SKU: <strong id="productSku" style="color: #bbb;">{{ $producto->sku }}</strong>
-                    </span>
+                {{-- [Actualizado: Modo claro] Marca, categoría y SKU en una línea discreta --}}
+                <div class="brand-meta">
+                    <span class="brand" id="productBrand">{{ strtoupper($producto->marca) }}</span>
+                    <span class="brand-sep">•</span>
+                    <span class="categoria-badge">{{ $producto->tipo_calzado }} · {{ $producto->categoria->nombre }}</span>
+                    <span class="brand-sep">•</span>
+                    <span class="brand-sku">SKU: <strong id="productSku">{{ $producto->sku }}</strong></span>
                 </div>
 
-                {{-- [CAMBIO: NOMBRE REAL DEL MODELO ELOQUENT] --}}
                 <h1 id="productName">
                     {{ $producto->nombre }}
                 </h1>
 
-                {{-- [CAMBIO: PRECIO REAL FORMATEADO A DOS DECIMALES] --}}
                 <div class="price" id="productPrice">
                     S/ {{ number_format((float)$producto->precio, 2) }}
                 </div>
 
-                {{-- [CAMBIO: DESCRIPCION REAL DEL PRODUCTO DESDE MYSQL] --}}
                 <p id="productDescription">
                     {{ $producto->descripcion ?? 'Zapatilla original con la mejor tecnología de amortiguación, materiales de alta resistencia y diseño moderno.' }}
                 </p>
 
                 <!-- SELECTOR DE TALLAS -->
                 <div>
-                    <label style="display: flex; justify-content: space-between; align-items: center;">
+                    <label class="sizes-label">
                         <span>Selecciona tu talla</span>
-                        <span style="font-size: 12px; color: #888;">Tallas Perú / US</span>
+                        <span class="sizes-nota">Tallas Perú / US</span>
                     </label>
 
                     <div class="sizes" id="sizes">
-                        {{-- [CAMBIO: RECORRIDO DE TALLAS ASOCIADAS DESDE MYSQL CON VALIDACION DE STOCK] --}}
                         @foreach ($producto->tallas as $tallaObj)
                             <button 
                                 type="button" 
@@ -96,22 +70,28 @@
                 </div>
 
                 <!-- ACCIONES DE COMPRA Y FAVORITOS -->
-                <div class="actions" style="margin-top: 25px; display: flex; gap: 12px; align-items: center;">
-                    <button 
-                        class="btn-primary" 
-                        id="addBtn" 
-                        type="button"
-                        data-id="{{ $producto->id }}"
-                        data-sku="{{ $producto->sku }}"
-                        data-nombre="{{ $producto->nombre }}"
-                        data-precio="{{ $producto->precio }}"
-                        data-imagen="{{ asset($producto->imagen) }}"
-                        data-marca="{{ $producto->marca }}"
-                        style="flex: 1;">
-                        <i class="fa-solid fa-cart-shopping"></i> Agregar al Carrito
-                    </button>
+                <div class="actions">
+                    {{-- [Sem 11 - Migraciones, Seeders y Roles]: El admin no compra; ve un acceso directo para editar el producto --}}
+                    @if (auth()->user()?->esAdmin())
+                        <a href="{{ route('admin.productos.edit', $producto) }}" class="btn-primary btn-primary--enlace">
+                            ⚙️ Gestionar este producto en Panel Admin
+                        </a>
+                    @else
+                        <button 
+                            class="btn-primary" 
+                            id="addBtn" 
+                            type="button"
+                            data-id="{{ $producto->id }}"
+                            data-sku="{{ $producto->sku }}"
+                            data-nombre="{{ $producto->nombre }}"
+                            data-precio="{{ $producto->precio }}"
+                            data-imagen="{{ asset($producto->imagen) }}"
+                            data-marca="{{ $producto->marca }}"
+                            data-tipo="{{ $producto->tipo_calzado }} • {{ $producto->categoria->nombre }}">
+                            <i class="fa-solid fa-cart-shopping"></i> Agregar al Carrito
+                        </button>
+                    @endif
 
-                    {{-- [CAMBIO: BOTON DE AGREGAR / QUITAR DE FAVORITOS EN FICHA DETALLE] --}}
                     <button 
                         class="btn-favorito-detalle" 
                         id="favBtn" 
@@ -122,14 +102,13 @@
                         data-nombre="{{ $producto->nombre }}"
                         data-precio="{{ $producto->precio }}"
                         data-imagen="{{ asset($producto->imagen) }}"
-                        data-marca="{{ $producto->marca }}"
-                        style="background: #191b1d; border: 1px solid #333; color: #fff; width: 50px; height: 50px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: all 0.2s;">
+                        data-marca="{{ $producto->marca }}">
                         <i class="fa-regular fa-heart"></i>
                     </button>
                 </div>
 
                 <!-- INFORMACIÓN DE ENVÍO -->
-                <div class="meta" style="margin-top: 20px;">
+                <div class="meta">
                     <i class="fa-solid fa-truck"></i>
                     Envío gratis a partir de S/ 200. Entrega en 24-48 horas a todo el Perú.
                 </div>
@@ -141,30 +120,16 @@
     <!-- =====================================================
          SECCIÓN DE PRODUCTOS RECOMENDADOS (TAMBIÉN TE PUEDE INTERESAR)
          ===================================================== -->
-    <section class="recomendados-section page" style="padding-top: 30px; border-top: 1px solid #222;">
-        <div class="coleccion-header" style="text-align: center; margin-bottom: 35px;">
-            <span style="color: #ed001b; font-weight: 700; letter-spacing: 2px; font-size: 13px;">KIXA RECOMIENDA</span>
-            {{-- [CAMBIO: TITULO OBLIGATORIO DE SECCION RECOMENDADOS] --}}
-            <h2 style="font-size: 26px; font-weight: 800; color: #fff; margin-top: 5px;">
-                TAMBIÉN TE PUEDE INTERESAR (RECOMENDADOS)
-            </h2>
-            <p style="color: #888; font-size: 14px; margin-top: 5px;">
-                Descubre modelos similares de la colección oficial {{ $producto->categoria->nombre }}.
-            </p>
+    {{-- [Actualizado: Modo claro] Recomendados con <x-tarjeta-producto> sobre fondo claro --}}
+    <section class="recomendados-section">
+        <div class="recomendados-cabecera">
+            <h2>También te puede interesar</h2>
+            <a href="{{ route('catalogo', ['categoria' => $producto->categoria->slug]) }}">Ver más de {{ $producto->categoria->nombre }}</a>
         </div>
 
-        <div class="grid-productos">
-            {{-- [CAMBIO: RECORRIDO DE PRODUCTOS RECOMENDADOS USANDO TARJETA-PRODUCTO] --}}
+        <div class="recomendados-grid">
             @foreach ($recomendados as $rec)
-                <x-tarjeta-producto 
-                    :id="$rec->sku"
-                    :sku="$rec->sku"
-                    :nombre="$rec->nombre"
-                    :marca="$rec->marca"
-                    :precio="$rec->precio"
-                    :imagen="$rec->imagen"
-                    :dataMarca="strtolower($rec->marca)"
-                />
+                <x-tarjeta-producto :producto="$rec" />
             @endforeach
         </div>
     </section>
@@ -176,9 +141,43 @@
         mensaje="Añadido al carrito" 
         icono="fa-solid fa-circle-check" 
     />
+
+    {{-- [Actualizado: Modal carrito] Confirmación flotante con blur al agregar (estilo Puma/Nike) --}}
+    <div class="kx-modal-carrito" id="modalCarrito" hidden>
+        <div class="kx-modal-fondo" data-cerrar-modal></div>
+        <div class="kx-modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalCarritoTitulo">
+            <div class="kx-modal-cabecera">
+                <h2 id="modalCarritoTitulo">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>
+                    1 artículo agregado al carrito
+                </h2>
+                <button type="button" class="kx-modal-cerrar" data-cerrar-modal aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                </button>
+            </div>
+
+            <div class="kx-modal-item">
+                <div class="kx-modal-img"><img id="modalImg" src="" alt=""></div>
+                <div class="kx-modal-datos">
+                    <strong id="modalNombre"></strong>
+                    <span id="modalTipo"></span>
+                    <span>Talla: <b id="modalTalla"></b></span>
+                    <span>Cantidad: <b id="modalCantidad">1</b></span>
+                </div>
+                <strong class="kx-modal-precio" id="modalPrecio"></strong>
+            </div>
+
+            <div class="kx-modal-subtotal">
+                <span>Subtotal del carrito (<span id="modalArticulos">1 artículo</span>)</span>
+                <strong id="modalSubtotal"></strong>
+            </div>
+
+            <a href="{{ route('carrito') }}" class="kx-modal-btn">VER CARRITO Y PAGAR</a>
+            <button type="button" class="kx-modal-btn kx-modal-btn--borde" data-cerrar-modal>Seguir comprando</button>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
-    {{-- [CAMBIO: SCRIPT OPTIMIZADO PARA LA INTERACCION DE TALLAS Y CARRITO] --}}
     <script src="{{ asset('js/producto-dinamico.js') }}"></script>
 @endpush

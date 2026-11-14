@@ -1050,8 +1050,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const prodId = favBtn.dataset.id || (skuEl ? skuEl.innerText.trim() : "");
         const favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
         if (favoritos.some(f => f.id == prodId || f.sku == prodId)) {
-            favBtn.innerHTML = '<i class="fa-solid fa-heart" style="color: #ed001b;"></i>';
-            favBtn.style.borderColor = '#ed001b';
+            favBtn.innerHTML = '<i class="fa-solid fa-heart"></i>';
+            favBtn.classList.add("activo");
         }
 
         favBtn.addEventListener("click", () => {
@@ -1067,7 +1067,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (idx >= 0) {
                 favs.splice(idx, 1);
                 favBtn.innerHTML = '<i class="fa-regular fa-heart"></i>';
-                favBtn.style.borderColor = '#333';
+                favBtn.classList.remove("activo");
             } else {
                 favs.push({
                     id: pId,
@@ -1077,8 +1077,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     imagen: pImagen,
                     marca: pMarca
                 });
-                favBtn.innerHTML = '<i class="fa-solid fa-heart" style="color: #ed001b;"></i>';
-                favBtn.style.borderColor = '#ed001b';
+                favBtn.innerHTML = '<i class="fa-solid fa-heart"></i>';
+                favBtn.classList.add("activo");
             }
 
             localStorage.setItem("favoritos", JSON.stringify(favs));
@@ -1092,7 +1092,15 @@ document.addEventListener("DOMContentLoaded", () => {
         addBtn.addEventListener("click", () => {
             // [CAMBIO: VALIDACION DE TALLA SELECCIONADA ANTES DE AGREGAR AL CARRITO]
             if (!selectedSize) {
-                alert("⚠️ Por favor selecciona una talla disponible antes de continuar.");
+                // [Actualizado: Toast único] Aviso flotante + sacudida suave del bloque de tallas
+                if (typeof kxToast === "function") kxToast("Selecciona una talla disponible antes de agregar al carrito.", "error");
+                const bloqueTallas = document.getElementById("sizes");
+                if (bloqueTallas) {
+                    bloqueTallas.classList.remove("kx-sacudir");
+                    void bloqueTallas.offsetWidth;
+                    bloqueTallas.classList.add("kx-sacudir", "kx-tallas-alerta");
+                    setTimeout(() => bloqueTallas.classList.remove("kx-tallas-alerta"), 1600);
+                }
                 return;
             }
 
@@ -1110,7 +1118,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 precio: parseFloat(rawPrice) || 0,
                 talla: selectedSize,
                 imagen: pImagen,
-                cantidad: 1
+                cantidad: 1,
+                // [Actualizado: Carrito] Datos extra para el selector de talla y la línea de categoría
+                marca: addBtn.dataset.marca || "",
+                tipo: addBtn.dataset.tipo || "",
+                tallas: [...document.querySelectorAll(".size-btn:not([disabled])")].map((b) => b.dataset.talla)
             };
 
             const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
@@ -1122,16 +1134,55 @@ document.addEventListener("DOMContentLoaded", () => {
                 actualizarBadgesHeader();
             }
 
-            // [CAMBIO: MOSTRAR TOAST CON NOTIFICACION DE AGREGADO CON EXITO]
-            if (toast) {
-                const toastMsg = toast.querySelector(".alerta-mensaje") || toast;
-                toastMsg.innerText = `${item.nombre} (Talla ${item.talla}) agregado al carrito ✅`;
-                toast.style.display = "flex";
-
-                setTimeout(() => {
-                    toast.style.display = "none";
-                }, 2500);
-            }
+            // [Actualizado: Modal carrito] Confirmación flotante con el resumen del carrito
+            mostrarModalCarrito(item, addBtn.dataset.tipo || "", carrito);
         });
     }
+});
+
+// [Actualizado: Modal carrito] Rellena y abre el modal con blur; se cierra con la X, el fondo, "Seguir comprando" o Escape
+function mostrarModalCarrito(item, tipo, carrito) {
+    const modal = document.getElementById("modalCarrito");
+    if (!modal) return;
+
+    const soles = (n) => `S/ ${Number(n).toFixed(2)}`;
+    const unidades = carrito.reduce((t, p) => t + (Number(p.cantidad) || 1), 0);
+    const subtotal = carrito.reduce((t, p) => t + (Number(p.precio) || 0) * (Number(p.cantidad) || 1), 0);
+
+    document.getElementById("modalImg").src = item.imagen;
+    document.getElementById("modalImg").alt = item.nombre;
+    document.getElementById("modalNombre").textContent = item.nombre;
+    document.getElementById("modalTipo").textContent = tipo;
+    document.getElementById("modalTalla").textContent = item.talla;
+    document.getElementById("modalCantidad").textContent = item.cantidad;
+    document.getElementById("modalPrecio").textContent = soles(item.precio);
+    document.getElementById("modalArticulos").textContent = `${unidades} ${unidades === 1 ? "artículo" : "artículos"}`;
+    document.getElementById("modalSubtotal").textContent = soles(subtotal);
+
+    const cerrar = () => {
+        modal.classList.remove("abierto");
+        setTimeout(() => { modal.hidden = true; }, 250);
+        document.removeEventListener("keydown", alEscape);
+    };
+    const alEscape = (e) => { if (e.key === "Escape") cerrar(); };
+
+    modal.querySelectorAll("[data-cerrar-modal]").forEach((el) => { el.onclick = cerrar; });
+    document.addEventListener("keydown", alEscape);
+
+    modal.hidden = false;
+    requestAnimationFrame(() => modal.classList.add("abierto"));
+    modal.querySelector(".kx-modal-btn")?.focus();
+}
+
+// [Actualizado: Galería] Al hacer clic en una miniatura se muestra como foto principal
+document.addEventListener("DOMContentLoaded", () => {
+    const thumbs = document.getElementById("thumbs");
+    const principal = document.getElementById("mainImage");
+    if (!thumbs || !principal) return;
+    thumbs.addEventListener("click", (e) => {
+        const img = e.target.closest("img");
+        if (!img) return;
+        principal.src = img.src;
+        thumbs.querySelectorAll("img").forEach((t) => t.classList.toggle("active", t === img));
+    });
 });

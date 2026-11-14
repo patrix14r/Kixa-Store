@@ -3,223 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{-- [CAMBIO: META TOKEN CSRF PARA PETICIONES AJAX DESDE JS] --}}
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Tienda Kixa</title>
+    <title>@yield('titulo', 'KixaStore')</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+    {{-- [Actualizado: Tipografía] Plus Jakarta Sans (400-700) estilo Google Stitch en todo el Modo Cliente --}}
     <link rel="stylesheet" href="{{ asset('css/diseño.css') }}">
 
-    {{-- [CAMBIO: ESTILOS GLOBALES PARA BADGES DE NOTIFICACION EN ICONOS DEL HEADER] --}}
-    <style>
-      .header-icon-btn {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: inherit;
-        text-decoration: none;
-      }
-      .badge-notif {
-        position: absolute;
-        top: -6px;
-        right: -8px;
-        background-color: #ed001b;
-        color: #ffffff;
-        font-size: 10px;
-        font-weight: 700;
-        min-width: 17px;
-        height: 17px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-        box-shadow: 0 0 6px rgba(237, 0, 27, 0.5);
-      }
-    </style>
 
     @stack('styles')
-</head>
-<body>
 
-    <!-- BARRA SUPERIOR (TOP-BAR) -->
+    {{-- [Actualizado: Memoria por usuario] Carrito y favoritos se guardan por cuenta: al cambiar de usuario se intercambian --}}
+    <script>
+      (() => {
+        try {
+          const actual = @json(auth()->id() ? 'u' . auth()->id() : 'invitado');
+          const previo = localStorage.getItem('kixa_usuario');
+          const claves = ['carrito', 'favoritos'];
+          const guardar = (quien) => claves.forEach(k => localStorage.setItem(`kixa:${quien}:${k}`, localStorage.getItem(k) || '[]'));
+
+          if (previo && previo !== actual) {
+            guardar(previo);
+            claves.forEach(k => {
+              const propio = JSON.parse(localStorage.getItem(`kixa:${actual}:${k}`) || '[]');
+              const deInvitado = previo === 'invitado' ? JSON.parse(localStorage.getItem(k) || '[]') : [];
+              // Al iniciar sesión, lo que agregó como invitado se suma a su cuenta
+              localStorage.setItem(k, JSON.stringify(propio.length ? propio : deInvitado));
+            });
+            // [Actualizado: Carrito limpio] Lo del invitado ya pasó a la cuenta: se vacía su copia para que no reaparezca al salir
+            if (previo === 'invitado') localStorage.setItem('kixa:invitado:carrito', '[]');
+          }
+          // [Actualizado: Carrito limpio] Tras una compra confirmada el servidor marca carrito_vaciado y se borra todo rastro
+          if (@json((bool) session('carrito_vaciado'))) {
+            Object.keys(localStorage).filter(c => c === 'carrito' || /^kixa:.+:carrito$/.test(c)).forEach(c => localStorage.setItem(c, '[]'));
+          }
+          localStorage.setItem('kixa_usuario', actual);
+          window.addEventListener('pagehide', () => guardar(actual));
+        } catch (e) { /* almacenamiento bloqueado: la tienda sigue funcionando sin memoria */ }
+      })();
+    </script>
+</head>
+<body class="{{ request()->routeIs('home') ? 'pagina-home' : '' }}">
+
+    {{-- Filtro SVG: convierte el logo JPG (negro sobre blanco) en blanco con fondo transparente --}}
+    <svg width="0" height="0" class="svg-oculto" aria-hidden="true" focusable="false">
+      <filter id="kx-logo-blanco" color-interpolation-filters="sRGB">
+        <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  -0.333 -0.333 -0.333 1 0"/>
+      </filter>
+    </svg>
+
+    {{-- [Sem 08 - Rutas y Vistas Blade]: Barra superior con rutas nombradas (Acerca de, Contáctanos y cuenta) --}}
     <div class="top-bar">
       <div class="top-links">
-        <a href="{{ route('ayuda') }}">Ayuda</a>
-        <span>|</span>
+        <a href="{{ route('nosotros') }}">Acerca de</a>
+        <span aria-hidden="true">|</span>
         <a href="{{ route('contacto') }}">Contáctanos</a>
-        <span>|</span>
-        {{-- [CAMBIO: ESTADO DE AUTENTICACION CON @guest Y @auth EN TOP-BAR] --}}
+        <span aria-hidden="true">|</span>
         @guest
-          <a href="{{ route('login') }}">INICIAR SESIÓN</a>
+          <a href="{{ route('login') }}">Iniciar sesión</a>
         @endguest
         @auth
-          @if (Auth::user()->rol === 'admin')
-            <a href="{{ route('admin.home') }}" style="color: #ed001b; font-weight: 700;">PANEL ADMIN</a>
-            <span>|</span>
-          @endif
-          <a href="{{ route('perfil') }}"><i class="fa-solid fa-user"></i> {{ Auth::user()->name }}</a>
-          <span>|</span>
-          {{-- /* [FIX VISUAL] Botón cerrar sesión con estilo armónico en la top-bar */ --}}
-          <form action="{{ route('logout') }}" method="POST" style="display: inline-flex; align-items: center; margin: 0; padding: 0;">
-            @csrf
-            <button type="submit" style="font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: #ff4d4d; background: transparent; border: none; padding: 0; cursor: pointer; text-transform: uppercase; display: inline;">
-              CERRAR SESIÓN
-            </button>
-          </form>
+          <a href="{{ route('perfil') }}" title="Mi perfil"><i class="fa-solid fa-user"></i> {{ Auth::user()->name }}</a>
         @endauth
       </div>
     </div>
 
-    <header class="navbar">
-      {{-- [CAMBIO: LOGO SIEMPRE VISIBLE Y CLICKEABLE HACIA HOME] --}}
+    {{-- [Sem 08 - Rutas y Vistas Blade]: routeIs('home') activa el header Liquid Glass; en el resto es carbón sólido --}}
+    <header class="navbar {{ request()->routeIs('home') ? 'navbar--glass' : 'navbar--solido' }}" id="navbar-principal">
+      <button type="button" class="btn-menu-movil" id="btn-menu-movil" aria-label="Abrir menú" aria-controls="menu-movil" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+
+      {{-- [Actualizado: Header] Solo el isotipo a la izquierda (como el Swoosh de Nike) --}}
       <div class="logo">
-        <a href="{{ route('home') }}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit;">
-          <img src="{{ asset('images/ui/web.jpg') }}" alt="Logo de la tienda">
-          <span>Tienda Kixa</span>
+        <a href="{{ route('home') }}" aria-label="KixaStore - Inicio">
+          <img src="{{ asset('images/ui/web.jpg') }}" alt="KixaStore">
         </a>
       </div>
 
-      <nav class="kixa-nav">
+      {{-- [Actualizado: Header] Menú centrado en la mitad exacta del header --}}
+      <nav class="kixa-nav" aria-label="Categorías">
         <ul class="kixa-menu">
-        <!-- MUJER -->
-        <li class="kixa-dropdown">
-            <a href="{{ route('catalogo', ['categoria' => 'mujer']) }}" class="kixa-link">MUJER</a>
-            <div class="mega-menu">
-                <div class="mega-columna">
-                    <h4>Calzado</h4>
-                    <a href="{{ route('catalogo', ['categoria' => 'mujer', 'sub' => 'urbano']) }}">Zapatillas Urbanas</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'mujer', 'sub' => 'running']) }}">Running</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'mujer', 'sub' => 'gym']) }}">Entrenamiento & Gym</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'mujer', 'sub' => 'basquet']) }}">Básquet</a>
-                </div>
-                <div class="mega-columna">
-                    <h4>Colecciones</h4>
-                    <a href="{{ route('catalogo', ['categoria' => 'mujer', 'coleccion' => 'retro']) }}">Clásicos Retro</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'mujer', 'coleccion' => 'tendencia']) }}">Tendencias 2026</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'mujer', 'oferta' => 1]) }}" class="link-oferta">Ver Ofertas</a>
-                </div>
-            </div>
-        </li>
+          <li><a href="{{ route('home') }}#lo-destacado" class="kixa-link">Destacados</a></li>
+          <li><a href="{{ route('catalogo', ['categoria' => 'hombre']) }}" class="kixa-link {{ request()->route('categoria') === 'hombre' || request('categoria') === 'hombre' ? 'activo' : '' }}">Hombre</a></li>
+          <li><a href="{{ route('catalogo', ['categoria' => 'mujer']) }}" class="kixa-link {{ request()->route('categoria') === 'mujer' || request('categoria') === 'mujer' ? 'activo' : '' }}">Mujer</a></li>
+          <li><a href="{{ route('catalogo', ['categoria' => 'ninos']) }}" class="kixa-link {{ request()->route('categoria') === 'ninos' || request('categoria') === 'ninos' ? 'activo' : '' }}">Niños</a></li>
+          <li><a href="{{ route('catalogo', ['categoria' => 'deporte']) }}" class="kixa-link {{ request()->route('categoria') === 'deporte' || request('categoria') === 'deporte' ? 'activo' : '' }}">Deporte</a></li>
+        </ul>
+      </nav>
 
-        <!-- HOMBRE -->
-        <li class="kixa-dropdown">
-            <a href="{{ route('catalogo', ['categoria' => 'hombre']) }}" class="kixa-link">HOMBRE</a>
-            <div class="mega-menu">
-                <div class="mega-columna">
-                    <h4>Calzado</h4>
-                    <a href="{{ route('catalogo', ['categoria' => 'hombre', 'sub' => 'urbano']) }}">Zapatillas Urbanas</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'hombre', 'sub' => 'futbol']) }}">Fútbol & Chimpunes</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'hombre', 'sub' => 'running']) }}">Running</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'hombre', 'sub' => 'basquet']) }}">Básquet & Jordan</a>
-                </div>
-                <div class="mega-columna">
-                    <h4>Colecciones</h4>
-                    <a href="{{ route('catalogo', ['categoria' => 'hombre', 'coleccion' => 'edicion-limitada']) }}">Edición Limitada</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'hombre', 'coleccion' => 'streetwear']) }}">Streetwear Kixa</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'hombre', 'oferta' => 1]) }}" class="link-oferta">Liquidación</a>
-                </div>
-            </div>
-        </li>
-
-        <!-- NIÑOS -->
-        <li class="kixa-dropdown">
-            <a href="{{ route('catalogo', ['categoria' => 'ninos']) }}" class="kixa-link">NIÑOS</a>
-            <div class="mega-menu">
-                <div class="mega-columna">
-                    <h4>Por Estilo</h4>
-                    <a href="{{ route('catalogo', ['categoria' => 'ninos', 'sub' => 'escolar']) }}">Escolares</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'ninos', 'sub' => 'urbano']) }}">Urbanas y Paseo</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'ninos', 'sub' => 'deportivo']) }}">Deportivas</a>
-                </div>
-                <div class="mega-columna">
-                    <h4>Colecciones</h4>
-                    <a href="{{ route('catalogo', ['categoria' => 'ninos', 'coleccion' => 'facil-ajuste']) }}">Fácil Ajuste (Velcro)</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'ninos', 'coleccion' => 'mini-jordan']) }}">Mini Clásicos</a>
-                </div>
-            </div>
-        </li>
-
-        <!-- DEPORTE -->
-        <li class="kixa-dropdown">
-            <a href="{{ route('catalogo', ['categoria' => 'deporte']) }}" class="kixa-link">DEPORTE</a>
-            <div class="mega-menu">
-                <div class="mega-columna">
-                    <h4>Disciplinas</h4>
-                    <a href="{{ route('catalogo', ['categoria' => 'deporte', 'sub' => 'running']) }}">Running Pro</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'deporte', 'sub' => 'futbol']) }}">Fútbol / Futsal</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'deporte', 'sub' => 'basquet']) }}">Básquetbol</a>
-                    <a href="{{ route('catalogo', ['categoria' => 'deporte', 'sub' => 'training']) }}">Crossfit & Gym</a>
-                </div>
-                <div class="mega-columna">
-                    <h4>Por Marca Deportiva</h4>
-                    <a href="{{ route('catalogo', ['marca' => 'Nike']) }}">Nike Sport</a>
-                    <a href="{{ route('catalogo', ['marca' => 'Adidas']) }}">Adidas Performance</a>
-                    <a href="{{ route('catalogo', ['marca' => 'Puma']) }}">Puma Faster</a>
-                    <a href="{{ route('catalogo', ['marca' => 'Umbro']) }}">Umbro Fútbol</a>
-                </div>
-            </div>
-        </li>
-    </ul>
-</nav>
-
-      {{-- [CAMBIO: FORMULARIO DE BUSQUEDA EN TIEMPO REAL HACIA LA RUTA CATALOGO] --}}
-      <form action="{{ route('catalogo') }}" method="GET" class="search-bar">
-        <input type="text" name="buscar" placeholder="Buscar zapatillas..." value="{{ request('buscar') }}">
+      <div class="navbar-acciones">
+      {{-- [Sem 08 - Rutas y Vistas Blade]: Buscador GET hacia CatalogoController@index (?buscar=modelo o marca) --}}
+      <form action="{{ route('catalogo') }}" method="GET" class="search-bar" role="search">
+        <input type="search" name="buscar" placeholder="Buscar" value="{{ request('buscar') }}" aria-label="Buscar zapatillas">
         <button type="submit" aria-label="Buscar">
-          <i class="fa-solid fa-magnifying-glass"></i>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         </button>
       </form>
 
-      {{-- [CAMBIO: ICONOS DE HEADER CON NAVEGACION A FAVORITOS, CARRITO Y PERFIL CON CONTADORES] --}}
       <div class="icons">
-        <a href="{{ route('favoritos') }}" title="Mis Favoritos" class="header-icon-btn">
-          <i class="fa-solid fa-heart"></i>
+        <a href="{{ route('favoritos') }}" title="Mis Favoritos" aria-label="Mis Favoritos" class="header-icon-btn">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>
           <span id="fav-count" class="badge-notif" style="display: none;">0</span>
         </a>
 
-        <a href="{{ route('carrito') }}" title="Carrito de compras" class="header-icon-btn">
-          <i class="fa-solid fa-bag-shopping"></i>
+        <a href="{{ route('carrito') }}" title="Carrito de compras" aria-label="Carrito de compras" class="header-icon-btn">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 14H5L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
           <span id="cart-count" class="badge-notif" style="display: none;">0</span>
         </a>
 
-        {{-- [CAMBIO: ICONO DE USUARIO REDIRIGE A PERFIL SI ESTA LOGUEADO O A LOGIN SI ES VISITANTE] --}}
-        <a href="{{ Auth::check() ? route('perfil') : route('login') }}" title="{{ Auth::check() ? Auth::user()->name : 'Mi cuenta' }}" class="header-icon-btn">
-          <i class="fa-solid fa-user"></i>
+        <a href="{{ Auth::check() ? route('perfil') : route('login') }}" title="{{ Auth::check() ? Auth::user()->name : 'Mi cuenta' }}" aria-label="Mi cuenta" class="header-icon-btn">
+          @if (Auth::user()?->urlAvatar())
+            <img src="{{ Auth::user()->urlAvatar() }}" alt="Foto de {{ Auth::user()->name }}" class="avatar-header">
+          @else
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+          @endif
         </a>
       </div>
+      </div>
     </header>
+
+    {{-- [FASE 4]: Menú móvil deslizable con categorías y páginas informativas --}}
+    <div class="menu-movil-fondo" id="menu-movil-fondo" hidden></div>
+    <nav class="menu-movil" id="menu-movil" aria-label="Menú principal" aria-hidden="true">
+      <div class="menu-movil-cabecera">
+        <span>Menú</span>
+        <button type="button" class="btn-menu-cerrar" id="btn-menu-cerrar" aria-label="Cerrar menú"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <p class="menu-movil-titulo">Categorías</p>
+      <a href="{{ route('catalogo', ['categoria' => 'mujer']) }}">Mujer <i class="fa-solid fa-chevron-right"></i></a>
+      <a href="{{ route('catalogo', ['categoria' => 'hombre']) }}">Hombre <i class="fa-solid fa-chevron-right"></i></a>
+      <a href="{{ route('catalogo', ['categoria' => 'ninos']) }}">Niños <i class="fa-solid fa-chevron-right"></i></a>
+      <a href="{{ route('catalogo', ['categoria' => 'deporte']) }}">Deporte <i class="fa-solid fa-chevron-right"></i></a>
+
+      <p class="menu-movil-titulo">Kixa</p>
+      <a href="{{ route('nosotros') }}"><span><i class="fa-solid fa-store"></i> Acerca de</span></a>
+      <a href="{{ route('nosotros') }}#centro-ayuda"><span><i class="fa-regular fa-circle-question"></i> Centro de ayuda</span></a>
+      <a href="{{ route('contacto') }}"><span><i class="fa-regular fa-envelope"></i> Contáctanos</span></a>
+      <a href="{{ Auth::check() ? route('perfil') : route('login') }}"><span><i class="fa-regular fa-user"></i> {{ Auth::check() ? 'Mi Cuenta' : 'Iniciar sesión' }}</span></a>
+    </nav>
+
+    {{-- [Actualizado: Toast único] Flash y errores de validación se muestran en el toast de la esquina superior derecha --}}
+    <div id="kx-toasts" class="kx-toasts" aria-live="polite"></div>
+    <script>
+      window.KX_FLASH = @json(['exito' => session('exito'), 'error' => session('error'), 'errores' => $errors->all()]);
+    </script>
 
     <main>
         @yield('contenido')
     </main>
 
+    {{-- [Sem 08 - Rutas y Vistas Blade]: Footer con rutas nombradas y anclas (#mapa-tienda, #centro-ayuda) --}}
     <footer class="footer">
       <div class="footer-container">
+        <div class="footer-column footer-marca">
+          <a href="{{ route('home') }}" class="footer-logo">
+            <img src="{{ asset('images/ui/web.jpg') }}" alt="Logo de KixaStore">
+            <span>KixaStore</span>
+          </a>
+          <p>Zapatillas originales para hombre, mujer, niños y deporte. Envíos a todo el Perú.</p>
+        </div>
+
         <div class="footer-column">
           <h3>Buscar tienda</h3>
           <ul>
             <li>
-              <a href="{{ route('contacto') }}">
-                <i class="fa-solid fa-location-dot"></i>
+              <a href="{{ route('contacto') }}#mapa-tienda" class="footer-link-icono">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
                 Tiendas cercanas
               </a>
             </li>
           </ul>
         </div>
+
         <div class="footer-column">
           <h3>Obtener ayuda</h3>
+          {{-- [Actualizado: Ayuda] Todos llevan a las Preguntas Frecuentes de "Acerca de" --}}
           <ul>
-            <li><a href="{{ route('ayuda') }}">Estado del pedido</a></li>
-            <li><a href="{{ route('ayuda') }}">Envío y entrega</a></li>
-            <li><a href="{{ route('ayuda') }}">Cambios y devoluciones</a></li>
-            <li><a href="{{ route('ayuda') }}">Opciones de pago</a></li>
-            <li><a href="{{ route('ayuda') }}">Preguntas frecuentes</a></li>
+            <li><a href="{{ auth()->check() ? route('perfil', 'pedidos') : route('nosotros') . '#preguntas-frecuentes' }}">Estado del pedido</a></li>
+            <li><a href="{{ route('nosotros') }}#preguntas-frecuentes">Envío y entrega</a></li>
+            <li><a href="{{ route('nosotros') }}#preguntas-frecuentes">Cambios y devoluciones</a></li>
+            <li><a href="{{ route('nosotros') }}#preguntas-frecuentes">Opciones de pago</a></li>
+            <li><a href="{{ route('nosotros') }}#preguntas-frecuentes">Preguntas frecuentes</a></li>
             <li><a href="{{ route('contacto') }}">Contáctanos</a></li>
           </ul>
         </div>
@@ -227,34 +197,41 @@
         <div class="footer-column">
           <h3>Acerca de la tienda</h3>
           <ul>
-            <li><a href="{{ route('ayuda') }}">Empleo</a></li>
-            <li><a href="{{ route('ayuda') }}">Nosotros</a></li>
+            <li><a href="{{ route('nosotros') }}">Acerca de</a></li>
           </ul>
         </div>
 
         <div class="footer-column social">
           <h3>Síguenos</h3>
           <div class="social-icons">
-            <a href="https://www.facebook.com/people/Zapatillas-Kixa/pfbid0246fZ4YBwM2GBdeEQf8FfUFJUdLqgaXgWAMwz5UrPMX37SW7AabDdAATinm152jZCl/" target="_blank">
+            <a href="https://www.facebook.com/people/Zapatillas-Kixa/pfbid0246fZ4YBwM2GBdeEQf8FfUFJUdLqgaXgWAMwz5UrPMX37SW7AabDdAATinm152jZCl/" target="_blank" rel="noopener" class="social-facebook" aria-label="Facebook de KixaStore">
               <i class="fab fa-facebook"></i>
             </a>
-            <a href="https://www.instagram.com/zapatillas.kixa/" target="_blank">
+            <a href="https://www.instagram.com/zapatillas.kixa/" target="_blank" rel="noopener" class="social-instagram" aria-label="Instagram de KixaStore">
               <i class="fab fa-instagram"></i>
             </a>
-            <a href="https://www.tiktok.com/@zapatillaskixa" target="_blank">
+            <a href="https://www.tiktok.com/@zapatillaskixa" target="_blank" rel="noopener" class="social-tiktok" aria-label="TikTok de KixaStore">
               <i class="fab fa-tiktok"></i>
             </a>
           </div>
+
+          {{-- [Sem 08 - Rutas y Vistas Blade]: Libro de Reclamaciones -> formulario de Contáctanos con el motivo "reclamo" preseleccionado --}}
+          {{-- [Actualizado: Libro de Reclamaciones] Imagen oficial descargada en public/images/ui --}}
+          <a href="{{ route('contacto', ['tipo' => 'reclamo']) }}#formulario-contacto" class="libro-reclamaciones-img" aria-label="Libro de Reclamaciones">
+            <img src="{{ asset('images/ui/libro-reclamaciones.png') }}" alt="Libro de Reclamaciones" loading="lazy">
+          </a>
         </div>
       </div>
 
       <div class="footer-bottom">
-        <p>© 2026 - Tienda Kixa. Todos los derechos reservados.</p>
+        <p>© 2026 - KixaStore. Todos los derechos reservados.</p>
+        <p>Sede Central: Av. Cascanueces 2221, Santa Anita, Lima</p>
       </div>
     </footer>
 
+    <script src="{{ asset('js/toast.js') }}"></script>
     <script src="{{ asset('js/movimiento.js') }}"></script>
-    {{-- [CAMBIO: SCRIPT GLOBAL DE SINCRONIZACION DE BADGES DE CARRITO Y FAVORITOS] --}}
+    <script src="{{ asset('js/menu-movil.js') }}"></script>
     <script>
       function actualizarBadgesHeader() {
         try {
@@ -285,10 +262,18 @@
         }
       }
 
+      // Header Liquid Glass del home: al bajar más de 40px adopta el carbón sólido #121215
+      (() => {
+        const navbar = document.getElementById('navbar-principal');
+        if (!navbar || !navbar.classList.contains('navbar--glass')) return;
+        const alScroll = () => navbar.classList.toggle('navbar--scroll', window.scrollY > 40);
+        alScroll();
+        window.addEventListener('scroll', alScroll, { passive: true });
+      })();
+
       document.addEventListener('DOMContentLoaded', () => {
         actualizarBadgesHeader();
 
-        // [CAMBIO: GESTION GLOBAL DE BOTONES DE FAVORITO EN TARJETAS DE PRODUCTO]
         const favs = JSON.parse(localStorage.getItem('favoritos')) || [];
         document.querySelectorAll('.btn-fav-card').forEach(btn => {
           const id = btn.dataset.id;

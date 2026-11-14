@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-// [CAMBIO: IMPORTACIONES PARA MIDDLEWARE DE ADMINISTRADOR]
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,14 +16,14 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // [CAMBIO: VERIFICACION DE SESION ACTIVA Y ROL ADMIN]
+        // [Sem 11 - Migraciones, Seeders y Roles]: Solo usuarios con rol admin acceden al panel
         if (!Auth::check()) {
             return redirect()->route('login')->withErrors([
                 'email' => 'Debes iniciar sesión para acceder al panel de administración.'
             ]);
         }
 
-        if (Auth::user()->rol !== 'admin') {
+        if (! Auth::user()->esAdmin()) {
             return redirect()->route('home')->with('error', 'No tienes permisos de administrador.');
         }
 

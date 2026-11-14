@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-// [CAMBIO: IMPORTACIONES ELOQUENT PARA MODELO PEDIDO]
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,10 +20,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Pedido extends Model
 {
-    // [CAMBIO: NOMBRE DE LA TABLA EN MYSQL]
     protected $table = 'pedidos';
 
-    // [CAMBIO: ASIGNACION MASIVA FILLABLE]
     protected $fillable = [
         'user_id',
         'codigo_orden',
@@ -35,7 +33,6 @@ class Pedido extends Model
         'metodo_pago',
     ];
 
-    // [CAMBIO: CASTEO DE TIPOS DE DATOS]
     protected function casts(): array
     {
         return [
@@ -45,13 +42,26 @@ class Pedido extends Model
         ];
     }
 
-    // [CAMBIO: RELACION BELONGS TO CON USUARIO]
+    // [Actualizado: Seguimiento] Pasos de la barra de progreso del historial de pedidos
+    public const PASOS = ['Confirmado', 'En preparación', 'En camino', 'Entregado'];
+
+    // [Sem 12 - Eloquent ORM]: Accessor $pedido->paso_seguimiento (1 a 4; 0 si fue cancelado)
+    protected function pasoSeguimiento(): Attribute
+    {
+        return Attribute::get(fn () => match ($this->estado) {
+            'Pendiente' => 1,
+            'Pagado'    => 2,
+            'Enviado'   => 3,
+            'Entregado' => 4,
+            default     => 0,
+        });
+    }
+
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // [CAMBIO: RELACION HAS MANY CON DETALLES DE PEDIDO]
     public function items(): HasMany
     {
         return $this->hasMany(DetallePedido::class, 'pedido_id');

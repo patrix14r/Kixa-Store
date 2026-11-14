@@ -3,285 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KixaStore - Panel Administrador</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('titulo', 'Kixa Admin')</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        body {
-            display: flex;
-            min-height: 100vh;
-            background-color: #f4f6f9;
-            color: #333333;
-        }
-
-        /* SIDEBAR */
-        .admin-sidebar {
-            width: 260px;
-            background-color: #111111;
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-        }
-
-        .admin-logo {
-            padding: 24px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom: 1px solid #222222;
-        }
-
-        .admin-logo img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .admin-logo span {
-            font-size: 18px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            color: #ffffff;
-        }
-
-        .admin-logo span em {
-            color: #ed001b;
-            font-style: normal;
-        }
-
-        .admin-menu {
-            list-style: none;
-            padding: 20px 0;
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .admin-menu-header {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #777777;
-            padding: 10px 24px;
-            font-weight: 700;
-        }
-
-        .admin-menu li a {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 12px 24px;
-            color: #cccccc;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .admin-menu li a:hover,
-        .admin-menu li a.active {
-            color: #ffffff;
-            background-color: #1f1f1f;
-            border-left: 4px solid #ed001b;
-        }
-
-        .admin-menu li a i {
-            width: 20px;
-            text-align: center;
-            font-size: 16px;
-        }
-
-        .admin-footer-actions {
-            padding: 20px;
-            border-top: 1px solid #222222;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .btn-sidebar-secondary {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #ffffff;
-            background-color: #222222;
-            padding: 10px 14px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-            justify-content: center;
-            transition: background-color 0.2s;
-        }
-
-        .btn-sidebar-secondary:hover {
-            background-color: #333333;
-        }
-
-        .btn-logout {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background-color: rgba(237, 0, 27, 0.15);
-            color: #ff4d5e;
-            border: 1px solid rgba(237, 0, 27, 0.3);
-            padding: 10px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .btn-logout:hover {
-            background-color: #ed001b;
-            color: #ffffff;
-        }
-
-        /* CONTENIDO PRINCIPAL */
-        .admin-main {
-            margin-left: 260px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-
-        .admin-topbar {
-            background-color: #ffffff;
-            height: 65px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 30px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .admin-user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .admin-user-avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background-color: #ed001b;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-        }
-
-        .admin-content {
-            padding: 30px;
-        }
-    </style>
-    @stack('styles')
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body>
+<body class="bg-[#09090b] text-zinc-100 antialiased font-sans">
+<div class="flex min-h-screen">
 
-    <!-- [BARRA LATERAL EXCLUSIVA ADMIN] -->
-    <aside class="admin-sidebar">
-        <div class="admin-logo">
-            <img src="{{ asset('images/ui/web.jpg') }}" alt="Logo Kixa">
-            <span>KIXA <em>ADMIN</em></span>
-        </div>
+    {{-- [FASE 2 - Paso 1]: Sidebar vertical fijo (estilo Workly/TailAdmin); en móvil se abre con el botón del header --}}
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-zinc-800/80 bg-[#09090b] py-4 transition-transform lg:translate-x-0">
 
-        <ul class="admin-menu">
-            <li class="admin-menu-header">General</li>
-            <li>
-                <a href="{{ route('admin.home') }}" class="{{ request()->routeIs('admin.home') ? 'active' : '' }}">
-                    <i class="fa-solid fa-gauge"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
+        {{-- [FASE 2 - Paso 2]: Logo real de la tienda --}}
+        <a href="{{ route('admin.home') }}" class="mx-4 flex items-center gap-3 border-b border-zinc-800/80 pb-4">
+            <img src="{{ asset('images/ui/web.jpg') }}" alt="Logo Kixa" loading="eager" class="h-9 w-9 rounded-xl object-cover">
+            <span class="text-lg font-bold">Kixa Admin</span>
+        </a>
 
-            <li class="admin-menu-header">Gestión de Catálogo</li>
-            <li>
-                <a href="{{ route('catalogo') }}">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                    <span>Productos</span>
+        {{-- [Actualizado: Sidebar encuadrado] El enlace activo tiene márgenes laterales (mx-3) y no toca la línea divisoria --}}
+        <p class="px-6 pt-5 pb-1 text-[11px] font-semibold tracking-widest kx-muted">MENÚ</p>
+        <nav class="flex-1 space-y-1 overflow-y-auto text-sm">
+            @foreach ($menuPrincipal as $item)
+                <a href="{{ $item['ruta'] }}"
+                   class="mx-3 flex items-center gap-3 rounded-xl px-3.5 py-2.5 transition {{ $item['activo'] ? 'bg-indigo-500/15 ring-1 ring-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.18)] font-semibold text-white' : 'text-zinc-400 hover:bg-white/5 hover:text-white' }}">
+                    @if ($item['icono'] === 'svg-paquete')
+                        {{-- [Actualizado: Ícono Productos] SVG de caja de producto con trazo uniforme 1.75 --}}
+                        <svg viewBox="0 0 24 24" class="h-4 w-4 {{ $item['activo'] ? 'text-indigo-400' : '' }}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="m3 8 9 5 9-5M12 13v8M7.5 5.5l9 5"/></svg>
+                    @else
+                        <i class="{{ $item['icono'] }} w-4 text-center {{ $item['activo'] ? 'text-indigo-400' : '' }}"></i>
+                    @endif{{ $item['texto'] }}
                 </a>
-            </li>
-            <li>
-                <a href="{{ route('catalogo') }}">
-                    <i class="fa-solid fa-tags"></i>
-                    <span>Categorías</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('catalogo') }}">
-                    <i class="fa-solid fa-truck-field"></i>
-                    <span>Proveedores</span>
-                </a>
-            </li>
+            @endforeach
 
-            <li class="admin-menu-header">Operaciones</li>
-            <li>
-                <a href="{{ route('admin.home') }}">
-                    <i class="fa-solid fa-warehouse"></i>
-                    <span>Stock & Tallas</span>
+            {{-- [FASE 2 - Paso 5]: Sección OPERACIONES --}}
+            <p class="px-6 pt-5 pb-1 text-[11px] font-semibold tracking-widest kx-muted">OPERACIONES</p>
+            @foreach ($menuOperaciones as $item)
+                <a href="{{ $item['ruta'] }}"
+                   class="mx-3 flex items-center gap-3 rounded-xl px-3.5 py-2.5 transition {{ $item['activo'] ? 'bg-indigo-500/15 ring-1 ring-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.18)] font-semibold text-white' : 'text-zinc-400 hover:bg-white/5 hover:text-white' }}">
+                    @if ($item['icono'] === 'svg-paquete')
+                        {{-- [Actualizado: Ícono Productos] SVG de caja de producto con trazo uniforme 1.75 --}}
+                        <svg viewBox="0 0 24 24" class="h-4 w-4 {{ $item['activo'] ? 'text-indigo-400' : '' }}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="m3 8 9 5 9-5M12 13v8M7.5 5.5l9 5"/></svg>
+                    @else
+                        <i class="{{ $item['icono'] }} w-4 text-center {{ $item['activo'] ? 'text-indigo-400' : '' }}"></i>
+                    @endif{{ $item['texto'] }}
                 </a>
-            </li>
-        </ul>
+            @endforeach
+        </nav>
 
-        <div class="admin-footer-actions">
-            <a href="{{ route('home') }}" class="btn-sidebar-secondary" target="_blank">
-                <i class="fa-solid fa-store"></i> Ver Tienda
-            </a>
-            
-            <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
-                @csrf
-                <button type="submit" class="btn-logout">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión
-                </button>
-            </form>
-        </div>
+        {{-- [FASE 2 - Paso 6]: Acceso rápido a la tienda pública --}}
+        <a href="{{ route('home') }}" class="kx-btn-ghost mx-4 mt-3"><i class="fa-solid fa-store"></i>Ver Tienda</a>
     </aside>
+    <div id="sidebar-fondo" class="fixed inset-0 z-30 hidden bg-black/60 lg:hidden"></div>
 
-    <!-- [CONTENEDOR DE CONTENIDO PRINCIPAL] -->
-    <div class="admin-main">
-        <header class="admin-topbar">
-            <div>
-                <strong>Modo Administrador</strong>
-            </div>
-            <div class="admin-user-info">
-                <span>{{ Auth::user()->name ?? 'Administrador' }}</span>
-                <div class="admin-user-avatar">
-                    {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
+    <div class="flex min-w-0 flex-1 flex-col lg:ml-64">
+
+        {{-- [FASE 3 - Paso 2]: Barra superior (Topbar) estilo TailAdmin --}}
+        <header class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-zinc-800/80 bg-[#09090b]/90 px-4 backdrop-blur md:px-6">
+            <button type="button" id="btn-sidebar" class="kx-icon-btn lg:hidden" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
+
+            {{-- [FASE 3 - Paso 3]: Buscador global; envía ?buscar= al listado de productos. ⌘K / Ctrl+K lo enfoca --}}
+            <form action="{{ route('admin.productos.index') }}" method="GET" class="flex-1 max-w-lg">
+                <label class="flex items-center gap-2 rounded-xl border border-zinc-800 bg-[#121215] px-3 py-2 text-sm transition focus-within:border-indigo-500 focus-within:shadow-[0_0_12px_rgba(99,102,241,0.45)]">
+                    <i class="fa-solid fa-magnifying-glass text-xs kx-muted"></i>
+                    <input type="search" name="buscar" id="buscador-global" value="{{ request('buscar') }}" placeholder="Buscar productos, SKU o categoría..." class="w-full bg-transparent outline-none placeholder:text-zinc-500">
+                    <kbd class="hidden rounded border border-zinc-700 px-1.5 py-0.5 text-[10px] kx-muted sm:inline">⌘K</kbd>
+                </label>
+            </form>
+
+            <div class="ml-auto flex items-center gap-2">
+                {{-- [FASE 3 - Paso 5]: Campanita con alertas reales de stock y últimos pedidos --}}
+                <div class="relative" data-dropdown>
+                    <button type="button" class="kx-icon-btn relative" data-dropdown-boton aria-label="Notificaciones">
+                        <i class="fa-regular fa-bell"></i>
+                        @if ($notificaciones['total'] > 0)
+                            <span class="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-500 px-1 text-[10px] font-bold text-white">{{ $notificaciones['total'] }}</span>
+                        @endif
+                    </button>
+                    {{-- [Actualizado: Notificaciones] Panel anclado justo debajo de la campana (absolute right-0 top-full) --}}
+                    <div class="kx-card absolute right-0 top-full z-50 mt-2 hidden w-80 overflow-hidden shadow-2xl shadow-black/50" data-dropdown-menu>
+                        <p class="border-b border-zinc-800/80 px-4 py-3 text-sm font-semibold">Notificaciones</p>
+                        <div class="max-h-80 overflow-y-auto text-sm">
+                            @if ($notificaciones['agotadas'] > 0)
+                                <a href="{{ route('admin.productos.index', ['stock' => 'critico']) }}" class="flex gap-3 px-4 py-3 hover:bg-white/5">
+                                    <span class="kx-badge-agotado h-8 w-8 justify-center"><i class="fa-solid fa-ban"></i></span>
+                                    <span><strong>{{ $notificaciones['agotadas'] }} tallas agotadas</strong><br><span class="text-xs kx-muted">Sin stock disponible</span></span>
+                                </a>
+                            @endif
+                            @if ($notificaciones['criticas'] > 0)
+                                <a href="{{ route('admin.productos.index', ['stock' => 'critico']) }}" class="flex gap-3 px-4 py-3 hover:bg-white/5">
+                                    <span class="kx-badge-bajo h-8 w-8 justify-center"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                                    <span><strong>{{ $notificaciones['criticas'] }} tallas en stock crítico</strong><br><span class="text-xs kx-muted">1 o 2 pares restantes</span></span>
+                                </a>
+                            @endif
+                            @foreach ($notificaciones['pedidos'] as $pedido)
+                                <a href="{{ route('admin.pedidos.index') }}" class="flex gap-3 px-4 py-3 hover:bg-white/5">
+                                    <span class="kx-badge-ok h-8 w-8 justify-center"><i class="fa-solid fa-receipt"></i></span>
+                                    <span><strong>Pedido {{ $pedido->codigo_orden }}</strong> · S/ {{ number_format($pedido->total, 2) }}<br><span class="text-xs kx-muted">{{ $pedido->usuario?->name }} · {{ $pedido->created_at?->diffForHumans() }}</span></span>
+                                </a>
+                            @endforeach
+                            @if ($notificaciones['total'] === 0)
+                                <p class="px-4 py-6 text-center kx-muted">Sin notificaciones nuevas.</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- [Actualizado: Cuenta admin] Desplegable con Mi Perfil, Ver Tienda Pública y Cerrar Sesión (POST logout) --}}
+                <div class="relative" data-dropdown>
+                    <button type="button" class="flex items-center gap-2 rounded-xl px-2 py-1 transition hover:bg-white/5" data-dropdown-boton>
+                        @if (Auth::user()->urlAvatar())
+                            <img src="{{ Auth::user()->urlAvatar() }}" alt="Foto de perfil" class="h-9 w-9 rounded-full object-cover">
+                        @else
+                            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-600 font-bold text-white">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+                        @endif
+                        <span class="hidden text-left md:block">
+                            <span class="block text-sm font-semibold leading-tight">{{ Auth::user()->name }}</span>
+                            <span class="block text-xs capitalize kx-muted">{{ Auth::user()->rol?->nombre }}</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-xs kx-muted"></i>
+                    </button>
+                    <div class="kx-card absolute right-0 top-full z-50 mt-2 hidden w-60 p-2 shadow-2xl shadow-black/50" data-dropdown-menu>
+                        <div class="px-3 py-2">
+                            <p class="truncate text-sm font-semibold">{{ Auth::user()->name }}</p>
+                            <p class="truncate text-xs kx-muted">{{ Auth::user()->email }}</p>
+                        </div>
+                        <div class="my-1 border-t border-zinc-800/80"></div>
+                        <a href="{{ route('admin.perfil') }}" class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-white/5"><i class="fa-regular fa-user w-4"></i>Mi Perfil</a>
+                        <a href="{{ route('home') }}" class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-white/5"><i class="fa-solid fa-store w-4"></i>Ver Tienda Pública</a>
+                        <form action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-red-400 hover:bg-red-500/10"><i class="fa-solid fa-right-from-bracket w-4"></i>Cerrar Sesión</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <main class="admin-content">
+        {{-- [Sem 08 - Rutas y Vistas Blade]: Contenido de cada pantalla con @yield --}}
+        <main class="flex-1 p-4 md:p-6 lg:p-8">
             @yield('contenido')
         </main>
     </div>
-
-    @stack('scripts')
+</div>
+{{-- [Actualizado: Toast admin] Mensajes flash como aviso flotante discreto arriba a la derecha (se cierra solo) --}}
+@if (session('exito') || session('error'))
+    <div class="fixed top-20 right-4 z-50 flex max-w-sm items-center gap-3 rounded-xl border border-zinc-800 bg-[#121215]/95 px-4 py-3 text-sm shadow-2xl shadow-black/50 backdrop-blur transition duration-300" data-toast>
+        <i class="fa-solid {{ session('error') ? 'fa-circle-exclamation text-red-400' : 'fa-circle-check text-emerald-400' }}"></i>
+        <span class="flex-1">{{ session('error') ?? session('exito') }}</span>
+        <button type="button" class="kx-muted hover:text-white" data-toast-cerrar aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+@endif
 </body>
 </html>
-

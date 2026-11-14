@@ -1,3 +1,71 @@
+# KixaStore — Resumen de estudio (exposición oral)
+
+## Controladores
+| Controlador | Qué hace |
+|---|---|
+| `HomeController` | Home: consulta los productos con `destacado = true` (scopes `activos()->destacados()`) para la sección **Lo Destacado**. |
+| `AuthController` | Login, registro, logout y perfil. Redirige al admin a `/admin` y al cliente a la tienda. |
+| `CatalogoController` | Catálogo estilo Nike: título con contador, sidebar de filtros (categoría, marca, disciplina y talla obtenidos de los productos reales), orden por `?orden=` (destacados, precio, lo más nuevo) y ficha de producto con recomendados. Oculta productos de categorías inactivas. |
+| `CarritoController` | Carrito, checkout y `procesar()`: crea el `Pedido` y sus detalles en una transacción y descuenta stock. **Bloquea las compras del rol admin.** |
+| `AdminController` | Dashboard: KPIs reales (clientes, pedidos, ventas, productos), arco de disponibilidad de stock, barras por categoría y alertas críticas. |
+| `Admin\CategoriaCrudController` | **Mantenimiento 1**: listar, crear, editar y activar/desactivar categorías (no se borran por la FK `restrictOnDelete`). El slug se arma solo desde el nombre (JS en vivo y `Str::slug` en el servidor). |
+| `Admin\ProductoCrudController` | **Mantenimiento 2**: listado con buscador y filtros, crear/editar con `<select>` de categoría y proveedor, subida de imagen, galería de imágenes secundarias (JSON `galeria_imagenes`), stock por talla, SKU automático (`MARCA-MODELO-XXX`) si llega vacío, filtro por estado y vista rápida en modal. |
+| `Admin\ClienteController` | Solo usuarios con rol cliente: listado, historial de pedidos (`show`) y edición de nombre, correo, DNI y celular. No toca roles (Regla 4.2). |
+| `Admin\PedidoController` | **Proceso 2 - Despacho**: lista los pedidos con cliente, fecha, pago, total y zapatillas; el admin cambia el estado (Pendiente → Entregado / Cancelado) y el cliente lo ve en su historial. |
+| `Admin\PerfilController` | Perfil del admin dentro del panel oscuro: nombre, foto y contraseña (`current_password`). |
+
+## Modelos
+| Modelo | Relaciones / detalles |
+|---|---|
+| `User` | `belongsTo(Rol)`; `esAdmin()` controla el acceso. |
+| `Rol` | `hasMany(User)` — roles separados en su propia tabla (Regla 4.2). |
+| `Categoria` | `hasMany(Producto)`; scope `activas`; URLs por `slug`. |
+| `Producto` | `belongsTo(Categoria)`, `belongsTo(Proveedor)`, `hasMany(ProductoTalla)`; accessors `modelo` (nombre sin la marca repetida) y `tipo_calzado` ("Zapatillas urbanas", "Chimpunes de fútbol"…); URLs por `sku`. |
+| `ProductoTalla` | `belongsTo(Producto)`; stock por talla. |
+| `Proveedor` | `hasMany(Producto)`. |
+| `Pedido` / `DetallePedido` | Pedido del cliente (`belongsTo(User)`, `hasMany(DetallePedido)`) y sus líneas. |
+| `OrdenAbastecimiento` | Reposición de stock desde proveedores. |
+
+## Páginas informativas (Modo Cliente)
+| Vista / Ruta | Qué hace |
+|---|---|
+| `layouts/app.blade.php` | Header oscuro: Liquid Glass translúcido en el home (`routeIs('home')`) que pasa a carbón `#121215` al hacer scroll; categorías con subrayado animado (sin submenús). Footer con anclas a `#mapa-tienda` y `#centro-ayuda`, redes con color de marca al hover y botón **Libro de Reclamaciones**. |
+| `informativas/nosotros` (`/nosotros`) | **Acerca de**: historia, misión, visión, valores y el **Centro de Ayuda** (acordeón `<details>` con Envíos, Cambios y Devoluciones, Opciones de Pago). |
+| `/ayuda` | `Route::redirect` 301 hacia `/nosotros#centro-ayuda` (la ayuda quedó unificada en Acerca de). |
+| `informativas/contacto` (`/contacto`) | 2 columnas en Liquid Glass: mapa `<iframe>` de la sede (Av. Cascanueces 2221, Santa Anita) + formulario con validación en `formulario.js`. `?tipo=reclamo` preselecciona el motivo "Reclamo". |
+
+## Rutas nuevas (routes/web.php)
+| Ruta | Nombre | Qué hace |
+|---|---|---|
+| `GET /perfil/{seccion?}` (`cuenta`, `favoritos`, `pedidos`, `direcciones`) | `perfil` | Mi cuenta estilo Puma con pestañas; `whereIn()` limita las secciones válidas. |
+| `PUT /perfil/password` | `perfil.password` | Cambia la contraseña pidiendo la actual (`current_password`). |
+| `PUT /perfil/direccion` | `perfil.direccion` | Guarda la dirección predeterminada (pre-llena el checkout). |
+| `GET /producto/{sku}/tallas` | `producto.tallas` | JSON con tallas en stock para "Seleccionar talla" en Favoritos. |
+| `GET /checkout` / `POST /checkout/procesar` | `checkout` / `checkout.procesar` | Token de un solo uso + cabeceras anti-caché: el botón "Atrás" o un doble clic no duplican pedidos; cantidades enteras de 1 a 10 y stock validado. |
+
+## Panel Administrador
+
+- Sidebar con el enlace activo encuadrado (`mx-3`) y la sección **Clientes**; Proveedores, Tallas, Abastecimiento y Pedidos quedan como contenedores en blanco.
+- Los mensajes flash salen como toast flotante arriba a la derecha (`resources/js/app.js`).
+- El menú de la cuenta admin tiene Mi Perfil, Ver Tienda Pública y Cerrar Sesión.
+- `routes/web.php` está ordenado en 5 módulos: Públicas, Autenticación, Cuenta, Proceso de compra y Panel Admin.
+
+## Cierre final
+
+- `/admin/pedidos`: tarjetas resumen (total, por despachar, en camino, entregados, ingresos sin cancelados), pestañas por estado, buscador y la barra de 4 pasos `<x-admin.seguimiento-pedido>`, que usa el mismo `Pedido::PASOS` / `paso_seguimiento` que el perfil del cliente.
+- Compra: al confirmarse, `CarritoController@procesar` marca `carrito_vaciado` en sesión y `carrito.js` borra el carrito activo y sus copias `kixa:<usuario>:carrito`; cada compra crea un pedido nuevo.
+- Login y Registro: tarjeta split-screen (marca + formulario), `novalidate` y mensajes en español con `public/js/auth.js`.
+
+## Avisos y flujo de compra
+- **Toast único** (`public/js/toast.js`): `kxToast(mensaje, tipo)` muestra avisos en la esquina superior derecha; el layout le pasa los flash (`exito`, `error`) y los errores de validación (`$errors`). No se usan `alert()` nativos.
+- **Login → Checkout:** el carrito envía `?redirect=checkout`; `AuthController` solo acepta `checkout` o `carrito` (lista cerrada) y redirige ahí tras iniciar sesión o registrarse.
+
+## Reglas de la rúbrica aplicadas
+- **4.4:** ninguna tabla ni formulario muestra IDs; las URLs del admin usan `slug` y `sku`.
+- **4.5:** las FK se muestran por nombre (`categoria->nombre`, `proveedor->razon_social`) y se eligen con `<select>`.
+
+---
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">

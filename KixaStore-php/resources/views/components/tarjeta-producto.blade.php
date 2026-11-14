@@ -1,64 +1,44 @@
-{{-- [AGREGADO: DEFINICION DE PROPIEDADES EN COMPONENTE TARJETA] --}}
-@props([
-    'id' => 1,
-    'sku' => null,
-    'nombre' => 'Zapatilla Kixa',
-    'marca' => 'KIXA',
-    'precio' => 199.00,
-    'imagen' => 'images/products/hombre/h1.jpg',
-    'dataMarca' => 'todos'
-])
+{{-- [Actualizado: Tarjetas estilo Nike] Recibe el modelo Producto: foto cuadrada uniforme + texto limpio alineado a la izquierda --}}
+{{-- [Sem 08 - Rutas y Vistas Blade]: Componente <x-tarjeta-producto :producto="$p" /> reutilizado en home, catálogo y detalle --}}
+@props(['producto'])
 
-{{-- [ORIGEN]: Extraído de Tienda-Kixa_2/hombre.html (Líneas 364 a 417) --}}
-{{-- [ADAPTADO]: Componente Blade reutilizable con atributos dinámicos (id, sku, nombre, marca, precio, imagen, dataMarca) --}}
-<article class="producto" data-marca="{{ strtolower($dataMarca ?? $marca) }}">
-    <div class="producto-img" style="position: relative;">
-        {{-- [AGREGADO: RENDERIZADO DE IMAGEN CON ASSET O URL ABSOLUTA] --}}
-        <img src="{{ str_starts_with($imagen, 'http') ? $imagen : asset($imagen) }}" alt="{{ $nombre }}">
-
-        {{-- [CAMBIO: BOTON INTERACTIVO PARA GUARDAR EN FAVORITOS EN LA TARJETA] --}}
-        <button 
-            type="button" 
-            class="btn-fav-card" 
-            title="Guardar en favoritos"
-            data-id="{{ $id }}"
-            data-sku="{{ $sku ?? $id }}"
-            data-nombre="{{ $nombre }}"
-            data-marca="{{ $marca }}"
-            data-precio="{{ $precio }}"
-            data-imagen="{{ str_starts_with($imagen, 'http') ? $imagen : asset($imagen) }}"
-            style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); border: none; width: 34px; height: 34px; border-radius: 50%; color: #ffffff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; z-index: 5; transition: all 0.2s;">
-            <i class="fa-regular fa-heart"></i>
-        </button>
-
-        <div class="producto-action">
-            {{-- [CAMBIO: ENLACE EXACTO A LA RUTA PRODUCTO.DETALLE CON $id QUE CONTIENE EL SKU] --}}
-            <a href="{{ route('producto.detalle', $id) }}">
-                Ver producto
-                <i class="fa-solid fa-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-
-    <div class="producto-info">
-        <div class="marca">
-            {{ strtoupper($marca) }}
+<article class="kx-card" data-marca="{{ strtolower($producto->marca) }}">
+    <a href="{{ route('producto.detalle', $producto->sku) }}" class="kx-card-enlace" aria-label="Ver {{ $producto->nombre }}">
+        <div class="kx-card-img">
+            <img src="{{ str_starts_with($producto->imagen, 'http') ? $producto->imagen : asset($producto->imagen) }}" alt="{{ $producto->nombre }}" loading="lazy" decoding="async">
         </div>
 
-        <h3>
-            {{ $nombre }}
-        </h3>
+        <div class="kx-card-info">
+            @if ($producto->en_oferta)
+                <span class="kx-card-etiqueta kx-card-etiqueta--oferta">Oferta</span>
+            @elseif ($producto->destacado)
+                <span class="kx-card-etiqueta">Destacado</span>
+            @endif
 
-        <div class="producto-bottom">
-            {{-- [AGREGADO: FORMATEO DE PRECIO A DOS DECIMALES] --}}
-            <p class="precio">
-                S/ {{ number_format((float)$precio, 2) }}
-            </p>
+            <h3 class="kx-card-nombre">{{ $producto->nombre }}</h3>
+            <p class="kx-card-tipo">{{ $producto->tipo_calzado }} • {{ $producto->categoria?->nombre }}</p>
 
-            {{-- [CAMBIO: BOTON MINIATURA APUNTANDO EXACTAMENTE A PRODUCTO.DETALLE CON $id] --}}
-            <a href="{{ route('producto.detalle', $id) }}" class="mini-btn" title="Ver detalle">
-                <i class="fa-solid fa-arrow-right"></i>
-            </a>
+            <div class="kx-card-precio">
+                <span>S/ {{ number_format((float) $producto->precio, 2) }}</span>
+                @if ($producto->en_oferta)
+                    <span class="kx-card-badge">En oferta</span>
+                @endif
+            </div>
         </div>
-    </div>
+    </a>
+
+    {{-- Botón de favoritos: conserva la clase y los data-* que usa el script del layout --}}
+    <button
+        type="button"
+        class="btn-fav-card"
+        title="Guardar en favoritos"
+        aria-label="Guardar {{ $producto->nombre }} en favoritos"
+        data-id="{{ $producto->sku }}"
+        data-sku="{{ $producto->sku }}"
+        data-nombre="{{ $producto->nombre }}"
+        data-marca="{{ $producto->marca }}"
+        data-precio="{{ $producto->precio }}"
+        data-imagen="{{ str_starts_with($producto->imagen, 'http') ? $producto->imagen : asset($producto->imagen) }}">
+        <i class="fa-regular fa-heart"></i>
+    </button>
 </article>

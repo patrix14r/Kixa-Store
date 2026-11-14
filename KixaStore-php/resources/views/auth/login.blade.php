@@ -1,94 +1,49 @@
 @extends('layouts.app')
 
 @push('styles')
-    {{-- [ORIGEN]: Estilos de login de Tienda-Kixa_2/css/login.css --}}
-    <link rel="stylesheet" href="{{ asset('css/login.css') }}">
-    <style>
-        .error-message {
-            color: #ff3344;
-            font-size: 13px;
-            margin-top: 5px;
-            display: block;
-            font-weight: 600;
-        }
-        .alert-error {
-            background: rgba(237, 0, 27, 0.15);
-            border: 1px solid #ed001b;
-            color: #ff4d5e;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            margin-bottom: 18px;
-            text-align: center;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/cuenta.css') }}">
 @endpush
 
 @section('contenido')
-    {{-- [ORIGEN]: Extraído de Tienda-Kixa_2/login.html (Líneas 130 a 220) --}}
-    {{-- [CAMBIO: CONECTADO AL CONTROLADOR AUTHCONTROLLER CON RUTA LOGIN.POST Y VALIDACION MYSQL] --}}
-    <div class="background">
-        <div class="overlay"></div>
+    {{-- [Sem 08 - Rutas y Vistas Blade]: Login con labels fijos arriba de cada input y errores con @error --}}
+    <div class="auth-page">
+        {{-- [Actualizado: Login split-screen] Tarjeta editorial de 2 columnas: marca a la izquierda y formulario a la derecha --}}
+        <div class="auth-card">
+            @include('auth._showcase')
 
-        <div class="login-box" id="formContainer">
-
-            {{-- [CAMBIO: ACTION HACIA LA RUTA LOGIN.POST CON METODO POST Y @csrf] --}}
-            <form id="loginForm" class="form active" method="POST" action="{{ route('login.post') }}">
+            {{-- novalidate: se reemplazan los globos del navegador ("Please fill out this field.") por mensajes en español --}}
+            <form id="loginForm" class="auth-form" method="POST" action="{{ route('login.post') }}" novalidate data-validar-auth>
                 @csrf
 
-                <div class="form-icon">
-                    <i class="fa-solid fa-user"></i>
+                <h1>Bienvenido a <span>Kixa</span></h1>
+                <p class="auth-subtitulo">Inicia sesión para continuar</p>
+
+                {{-- [Actualizado: Toast único] El error de credenciales aparece en el toast flotante del layout --}}
+                {{-- [Actualizado: Login → Checkout] ?redirect=checkout viaja oculto para volver al pago tras ingresar --}}
+                @if (request('redirect'))
+                    <input type="hidden" name="redirect" value="{{ request('redirect') }}">
+                @endif
+
+                <div class="auth-campo">
+                    <label for="loginEmail">Correo electrónico</label>
+                    <input type="email" id="loginEmail" name="email" value="{{ old('email') }}" placeholder="tucorreo@ejemplo.com" autocomplete="email" required autofocus>
                 </div>
 
-                <h2>
-                    Bienvenido a <span>Kixa</span>
-                </h2>
-
-                <p class="subtitle">
-                    Inicia sesión para continuar
-                </p>
-
-                {{-- [CAMBIO: ALERTA VISUAL DE ERROR DE AUTENTICACION CON ERROR DE EMAIL] --}}
-                @error('email')
-                    <div class="alert-error">
-                        <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
-                    </div>
-                @enderror
-
-                <!-- CORREO -->
-                <div class="input-group">
-                    <input type="email" id="loginEmail" name="email" value="{{ old('email') }}" required autofocus>
-                    <label for="loginEmail">
-                        Correo electrónico
-                    </label>
+                <div class="auth-campo">
+                    <label for="loginPassword">Contraseña</label>
+                    <input type="password" id="loginPassword" name="password" placeholder="Tu contraseña" autocomplete="current-password" required>
                 </div>
 
-                <!-- CONTRASEÑA -->
-                <div class="input-group">
-                    <input type="password" id="loginPassword" name="password" required>
-                    <label for="loginPassword">
-                        Contraseña
-                    </label>
-                </div>
-
-                <button type="submit" class="btn">
-                    <i class="fa-solid fa-right-to-bracket"></i>
-                    Ingresar
+                <button type="submit" class="auth-btn">
+                    <i class="fa-solid fa-right-to-bracket"></i> Ingresar
                 </button>
 
-                <p class="register-text">
-                    ¿No tienes cuenta?
-                    <a href="{{ route('registro') }}">
-                        Regístrate
-                    </a>
-                </p>
+                <p class="auth-pie">¿No tienes cuenta? <a href="{{ route('registro', request()->only('redirect')) }}">Regístrate</a></p>
             </form>
-
         </div>
     </div>
 @endsection
 
 @push('scripts')
-    {{-- [ADAPTADO]: Script de interactividad en public/js/login.js --}}
-    <script src="{{ asset('js/login.js') }}"></script>
+    <script src="{{ asset('js/auth.js') }}"></script>
 @endpush

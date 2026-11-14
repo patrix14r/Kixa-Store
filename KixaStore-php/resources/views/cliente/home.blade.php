@@ -1,8 +1,6 @@
 @extends('layouts.app')
 
 @section('contenido')
-    {{-- [ORIGEN]: Extraído de Tienda-Kixa_2/index.html (Líneas 90 a 213) --}}
-    {{-- [ADAPTADO]: Se integró a layouts.app, convirtiendo rutas de imágenes a asset() y enlaces a route() --}}
 
     <!-- =====================================================
          HERO / CARRUSEL PRINCIPAL
@@ -56,6 +54,29 @@
     </section>
 
 
+    {{-- [Actualizado: Lo Destacado] Carrusel horizontal estilo Nike con productos destacado = true (HomeController) --}}
+    <section class="kx-destacado" id="lo-destacado">
+        <div class="kx-destacado-cabecera">
+            <h2>Lo Destacado</h2>
+            <div class="kx-destacado-flechas">
+                <button type="button" class="kx-flecha" id="destacado-prev" aria-label="Ver anteriores">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+                </button>
+                <button type="button" class="kx-flecha" id="destacado-next" aria-label="Ver siguientes">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="kx-destacado-pista" id="destacado-pista">
+            @forelse ($destacados as $producto)
+                <x-tarjeta-producto :producto="$producto" />
+            @empty
+                <p class="kx-vacio">Pronto tendremos nuevos destacados.</p>
+            @endforelse
+        </div>
+    </section>
+
     <!-- =====================================================
          SECCIÓN DE OFERTAS ESPECIALES
          ===================================================== -->
@@ -81,3 +102,27 @@
         </div>
     </section>
 @endsection
+
+@push('scripts')
+    {{-- [Actualizado: Lo Destacado] Flechas que desplazan la pista una "página" de tarjetas --}}
+    <script>
+        (() => {
+            const pista = document.getElementById('destacado-pista');
+            const prev = document.getElementById('destacado-prev');
+            const next = document.getElementById('destacado-next');
+            if (!pista || !prev || !next) return;
+
+            const actualizar = () => {
+                prev.disabled = pista.scrollLeft <= 4;
+                next.disabled = pista.scrollLeft + pista.clientWidth >= pista.scrollWidth - 4;
+            };
+            const mover = (dir) => pista.scrollBy({ left: dir * pista.clientWidth * 0.9, behavior: 'smooth' });
+
+            prev.addEventListener('click', () => mover(-1));
+            next.addEventListener('click', () => mover(1));
+            pista.addEventListener('scroll', actualizar, { passive: true });
+            window.addEventListener('resize', actualizar);
+            actualizar();
+        })();
+    </script>
+@endpush

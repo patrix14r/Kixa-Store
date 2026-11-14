@@ -15,9 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->string('rol', 20)->default('cliente');
+            $table->foreignId('rol_id')->constrained('roles')->restrictOnDelete();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            // [Sem 11 - Migraciones, Seeders y Roles]: Ruta de la foto de perfil (opcional) en public/images/avatars
+            $table->string('avatar')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

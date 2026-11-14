@@ -1,235 +1,226 @@
 @extends('layouts.app')
 
+@section('titulo', 'Mi cuenta | KixaStore')
+
 @push('styles')
-    {{-- [ORIGEN]: Estilos de cuenta de Tienda-Kixa_2/css/cuenta.css --}}
-    <link rel="stylesheet" href="{{ asset('css/cuenta.css') }}">
-    <style>
-        .alert-success {
-            background: rgba(40, 167, 69, 0.15);
-            border: 1px solid #28a745;
-            color: #2ecc71;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .alert-error {
-            background: rgba(237, 0, 27, 0.15);
-            border: 1px solid #ed001b;
-            color: #ff4d5e;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            margin-bottom: 18px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/perfil.css') }}">
 @endpush
 
 @section('contenido')
-    {{-- [ORIGEN]: Extraído de Tienda-Kixa_2/cuenta.html (Líneas 127 a 663) --}}
-    {{-- [CAMBIO: VISTA DE PERFIL VINCULADA A AUTHCONTROLLER Y TABLA USERS EN MYSQL] --}}
-    <main class="cuenta-container">
-        <div class="cuenta-wrapper">
-
-            <!-- HEADER -->
-            <div class="cuenta-header">
-                <div>
-                    <span class="mini-titulo">PERFIL</span>
-                    <h1>Mi cuenta</h1>
-                    <p>Administra tu información personal y credenciales en KixaStore.</p>
-                </div>
-
-                <div class="icono-header">
-                    <i class="fa-solid fa-user"></i>
-                </div>
+    {{-- [Actualizado: Perfil estilo Puma] 2 columnas: sidebar de cuenta + contenido de la pestaña elegida (ruta /perfil/{seccion?}) --}}
+    <div class="kx-cuenta">
+        <aside class="kx-cuenta-menu" aria-label="Mi cuenta">
+            <div class="kx-cuenta-saludo">
+                <span>Hola,</span>
+                <strong>{{ $usuario->name }}</strong>
             </div>
 
-            {{-- [CAMBIO: MENSAJE FLASH DE ACTUALIZACION EXITOSA] --}}
-            @if (session('exito'))
-                <div class="alert-success">
-                    <i class="fa-solid fa-circle-check"></i> {{ session('exito') }}
-                </div>
+            <nav>
+                <a href="{{ route('perfil') }}" class="{{ $seccion === 'cuenta' ? 'activo' : '' }}">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                    Información de la cuenta
+                </a>
+                <a href="{{ route('perfil', 'favoritos') }}" class="{{ $seccion === 'favoritos' ? 'activo' : '' }}">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+                    Favoritos
+                </a>
+                <a href="{{ route('perfil', 'pedidos') }}" class="{{ $seccion === 'pedidos' ? 'activo' : '' }}">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>
+                    Historial de pedidos
+                </a>
+                <a href="{{ route('perfil', 'direcciones') }}" class="{{ $seccion === 'direcciones' ? 'activo' : '' }}">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+                    Direcciones
+                </a>
+            </nav>
+
+            {{-- [Sem 11 - Migraciones, Seeders y Roles]: Acceso al panel solo para el rol admin --}}
+            @if ($usuario->esAdmin())
+                {{-- [Actualizado: Botón admin] Rectángulo limpio alineado con el menú lateral e ícono de panel --}}
+                <a href="{{ route('admin.home') }}" class="kx-cuenta-admin">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+                    Ir al Panel de Administración
+                </a>
             @endif
 
-            @if (isset($errors) && $errors->any())
-                <div class="alert-error">
-                    <i class="fa-solid fa-circle-exclamation"></i>
-                    @foreach ($errors->all() as $error)
-                        <p style="margin: 0;">{{ $error }}</p>
-                    @endforeach
-                </div>
-            @endif
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="kx-cuenta-salir">CERRAR SESIÓN</button>
+            </form>
+        </aside>
 
-            <!-- GRID PRINCIPAL -->
-            <div class="cuenta-grid">
+        <main class="kx-cuenta-contenido">
+            {{-- [Actualizado: Toast único] Avisos de éxito/error llegan al toast flotante del layout --}}
 
-                <!-- TARJETA PERFIL (FOTO Y ESTADO) -->
-                <section class="perfil-card">
-                    <div class="perfil-fondo">
-                        <div class="perfil-fondo-icono">
-                            <i class="fa-solid fa-user"></i>
+            {{-- ============ 1) INFORMACIÓN DE LA CUENTA ============ --}}
+            @if ($seccion === 'cuenta')
+                <h1>Detalles de la cuenta</h1>
+
+                <section class="kx-tarjeta">
+                    <div class="kx-avatar-fila">
+                        <div class="kx-avatar">
+                            @if ($usuario->urlAvatar())
+                                <img id="fotoPerfil" src="{{ $usuario->urlAvatar() }}" alt="Foto de perfil de {{ $usuario->name }}">
+                            @else
+                                <span id="fotoInicial">{{ mb_strtoupper(mb_substr($usuario->name, 0, 1)) }}</span>
+                            @endif
                         </div>
-                    </div>
-
-                    <div class="perfil-contenido">
-                        <!-- FOTO -->
-                        <div class="foto-container">
-                            <div class="foto-wrapper">
-                                <img id="fotoPerfil" src="{{ asset('images/ui/web.jpg') }}" alt="Foto de perfil">
-                            </div>
-                        </div>
-
-                        <!-- NOMBRE REAL DE MYSQL -->
-                        <div class="perfil-texto">
-                            <h2 id="nombrePerfil">{{ $usuario->name }}</h2>
-                            <p>
-                                <i class="fa-regular fa-user"></i>
-                                Rol: <strong style="color: #ed001b; text-transform: uppercase;">{{ $usuario->rol ?? 'cliente' }}</strong>
-                            </p>
-                        </div>
-
-                        <!-- ESTADO -->
-                        <div class="estado-cuenta">
-                            <span class="punto"></span>
-                            Cuenta activa en MySQL
+                        <div>
+                            <strong>{{ $usuario->name }}</strong>
+                            <label for="inputAvatar" class="kx-enlace">Cambiar foto</label>
+                            <small id="avatarNombre">JPG, PNG o WEBP · máximo 2 MB</small>
                         </div>
                     </div>
                 </section>
 
-                <!-- TARJETA INFORMACIÓN PERSONAL -->
-                <section class="informacion-card">
-                    <div class="seccion-titulo">
-                        <div>
-                            <span>INFORMACIÓN PERSONAL</span>
-                            <h2>Datos de la cuenta</h2>
-                        </div>
-                        <i class="fa-solid fa-id-card"></i>
+                {{-- Tarjeta "Mi perfil": lectura + edición in-place (perfil.js alterna .editando) --}}
+                <section class="kx-tarjeta {{ $errors->hasAny(['name', 'email', 'dni', 'telefono']) ? 'editando' : '' }}" data-editable>
+                    <div class="kx-tarjeta-cabecera">
+                        <h2>Mi perfil</h2>
+                        <button type="button" class="kx-editar" data-alternar-edicion>EDITAR</button>
                     </div>
 
-                    {{-- [CAMBIO: FORMULARIO REAL CONECTADO A ROUTE PERFIL.UPDATE CON METODO PUT Y @csrf] --}}
-                    <form method="POST" action="{{ route('perfil.update') }}">
+                    <dl class="kx-datos kx-solo-lectura">
+                        <div><dt>Nombre completo</dt><dd>{{ $usuario->name }}</dd></div>
+                        <div><dt>DNI</dt><dd>{{ $usuario->dni ?: '—' }}</dd></div>
+                        <div><dt>Teléfono</dt><dd>{{ $usuario->telefono ?: '—' }}</dd></div>
+                        <div><dt>Correo electrónico</dt><dd>{{ $usuario->email }}</dd></div>
+                    </dl>
+
+                    {{-- [Sem 09 - Controladores y MVC]: PUT a AuthController@actualizarPerfil (multipart por la foto) --}}
+                    <form id="formPerfil" method="POST" action="{{ route('perfil.update') }}" enctype="multipart/form-data" class="kx-form kx-solo-edicion">
                         @csrf
                         @method('PUT')
-
-                        <div class="informacion">
-                            <!-- NOMBRE -->
-                            <div class="dato">
-                                <label class="dato-label" for="nombreUsuario">
-                                    <i class="fa-regular fa-user"></i>
-                                    Nombre completo
-                                </label>
-                                <input type="text" id="nombreUsuario" name="name" class="campo" value="{{ old('name', $usuario->name) }}" required>
-                            </div>
-
-                            <!-- EMAIL -->
-                            <div class="dato">
-                                <label class="dato-label" for="emailUsuario">
-                                    <i class="fa-regular fa-envelope"></i>
-                                    Correo electrónico
-                                </label>
-                                <input type="email" id="emailUsuario" name="email" class="campo" value="{{ old('email', $usuario->email) }}" required>
-                            </div>
-
-                            <!-- NUEVA CONTRASEÑA -->
-                            {{-- // [VALIDACION FORMULARIO]: Nueva contrasenia opcional con minimo 8 caracteres y mensaje de error --}}
-                            <div class="dato dato-completo">
-                                <label class="dato-label" for="password">
-                                    <i class="fa-solid fa-key"></i>
-                                    Nueva contraseña (Mínimo 8 caracteres, opcional)
-                                </label>
-                                <input type="password" id="password" name="password" class="campo" minlength="8" placeholder="Mínimo 8 caracteres (dejar en blanco para mantener la contraseña actual)">
-                                @error('password')
-                                    <span class="error-text" style="color: #ff4d5e; font-size: 12px; display: block; margin-top: 6px; font-weight: 600;">
-                                        <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
-                                    </span>
-                                @enderror
-                            </div>
+                        <input type="file" id="inputAvatar" name="avatar" accept="image/*" class="kx-oculto">
+                        <div class="kx-form-grid">
+                            <label>Nombre completo<input type="text" name="name" value="{{ old('name', $usuario->name) }}" required></label>
+                            <label>Correo electrónico<input type="email" name="email" value="{{ old('email', $usuario->email) }}" required></label>
+                            <label>DNI<input type="text" name="dni" value="{{ old('dni', $usuario->dni) }}" maxlength="8" inputmode="numeric" pattern="[0-9]{8}" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></label>
+                            <label>Teléfono<input type="tel" name="telefono" value="{{ old('telefono', $usuario->telefono) }}" maxlength="9" inputmode="numeric" pattern="[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></label>
                         </div>
-
-                        <!-- BOTÓN GUARDAR -->
-                        <div class="guardar-container" style="margin-top: 20px;">
-                            <button class="btn-guardar" type="submit">
-                                <i class="fa-solid fa-check"></i>
-                                Guardar cambios
-                            </button>
+                        <div class="kx-form-acciones">
+                            <button type="button" class="kx-btn kx-btn--borde" data-alternar-edicion>Cancelar</button>
+                            <button type="submit" class="kx-btn">Guardar</button>
                         </div>
                     </form>
-
-                    <!-- OPCIONES Y ACCIONES -->
-                    <div class="acciones" style="margin-top: 30px;">
-                        <span class="acciones-titulo">OPCIONES Y GESTIÓN</span>
-
-                        {{-- [CAMBIO: CONDICION PARA ACCESO AL PANEL DE ADMINISTRACION O HISTORIAL DE CLIENTE] --}}
-                        @if ($usuario->rol === 'admin')
-                            <a href="{{ route('admin.home') }}" class="opcion" style="border: 2px solid #ed001b; background: rgba(237, 0, 27, 0.05);">
-                                <span class="opcion-icono" style="background: #ed001b; color: #ffffff;">
-                                    <i class="fa-solid fa-gauge-high"></i>
-                                </span>
-                                <span class="opcion-info">
-                                    <strong style="color: #ed001b;">Ir al Panel de Administración</strong>
-                                    <small>Gestionar productos, categorías, tallas e inventario</small>
-                                </span>
-                                <i class="fa-solid fa-chevron-right flecha" style="color: #ed001b;"></i>
-                            </a>
-                        @else
-                            <!-- HISTORIAL DE PEDIDOS DEL CLIENTE -->
-                            <div class="pedidos-seccion" style="margin-bottom: 20px;">
-                                <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #ffffff;">
-                                    <i class="fa-solid fa-bag-shopping" style="color: #ed001b;"></i> Mis Pedidos Recientes
-                                </h3>
-                                @if (isset($pedidos) && $pedidos->isNotEmpty())
-                                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                                        @foreach ($pedidos as $pedido)
-                                            {{-- /* [FIX VISUAL] Tarjeta de pedido en fondo oscuro #18181b y texto legible */ --}}
-                                            <div style="background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 14px 18px; font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
-                                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                                    <span style="color: #ffffff; font-weight: 700; font-size: 14px; letter-spacing: 0.5px;">
-                                                        Orden: {{ $pedido->codigo_orden }}
-                                                    </span>
-                                                    <span style="color: #22c55e; font-weight: 600; font-size: 12px; background: rgba(34, 197, 94, 0.12); padding: 3px 8px; border-radius: 4px;">
-                                                        <i class="fa-solid fa-circle-check" style="font-size: 10px; margin-right: 4px;"></i>{{ $pedido->estado }}
-                                                    </span>
-                                                </div>
-                                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
-                                                    <span style="color: #a1a1aa;">
-                                                        <i class="fa-regular fa-calendar" style="margin-right: 5px;"></i>Fecha: {{ $pedido->created_at->format('d/m/Y') }}
-                                                    </span>
-                                                    <span style="color: #ffffff;">
-                                                        Total: <strong style="color: #e60012; font-weight: 700; font-size: 14px;">S/ {{ number_format($pedido->total, 2) }}</strong>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    {{-- /* [FIX VISUAL] Estado vacío en tono oscuro */ --}}
-                                    <div style="background: #18181b; border: 1px solid #27272a; padding: 16px; border-radius: 8px; font-size: 13px; color: #a1a1aa; text-align: center;">
-                                        Aún no has realizado ningún pedido. ¡Explora nuestro catálogo!
-                                    </div>
-                                @endif
-                            </div>
-                        @endif
-
-                        {{-- [CAMBIO: BOTON DE CIERRE DE SESION LIMPIO Y UNICO] --}}
-                        <form method="POST" action="{{ route('logout') }}" style="display: block; margin-top: 15px;">
-                            @csrf
-                            <button class="cerrar-sesion" type="submit" style="width: 100%; text-align: left; background: transparent; border: none; cursor: pointer;">
-                                <span class="opcion-icono">
-                                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                                </span>
-                                <span class="opcion-info">
-                                    <strong>Cerrar sesión</strong>
-                                    <small>Salir de tu cuenta de forma segura</small>
-                                </span>
-                                <i class="fa-solid fa-chevron-right flecha"></i>
-                            </button>
-                        </form>
-                    </div>
                 </section>
 
-            </div>
-        </div>
-    </main>
+                <section class="kx-tarjeta {{ $errors->hasAny(['password_actual', 'password']) ? 'editando' : '' }}" data-editable>
+                    <div class="kx-tarjeta-cabecera">
+                        <h2>Contraseña</h2>
+                        <button type="button" class="kx-editar" data-alternar-edicion>EDITAR</button>
+                    </div>
+
+                    <dl class="kx-datos kx-solo-lectura">
+                        <div><dt>Contraseña</dt><dd class="kx-puntos">••••••••</dd></div>
+                    </dl>
+
+                    {{-- [VALIDACION FORMULARIO]: contraseña actual + nueva de mínimo 8 caracteres confirmada --}}
+                    <form method="POST" action="{{ route('perfil.password') }}" class="kx-form kx-solo-edicion">
+                        @csrf
+                        @method('PUT')
+                        <div class="kx-form-grid">
+                            <label>Contraseña actual<input type="password" name="password_actual" required autocomplete="current-password"></label>
+                            <span></span>
+                            <label>Nueva contraseña<input type="password" name="password" minlength="8" required autocomplete="new-password"></label>
+                            <label>Confirmar nueva contraseña<input type="password" name="password_confirmation" minlength="8" required autocomplete="new-password"></label>
+                        </div>
+                        <div class="kx-form-acciones">
+                            <button type="button" class="kx-btn kx-btn--borde" data-alternar-edicion>Cancelar</button>
+                            <button type="submit" class="kx-btn">Actualizar contraseña</button>
+                        </div>
+                    </form>
+                </section>
+            @endif
+
+            {{-- ============ 2) FAVORITOS ============ --}}
+            @if ($seccion === 'favoritos')
+                <h1>Favoritos</h1>
+                <div id="favoritos-filas" class="kx-favoritos-filas"></div>
+            @endif
+
+            {{-- ============ 3) HISTORIAL Y SEGUIMIENTO DE PEDIDOS ============ --}}
+            @if ($seccion === 'pedidos')
+                <h1>Historial de pedidos</h1>
+
+                @forelse ($pedidos as $pedido)
+                    <article class="kx-tarjeta kx-pedido">
+                        <div class="kx-tarjeta-cabecera">
+                            <div>
+                                <h2>Orden {{ $pedido->codigo_orden }}</h2>
+                                <p class="kx-pedido-meta">{{ $pedido->created_at->format('d/m/Y') }} · {{ $pedido->metodo_pago }} · Estado: {{ $pedido->estado }}</p>
+                            </div>
+                            <strong class="kx-pedido-total">S/ {{ number_format($pedido->total, 2) }}</strong>
+                        </div>
+
+                        {{-- [Sem 12 - Eloquent ORM]: accessor paso_seguimiento traduce el estado a la barra de progreso --}}
+                        @if ($pedido->paso_seguimiento > 0)
+                            <ol class="kx-seguimiento" style="--paso: {{ $pedido->paso_seguimiento }}">
+                                @foreach ($pasos as $i => $paso)
+                                    <li class="{{ $i < $pedido->paso_seguimiento ? 'hecho' : '' }}">{{ $paso }}</li>
+                                @endforeach
+                            </ol>
+                        @else
+                            <p class="kx-pedido-cancelado">Pedido cancelado</p>
+                        @endif
+
+                        <ul class="kx-pedido-items">
+                            @foreach ($pedido->items as $linea)
+                                <li>
+                                    <div class="kx-pedido-img">
+                                        @if ($linea->producto)
+                                            <img src="{{ str_starts_with($linea->producto->imagen, 'http') ? $linea->producto->imagen : asset($linea->producto->imagen) }}" alt="{{ $linea->producto->nombre }}">
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <strong>{{ $linea->producto?->nombre ?? 'Producto no disponible' }}</strong>
+                                        <span>Talla {{ rtrim(rtrim(number_format((float) $linea->talla, 1), '0'), '.') }} · Cantidad {{ $linea->cantidad }}</span>
+                                    </div>
+                                    <span class="kx-pedido-linea">S/ {{ number_format($linea->subtotal, 2) }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                        <p class="kx-pedido-direccion">Entrega en: {{ $pedido->direccion_envio }}</p>
+                    </article>
+                @empty
+                    <section class="kx-tarjeta kx-vacio-cuenta">
+                        <p>Aún no has realizado ningún pedido.</p>
+                        <a href="{{ route('catalogo') }}" class="kx-btn">Explorar catálogo</a>
+                    </section>
+                @endforelse
+            @endif
+
+            {{-- ============ 4) DIRECCIONES ============ --}}
+            @if ($seccion === 'direcciones')
+                <h1>Direcciones</h1>
+                <section class="kx-tarjeta">
+                    <div class="kx-tarjeta-cabecera">
+                        <h2>Dirección de envío predeterminada</h2>
+                    </div>
+                    <form method="POST" action="{{ route('perfil.direccion') }}" class="kx-form">
+                        @csrf
+                        @method('PUT')
+                        <label>Distrito, calle, número y referencia
+                            <input type="text" name="direccion" value="{{ old('direccion', $usuario->direccion) }}" placeholder="Ej. Santa Anita, Av. Los Frutales 123" required minlength="5" maxlength="255">
+                        </label>
+                        <p class="kx-ayuda">La usaremos para pre-llenar tu checkout.</p>
+                        <div class="kx-form-acciones">
+                            <button type="submit" class="kx-btn">Guardar dirección</button>
+                        </div>
+                    </form>
+                </section>
+            @endif
+        </main>
+    </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('js/perfil-avatar.js') }}"></script>
+    <script src="{{ asset('js/favoritos.js') }}"></script>
+    <script>
+        // [Actualizado: Perfil] Botones EDITAR / Cancelar alternan la tarjeta entre lectura y edición
+        document.querySelectorAll('[data-alternar-edicion]').forEach((btn) => {
+            btn.addEventListener('click', () => btn.closest('[data-editable]')?.classList.toggle('editando'));
+        });
+    </script>
+@endpush
