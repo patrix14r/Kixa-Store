@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('cantidad_solicitada');
             $table->decimal('costo_unitario', 10, 2);
             $table->decimal('costo_total', 10, 2);
-            $table->enum('estado', ['Solicitado', 'Recibido', 'Cancelado'])->default('Solicitado');
+            $table->enum('estado', ['Pendiente', 'Recibido', 'Cancelado'])->default('Pendiente');
             $table->timestamp('fecha_recepcion')->nullable();
             $table->timestamps();
         });

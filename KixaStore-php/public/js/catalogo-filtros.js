@@ -1,6 +1,6 @@
 // ==========================================================================
 // TIENDA KIXA - FILTROS DEL CATÁLOGO ESTILO NIKE (CATALOGO-FILTROS.JS)
-// [Actualizado: Filtros estilo Nike] Desktop: oculta/muestra el sidebar. Móvil: abre un drawer.
+// Desktop: oculta/muestra el sidebar. Móvil: abre un drawer.
 // ==========================================================================
 
 (() => {
@@ -10,7 +10,7 @@
     const cerrar = document.getElementById("kx-filtros-cerrar");
     if (!boton || !cuerpo) return;
 
-    // [Actualizado: Catálogo] Si la URL trae filtros u orden, se queda en la grilla y no salta al banner
+    // Si la URL trae filtros u orden, se queda en la grilla y no salta al banner
     const zona = document.getElementById("zona-catalogo");
     const params = new URLSearchParams(location.search);
     if (zona && ["marca", "sub", "talla", "orden", "buscar"].some((p) => params.has(p))) {

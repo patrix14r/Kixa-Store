@@ -7,7 +7,7 @@ use App\Models\Producto;
 use App\Models\ProductoTalla;
 use Illuminate\Http\Request;
 
-// [Sem 09 - Controladores y MVC]: Catálogo con filtros por Request; la vista solo recibe datos ya preparados
+// [Semana 9-10: Controladores, Request y Componentes] Catálogo del cliente: filtros por Request (?marca, ?sub, ?talla, ?orden) y ficha por SKU.
 class CatalogoController extends Controller
 {
     private const BANNERS = [
@@ -64,10 +64,8 @@ class CatalogoController extends Controller
         ],
     ];
 
-    // [Actualizado: Catálogo] Al filtrar, la página vuelve directo a la grilla (nunca al banner)
     private const ANCLA = '#zona-catalogo';
 
-    // [Actualizado: Catálogo] Títulos sin contador
     private const TITULOS = [
         'hombre'  => 'Zapatillas Hombre',
         'mujer'   => 'Zapatillas Mujer',
@@ -75,7 +73,6 @@ class CatalogoController extends Controller
         'deporte' => 'Calzado Deportivo',
     ];
 
-    // [Actualizado: Filtros estilo Nike] Opciones de orden del desplegable "Ordenar por"
     private const ORDENES = [
         'destacados'  => 'Destacados',
         'precio_asc'  => 'Precio: menor a mayor',
@@ -83,7 +80,7 @@ class CatalogoController extends Controller
         'nuevo'       => 'Lo más nuevo',
     ];
 
-    // [Sem 09 - Controladores y MVC]: index() recibe la categoría por la ruta y los filtros por Request (?marca, ?sub, ?talla, ?orden)
+    // Filtra el catálogo con Eloquent: recibe la categoría por la ruta y el resto por query string con $request->query().
     public function index(Request $request, $categoria = 'todos')
     {
         $subcategoria = $request->query('sub');
@@ -94,10 +91,8 @@ class CatalogoController extends Controller
 
         $catObj = ($categoria && $categoria !== 'todos') ? Categoria::where('slug', $categoria)->first() : null;
 
-        // Consulta base (categoría o búsqueda): de ella salen las opciones dinámicas del sidebar
         $base = Producto::activos()->whereHas('categoria', fn ($c) => $c->where('activo', true));
 
-        // [Sem 12 - Eloquent ORM]: Buscador del header; cada palabra debe aparecer en modelo, marca, SKU o categoría
         if ($buscar !== '') {
             foreach (preg_split('/\s+/', $buscar) as $palabra) {
                 $base->where(function ($q) use ($palabra) {
@@ -111,7 +106,6 @@ class CatalogoController extends Controller
             $base->where('categoria_id', $catObj->id);
         }
 
-        // [Actualizado: Filtros estilo Nike] Opciones reales obtenidas de los productos (sin listas fijas)
         $marcasDisponibles = (clone $base)->distinct()->orderBy('marca')->pluck('marca')->all();
         $subsDisponibles   = (clone $base)->whereNotNull('subcategoria')->distinct()->orderBy('subcategoria')->pluck('subcategoria')->all();
         $tallasDisponibles = ProductoTalla::whereIn('producto_id', (clone $base)->select('id'))
@@ -147,10 +141,8 @@ class CatalogoController extends Controller
             ? 'Resultados para "' . $buscar . '"'
             : ($catObj ? self::TITULOS[$catObj->slug] ?? 'Zapatillas ' . $catObj->nombre : 'Todas las zapatillas');
 
-        // [Actualizado: Filtro inteligente] En Hombre/Mujer/Niños el acordeón de Categoría es redundante
         $mostrarCategoria = ! $catObj || ! in_array($catObj->slug, ['hombre', 'mujer', 'ninos'], true) || $buscar !== '';
 
-        // Enlaces del sidebar: categoría cambia la ruta; el resto alterna su parámetro en la query
         $filtrosCategoria = Categoria::where('activo', true)->orderBy('id')->get()->map(fn ($c) => [
             'etiqueta' => $c->nombre,
             'activo'   => $catObj?->id === $c->id && $buscar === '',
@@ -167,7 +159,7 @@ class CatalogoController extends Controller
 
         $ordenes          = self::ORDENES;
         $parametrosOrden  = $request->except('orden');
-        // [Actualizado: Limpiar filtros] Quita marca, disciplina, talla y búsqueda; conserva el orden y vuelve a #zona-catalogo
+
         $hayFiltros       = (bool) ($marca || $subcategoria || $talla || $buscar !== '');
         $urlLimpiar       = route('catalogo', ['categoria' => $categoria] + $request->only('orden')) . self::ANCLA;
 
@@ -178,7 +170,7 @@ class CatalogoController extends Controller
         ));
     }
 
-    // [Actualizado: Favoritos] Tallas con stock de un producto en JSON (para elegir talla desde Favoritos)
+    // Devuelve JSON con las tallas que tienen stock (lo consume favoritos.js).
     public function tallas(string $sku)
     {
         $producto = Producto::activos()->with(['tallas' => fn ($q) => $q->where('stock', '>', 0)->orderBy('talla'), 'categoria'])
@@ -193,19 +185,15 @@ class CatalogoController extends Controller
         ]);
     }
 
+    // Busca el producto por su SKU con with() para evitar consultas repetidas y muestra la ficha.
     public function show($sku = null)
     {
-        $producto = null;
-        if ($sku) {
-            $producto = Producto::with(['categoria', 'proveedor', 'tallas'])
-                ->where('sku', $sku)
-                ->orWhere('id', $sku)
-                ->first();
-        }
+        // Solo productos activos y solo por SKU (nunca por id) para no exponer IDs ni productos ocultos.
+        $consulta = Producto::activos()->with(['categoria', 'proveedor', 'tallas']);
 
-        if (!$producto) {
-            $producto = Producto::with(['categoria', 'proveedor', 'tallas'])->first();
-        }
+        $producto = $sku
+            ? $consulta->where('sku', $sku)->firstOrFail()
+            : $consulta->firstOrFail();
 
         $recomendados = Producto::activos()
             ->where('id', '!=', $producto->id)
@@ -225,10 +213,20 @@ class CatalogoController extends Controller
 
         $recomendados->load('categoria');
 
-        return view('cliente.producto', compact('producto', 'recomendados'));
+        // Equivalencias para el modal "Guía de tallas" (la lógica y los datos viven en el controlador, no en Blade).
+        $guiaTallas = [
+            ['us' => 6,  'eu' => 39, 'cm' => 24],
+            ['us' => 7,  'eu' => 40, 'cm' => 25],
+            ['us' => 8,  'eu' => 41, 'cm' => 26],
+            ['us' => 9,  'eu' => 42, 'cm' => 27],
+            ['us' => 10, 'eu' => 43, 'cm' => 28],
+            ['us' => 11, 'eu' => 44, 'cm' => 29],
+            ['us' => 12, 'eu' => 45, 'cm' => 30],
+        ];
+
+        return view('cliente.producto', compact('producto', 'recomendados', 'guiaTallas'));
     }
 
-    // Arma los enlaces de filtro: si el valor ya está activo, el enlace lo quita; si no, lo agrega
     private function filtros(Request $request, ?string $categoria, string $parametro, array $valores, ?callable $etiqueta = null): array
     {
         return array_map(function ($valor) use ($request, $categoria, $parametro, $etiqueta) {
@@ -249,7 +247,6 @@ class CatalogoController extends Controller
         }, $valores);
     }
 
-    // 39.0 -> "39" y 39.5 -> "39.5"
     private function formatoTalla($talla): string
     {
         return rtrim(rtrim(number_format((float) $talla, 1, '.', ''), '0'), '.');

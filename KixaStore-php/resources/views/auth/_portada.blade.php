@@ -1,4 +1,4 @@
-{{-- [Actualizado: Login split-screen] Columna de marca compartida por Login y Registro (@include) --}}
+{{-- Columna de marca compartida por Login y Registro (@include) --}}
 <aside class="auth-showcase" aria-hidden="true">
     <img src="{{ asset('images/ui/web.jpg') }}" alt="" class="auth-showcase-logo">
     <div>

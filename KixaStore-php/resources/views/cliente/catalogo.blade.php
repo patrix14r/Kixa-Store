@@ -8,7 +8,7 @@
 
 @section('contenido')
 
-    {{-- [Sem 08 - Rutas y Vistas Blade]: Banner dinámico por categoría (datos preparados en CatalogoController) --}}
+    {{-- Banner dinámico por categoría (datos preparados en CatalogoController) --}}
     <section class="catalogo-hero {{ $bannerActual['clase'] }}">
         <div class="hero-slider">
             @foreach ($bannerActual['imagenes'] as $idx => $imgBanner)
@@ -33,13 +33,13 @@
         </div>
     </section>
 
-    {{-- [Actualizado: Filtros estilo Nike] Barra superior (título + contador, ocultar filtros, ordenar) y sidebar de acordeones --}}
+    {{-- Barra superior (título + contador, ocultar filtros, ordenar) y sidebar de acordeones --}}
     <section class="kx-catalogo" id="zona-catalogo">
         <div class="kx-catalogo-barra">
             <h1 class="kx-catalogo-titulo">{{ $titulo }}</h1>
 
             <div class="kx-catalogo-acciones">
-                {{-- [Actualizado: Limpiar filtros] Visible solo con marca, disciplina, talla o búsqueda activa --}}
+                {{-- Visible solo con marca, disciplina, talla o búsqueda activa --}}
                 @if ($hayFiltros)
                     <a href="{{ $urlLimpiar }}" class="kx-btn-limpiar"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>Limpiar filtros</a>
                 @endif
@@ -48,7 +48,7 @@
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
                 </button>
 
-                {{-- [Sem 09 - Controladores y MVC]: El orden viaja por GET (?orden=) conservando los demás filtros --}}
+                {{-- El orden viaja por GET (?orden=) conservando los demás filtros --}}
                 <form method="GET" action="{{ route('catalogo', ['categoria' => $categoria]) }}#zona-catalogo" class="kx-orden">
                     @foreach ($parametrosOrden as $clave => $valor)
                         @if (is_scalar($valor))
@@ -77,7 +77,7 @@
                     </button>
                 </div>
 
-                {{-- [Actualizado: Filtro inteligente] Solo en Deporte, Todos o búsquedas --}}
+                {{-- Solo en Deporte, Todos o búsquedas --}}
                 @if ($mostrarCategoria)
                 <details class="kx-filtro" open>
                     <summary>Categoría / Género</summary>

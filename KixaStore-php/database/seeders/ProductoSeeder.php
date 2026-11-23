@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-// [Sem 11 - Migraciones, Seeders y Roles]: Productos con FK buscadas por nombre usando value('id') y sus tallas
+// Productos con FK buscadas por nombre usando value('id') y sus tallas
 class ProductoSeeder extends Seeder
 {
     public function run(): void
@@ -135,7 +135,7 @@ class ProductoSeeder extends Seeder
                 'activo'       => true,
             ],
 
-            // [Actualizado: Variedad de marcas] Modelos unisex también en Hombre para poder filtrar por Nike, Adidas y Puma
+            // Modelos unisex también en Hombre para poder filtrar por Nike, Adidas y Puma
             [
                 'categoria_id' => $catHombre,
                 'proveedor_id' => $provNike,
@@ -179,7 +179,7 @@ class ProductoSeeder extends Seeder
                 'activo'       => true,
             ],
 
-            // SECCIÓN MUJER
+            // SECCIÓN MUJER ())
             [
                 'categoria_id' => $catMujer,
                 'proveedor_id' => $provPuma,

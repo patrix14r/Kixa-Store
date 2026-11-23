@@ -7,14 +7,14 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-// [Sem 09 - Controladores y MVC]: Clientes del admin: listado, historial de pedidos y edición de datos básicos (Regla 4.2: no gestiona roles)
+// [Semana 9-10: Controladores, Request y Componentes] Clientes del admin (solo lectura y edición básica); no gestiona roles ni crea usuarios.
 class ClienteController extends Controller
 {
+    // Lista solo usuarios con rol cliente usando whereHas('rol') y withCount('pedidos').
     public function index(Request $request)
     {
         $buscar = trim((string) $request->query('buscar'));
 
-        // [Sem 12 - Eloquent ORM]: whereHas('rol') deja solo a los clientes y withCount('pedidos') cuenta sus compras
         $clientes = User::whereHas('rol', fn ($r) => $r->where('nombre', 'cliente'))
             ->withCount('pedidos')
             ->when($buscar, fn ($q) => $q->where(fn ($sub) => $sub
@@ -28,7 +28,6 @@ class ClienteController extends Controller
         return view('admin.clientes.index', compact('clientes', 'buscar'));
     }
 
-    // Historial de pedidos del cliente con el detalle de zapatillas
     public function show(User $cliente)
     {
         abort_if($cliente->esAdmin(), 404);
@@ -49,7 +48,6 @@ class ClienteController extends Controller
     {
         abort_if($cliente->esAdmin(), 404);
 
-        // [Sem 09 - Controladores y MVC]: Validación del Request (DNI 8 dígitos, celular 9 dígitos, correo único)
         $datos = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'email'    => ['required', 'email', Rule::unique('users', 'email')->ignore($cliente)],

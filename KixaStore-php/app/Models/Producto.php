@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+// [Semana 12-13: Eloquent ORM, Relaciones y los 7 métodos de Route::resource] Modelo de la tabla productos: scopes, accessors, casts y relaciones con categoría, proveedor y tallas.
 #[Fillable([
     'categoria_id',
     'proveedor_id',
@@ -30,7 +31,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Producto extends Model
 {
-
     protected $table = 'productos';
 
     protected $fillable = [
@@ -49,12 +49,12 @@ class Producto extends Model
         'activo',
     ];
 
-
+    // casts() convierte precio a decimal, galeria_imagenes (JSON) a array y los flags a booleano.
     protected function casts(): array
     {
         return [
             'precio'    => 'decimal:2',
-            // [Actualizado: Galería] Imágenes secundarias guardadas como arreglo JSON
+
             'galeria_imagenes' => 'array',
             'destacado' => 'boolean',
             'en_oferta' => 'boolean',
@@ -62,13 +62,13 @@ class Producto extends Model
         ];
     }
 
-    // [Sem 08 - Rutas y Vistas Blade]: Las URLs del admin usan el SKU en lugar del ID (Regla 4.4)
+    // [Semana 8: Rutas y Herencia Blade] La URL usa el SKU (/producto/ADI-CAM-00S) para no mostrar el ID autoincremental.
     public function getRouteKeyName(): string
     {
         return 'sku';
     }
 
-    // [Sem 12 - Eloquent ORM]: Accessor $producto->modelo: nombre sin la marca repetida ("Jordan Retro 4" -> "Retro 4")
+    // Accessor con Attribute::get: $producto->modelo devuelve el nombre sin repetir la marca ("Jordan Retro 4" -> "Retro 4").
     protected function modelo(): Attribute
     {
         return Attribute::get(function () {
@@ -79,7 +79,6 @@ class Producto extends Model
         });
     }
 
-    // [Actualizado: Tarjetas estilo Nike] Nombre legible de cada subcategoría guardada en la BD
     public const SUBCATEGORIAS = [
         'urbano'    => ['Urbanas', 'Zapatillas urbanas'],
         'running'   => ['Running', 'Zapatillas de running'],
@@ -96,37 +95,47 @@ class Producto extends Model
         return self::SUBCATEGORIAS[$sub][0] ?? ucfirst((string) $sub);
     }
 
-    // [Sem 12 - Eloquent ORM]: Accessor $producto->tipo_calzado ("Zapatillas urbanas", "Chimpunes de fútbol"...)
+    // Accessor: $producto->tipo_calzado traduce la subcategoría guardada ("futbol") a un texto legible ("Chimpunes de fútbol").
+    // Accessor: $producto->url_imagen sirve tanto para URLs externas como para rutas locales de public/.
+    protected function urlImagen(): Attribute
+    {
+        return Attribute::get(fn () => str_starts_with((string) $this->imagen, 'http') ? $this->imagen : asset((string) $this->imagen));
+    }
+
     protected function tipoCalzado(): Attribute
     {
         return Attribute::get(fn () => self::SUBCATEGORIAS[$this->subcategoria][1] ?? 'Zapatillas');
     }
 
     #[Scope]
+    // Scope local: Producto::activos() deja solo los productos visibles en la tienda.
     protected function activos(Builder $consulta): void
     {
         $consulta->where('activo', true);
     }
 
-
     #[Scope]
+    // Scope local: Producto::destacados() se usa en "Lo Destacado" del home.
     protected function destacados(Builder $consulta): void
     {
         $consulta->where('destacado', true);
     }
 
-
+    // Relación BelongsTo: cada producto pertenece a una categoría (FK categoria_id); se muestra con $producto->categoria->nombre.
     public function categoria(): BelongsTo
     {
         return $this->belongsTo(Categoria::class, 'categoria_id');
     }
 
     
+
+    // Relación BelongsTo: cada producto tiene un proveedor opcional (FK proveedor_id con nullOnDelete); se muestra con ->proveedor->razon_social.
     public function proveedor(): BelongsTo
     {
         return $this->belongsTo(Proveedor::class, 'proveedor_id');
     }
 
+    // Relación HasMany: un producto tiene muchas filas de producto_tallas, cada una con su stock.
     public function tallas(): HasMany
     {
         return $this->hasMany(ProductoTalla::class, 'producto_id');

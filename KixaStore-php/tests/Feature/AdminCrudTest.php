@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Categoria;
+use App\Models\OrdenAbastecimiento;
 use App\Models\Pedido;
 use App\Models\Producto;
+use App\Models\ProductoTalla;
 use App\Models\Proveedor;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -200,10 +202,42 @@ class AdminCrudTest extends TestCase
     {
         $this->actingAs($this->admin)->get(route('admin.home'))
             ->assertOk()
-            ->assertSee('data-filtro-marca="Jordan"', false)
+            ->assertSee('admin?marca=Jordan#alertas', false)
             ->assertSee('Alertas de Inventario Crítico')
             ->assertDontSee('Jordan Jordan')
             ->assertDontSee('Nike Nike');
+    }
+
+    public function test_dashboard_limita_alertas_a_8_y_filtra_por_marca_en_el_servidor(): void
+    {
+        $respuesta = $this->actingAs($this->admin)->get(route('admin.home', ['marca' => 'Jordan']));
+        $respuesta->assertOk();
+        $alertas = $respuesta->viewData('alertas');
+        $this->assertLessThanOrEqual(8, $alertas->count());
+        $this->assertTrue($alertas->every(fn ($t) => $t->producto->marca === 'Jordan'));
+    }
+
+    public function test_tallas_filtra_por_estado_marca_y_busqueda(): void
+    {
+        $respuesta = $this->actingAs($this->admin)->get(route('admin.tallas.index', ['estado' => 'agotado']));
+        $respuesta->assertOk();
+        $this->assertTrue($respuesta->viewData('tallas')->every(fn ($t) => $t->stock === 0));
+
+        $producto = Producto::first();
+        $porSku = $this->actingAs($this->admin)->get(route('admin.tallas.index', ['q' => $producto->sku, 'marca' => $producto->marca]));
+        $this->assertTrue($porSku->viewData('tallas')->every(fn ($t) => $t->producto_id === $producto->id));
+    }
+
+    public function test_abastecimiento_muestra_kpis_y_reponer_preselecciona_talla(): void
+    {
+        $respuesta = $this->actingAs($this->admin)->get(route('admin.abastecimiento.index'));
+        $respuesta->assertOk()->assertSee('Más urgentes');
+        $this->assertLessThanOrEqual(5, $respuesta->viewData('urgentes')->count());
+
+        $talla = ProductoTalla::with('producto')->first();
+        $this->actingAs($this->admin)
+            ->get(route('admin.abastecimiento.create', ['producto' => $talla->producto->sku, 'talla' => $talla->talla]))
+            ->assertOk()->assertSee('value="' . $talla->id . '" selected', false);
     }
 
     // ---------- Restricción: el admin no compra ----------
@@ -252,21 +286,257 @@ class AdminCrudTest extends TestCase
             ->assertDontSee('Gestionar este producto en Panel Admin');
     }
 
-    // ---------- Módulos pendientes (placeholders del sidebar) ----------
+    // ---------- Mantenimiento 3: Proveedores ----------
 
-    public function test_admin_ve_vistas_placeholder_de_modulos_pendientes(): void
+    private function datosProveedor(array $extra = []): array
     {
-        $modulos = [
-            'admin.proveedores' => 'Proveedores',
-            'admin.tallas' => 'Tallas y Stock',
-            'admin.abastecimiento' => 'Abastecimiento',
-        ];
+        return array_merge([
+            'razon_social' => 'Calzados Andinos S.A.C.',
+            'ruc' => '20999888777',
+            'contacto_nombre' => 'Ana Torres',
+            'telefono' => '955444333',
+            'correo' => 'ventas@andinos.pe',
+            'direccion' => 'Av. Lima 123',
+            'activo' => 1,
+        ], $extra);
+    }
 
-        foreach ($modulos as $ruta => $texto) {
-            // [Actualizado: Módulos en blanco] Solo el título, sin cartel de "Próximamente"
-            $this->actingAs($this->admin)->get(route($ruta))->assertOk()->assertSee($texto)->assertDontSee('Próximamente');
-        }
+    public function test_listado_de_proveedores_muestra_datos_y_conteo_sin_ids(): void
+    {
+        $proveedor = Proveedor::withCount('productos')->first();
 
+        $this->actingAs($this->admin)->get(route('admin.proveedores.index'))
+            ->assertOk()
+            ->assertSee($proveedor->razon_social)
+            ->assertSee($proveedor->ruc)
+            ->assertDontSee('<th class="kx-th">ID</th>', false);
+    }
+
+    public function test_buscador_de_proveedores_filtra_por_razon_social_y_ruc(): void
+    {
+        $this->actingAs($this->admin)->get(route('admin.proveedores.index', ['buscar' => 'Nike']))
+            ->assertOk()->assertSee('Nike Perú')->assertDontSee('Adidas Perú');
+
+        $this->actingAs($this->admin)->get(route('admin.proveedores.index', ['buscar' => '20345678912']))
+            ->assertOk()->assertSee('Adidas Perú')->assertDontSee('Nike Perú');
+    }
+
+    public function test_admin_crea_proveedor(): void
+    {
+        $this->actingAs($this->admin)->post(route('admin.proveedores.store'), $this->datosProveedor())
+            ->assertRedirect(route('admin.proveedores.index'));
+
+        $this->assertDatabaseHas('proveedores', ['ruc' => '20999888777', 'razon_social' => 'Calzados Andinos S.A.C.', 'activo' => true]);
+    }
+
+    public function test_proveedor_valida_ruc_telefono_y_unicidad(): void
+    {
+        $existente = Proveedor::first();
+
+        $this->actingAs($this->admin)->post(route('admin.proveedores.store'), $this->datosProveedor(['ruc' => '123']))
+            ->assertSessionHasErrors('ruc');
+        $this->actingAs($this->admin)->post(route('admin.proveedores.store'), $this->datosProveedor(['ruc' => $existente->ruc]))
+            ->assertSessionHasErrors('ruc');
+        $this->actingAs($this->admin)->post(route('admin.proveedores.store'), $this->datosProveedor(['telefono' => '12345']))
+            ->assertSessionHasErrors('telefono');
+        $this->actingAs($this->admin)->post(route('admin.proveedores.store'), $this->datosProveedor(['razon_social' => '']))
+            ->assertSessionHasErrors('razon_social');
+    }
+
+    public function test_admin_edita_proveedor_por_ruc_en_la_url(): void
+    {
+        $proveedor = Proveedor::first();
+
+        $this->actingAs($this->admin)->get(route('admin.proveedores.edit', $proveedor))
+            ->assertOk()->assertSee($proveedor->razon_social);
+        $this->assertStringContainsString($proveedor->ruc, route('admin.proveedores.edit', $proveedor));
+
+        // Se conserva su propio RUC: la regla unique debe ignorarlo.
+        $this->actingAs($this->admin)->put(route('admin.proveedores.update', $proveedor), $this->datosProveedor([
+            'ruc' => $proveedor->ruc,
+            'razon_social' => 'Nombre Nuevo S.A.C.',
+        ]))->assertRedirect(route('admin.proveedores.index'));
+
+        $this->assertDatabaseHas('proveedores', ['ruc' => $proveedor->ruc, 'razon_social' => 'Nombre Nuevo S.A.C.']);
+    }
+
+    public function test_admin_activa_y_desactiva_proveedor_sin_borrarlo(): void
+    {
+        $proveedor = Proveedor::where('activo', true)->first();
+
+        $this->actingAs($this->admin)->patch(route('admin.proveedores.estado', $proveedor))->assertRedirect();
+        $this->assertDatabaseHas('proveedores', ['ruc' => $proveedor->ruc, 'activo' => false]);
+
+        $this->actingAs($this->admin)->patch(route('admin.proveedores.estado', $proveedor))->assertRedirect();
+        $this->assertDatabaseHas('proveedores', ['ruc' => $proveedor->ruc, 'activo' => true]);
+    }
+
+    public function test_cliente_no_accede_a_proveedores(): void
+    {
+        $this->actingAs($this->cliente)->get(route('admin.proveedores.index'))->assertRedirect(route('home'));
+    }
+
+    public function test_ficha_de_producto_incluye_modal_guia_de_tallas(): void
+    {
+        $producto = Producto::activos()->first();
+
+        $this->get(route('producto.detalle', $producto->sku))
+            ->assertOk()
+            ->assertSee('id="abrirGuiaTallas"', false)
+            ->assertSee('id="modalGuiaTallas"', false)
+            ->assertSee('Talla EU');
+    }
+
+    // ---------- Mantenimiento 4: Tallas y Stock ----------
+
+    public function test_listado_de_tallas_muestra_nombre_de_producto_y_filtra(): void
+    {
+        $talla = ProductoTalla::with('producto')->first();
+        $otra = ProductoTalla::with('producto')->where('producto_id', '!=', $talla->producto_id)->first();
+
+        $this->actingAs($this->admin)->get(route('admin.tallas.index'))
+            ->assertOk()->assertSee($talla->producto->nombre);
+
+        $this->actingAs($this->admin)->get(route('admin.tallas.index', ['producto' => $talla->producto->sku]))
+            ->assertOk()->assertSee($talla->producto->nombre)->assertDontSee('>' . $otra->producto->nombre . '</td>', false);
+    }
+
+    public function test_filtro_stock_bajo_solo_muestra_tallas_con_dos_o_menos(): void
+    {
+        $producto = Producto::first();
+        ProductoTalla::where('producto_id', $producto->id)->delete();
+        ProductoTalla::create(['producto_id' => $producto->id, 'talla' => 40, 'stock' => 1]);
+        ProductoTalla::create(['producto_id' => $producto->id, 'talla' => 41, 'stock' => 50]);
+
+        $respuesta = $this->actingAs($this->admin)->get(route('admin.tallas.index', ['producto' => $producto->sku, 'stock' => 'bajo']));
+        $respuesta->assertOk();
+        $this->assertCount(1, $respuesta->viewData('tallas'));
+    }
+
+    public function test_admin_crea_edita_y_elimina_talla(): void
+    {
+        $producto = Producto::first();
+
+        $this->actingAs($this->admin)->post(route('admin.tallas.store'), ['producto_id' => $producto->id, 'talla' => 48.5, 'stock' => 7])
+            ->assertRedirect(route('admin.tallas.index'));
+        $this->assertDatabaseHas('producto_tallas', ['producto_id' => $producto->id, 'talla' => 48.5, 'stock' => 7]);
+
+        $talla = ProductoTalla::where('producto_id', $producto->id)->where('talla', 48.5)->first();
+        $this->actingAs($this->admin)->get(route('admin.tallas.edit', [$producto, $talla->talla]))->assertOk();
+
+        $this->actingAs($this->admin)->put(route('admin.tallas.update', [$producto, $talla->talla]), ['producto_id' => $producto->id, 'talla' => 48.5, 'stock' => 20])
+            ->assertRedirect(route('admin.tallas.index'));
+        $this->assertDatabaseHas('producto_tallas', ['id' => $talla->id, 'stock' => 20]);
+
+        $this->actingAs($this->admin)->delete(route('admin.tallas.destroy', [$producto, $talla->talla]))->assertRedirect(route('admin.tallas.index'));
+        $this->assertDatabaseMissing('producto_tallas', ['id' => $talla->id]);
+    }
+
+    public function test_talla_valida_duplicado_y_stock_negativo(): void
+    {
+        $existente = ProductoTalla::first();
+
+        $this->actingAs($this->admin)->post(route('admin.tallas.store'), ['producto_id' => $existente->producto_id, 'talla' => $existente->talla, 'stock' => 1])
+            ->assertSessionHasErrors('talla');
+        $this->actingAs($this->admin)->post(route('admin.tallas.store'), ['producto_id' => $existente->producto_id, 'talla' => 49, 'stock' => -1])
+            ->assertSessionHasErrors('stock');
+    }
+
+    public function test_cliente_no_accede_a_tallas_ni_abastecimiento(): void
+    {
+        $this->actingAs($this->cliente)->get(route('admin.tallas.index'))->assertRedirect(route('home'));
+        $this->actingAs($this->cliente)->get(route('admin.abastecimiento.index'))->assertRedirect(route('home'));
+    }
+
+    // ---------- Proceso secundario: Abastecimiento ----------
+
+    private function datosOrden(ProductoTalla $talla, array $extra = []): array
+    {
+        return array_merge([
+            'proveedor_id' => Proveedor::activos()->first()->id,
+            'producto_talla_id' => $talla->id,
+            'cantidad_solicitada' => 10,
+            'costo_unitario' => 55.50,
+        ], $extra);
+    }
+
+    public function test_admin_registra_orden_con_lote_automatico_costo_total_y_estado_pendiente(): void
+    {
+        $talla = ProductoTalla::first();
+
+        $this->actingAs($this->admin)->get(route('admin.abastecimiento.create'))->assertOk()->assertSee('LOT-0001');
+        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla))
+            ->assertRedirect(route('admin.abastecimiento.index'));
+        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla, ['cantidad_solicitada' => 2, 'costo_unitario' => 10]));
+
+        $this->assertDatabaseHas('ordenes_abastecimiento', [
+            'codigo_lote' => 'LOT-0001', 'estado' => 'Pendiente', 'costo_total' => 555.00, 'user_id' => $this->admin->id,
+        ]);
+        $this->assertDatabaseHas('ordenes_abastecimiento', ['codigo_lote' => 'LOT-0002', 'costo_total' => 20.00]);
+
+        $this->actingAs($this->admin)->get(route('admin.abastecimiento.index'))
+            ->assertOk()->assertSee('LOT-0001')->assertSee($talla->producto->nombre);
+    }
+
+    public function test_abastecimiento_rechaza_proveedor_inactivo_y_cantidad_invalida(): void
+    {
+        $talla = ProductoTalla::first();
+        $inactivo = Proveedor::first();
+        $inactivo->update(['activo' => false]);
+
+        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla, ['proveedor_id' => $inactivo->id]))
+            ->assertStatus(422);
+        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla, ['cantidad_solicitada' => 0]))
+            ->assertSessionHasErrors('cantidad_solicitada');
+        $this->assertDatabaseCount('ordenes_abastecimiento', 0);
+    }
+
+    public function test_recibir_orden_suma_el_stock_real_una_sola_vez(): void
+    {
+        $talla = ProductoTalla::first();
+        $stockInicial = $talla->stock;
+
+        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla, ['cantidad_solicitada' => 15]));
+        $orden = OrdenAbastecimiento::where('codigo_lote', 'LOT-0001')->first();
+
+        $this->actingAs($this->admin)->patch(route('admin.abastecimiento.recibir', $orden))->assertRedirect();
+
+        $this->assertSame($stockInicial + 15, $talla->fresh()->stock);
+        $orden->refresh();
+        $this->assertSame('Recibido', $orden->estado);
+        $this->assertNotNull($orden->fecha_recepcion);
+
+        // Recibir otra vez no debe sumar de nuevo.
+        $this->actingAs($this->admin)->patch(route('admin.abastecimiento.recibir', $orden))->assertSessionHas('error');
+        $this->assertSame($stockInicial + 15, $talla->fresh()->stock);
+    }
+
+    public function test_cancelar_orden_no_modifica_el_stock(): void
+    {
+        $talla = ProductoTalla::first();
+        $stockInicial = $talla->stock;
+
+        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla));
+        $orden = OrdenAbastecimiento::first();
+
+        $this->actingAs($this->admin)->patch(route('admin.abastecimiento.cancelar', $orden))->assertRedirect();
+        $this->assertSame('Cancelado', $orden->fresh()->estado);
+        $this->assertSame($stockInicial, $talla->fresh()->stock);
+
+        $this->actingAs($this->admin)->patch(route('admin.abastecimiento.recibir', $orden))->assertSessionHas('error');
+        $this->assertSame($stockInicial, $talla->fresh()->stock);
+    }
+
+    public function test_dashboard_incluye_grafico_de_ventas(): void
+    {
+        $this->actingAs($this->admin)->get(route('admin.home'))
+            ->assertOk()
+            ->assertSee('id="graficoVentas"', false)
+            ->assertSee('chart.js', false);
+    }
+
+    public function test_cliente_no_entra_al_resto_del_panel(): void
+    {
         $this->actingAs($this->cliente)->get(route('admin.pedidos.index'))->assertRedirect();
     }
 }

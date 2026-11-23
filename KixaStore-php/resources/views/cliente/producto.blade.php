@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @push('styles')
-    {{-- [Actualizado: Modo claro] Ya no carga hombre.css (forzaba el fondo negro del body) --}}
+    {{-- Ya no carga hombre.css (forzaba el fondo negro del body) --}}
     <link rel="stylesheet" href="{{ asset('css/producto.css') }}">
 @endpush
 
@@ -14,7 +14,7 @@
             <div class="gallery">
                 <div class="thumbs" id="thumbs">
                     <img src="{{ asset($producto->imagen) }}" class="active" alt="{{ $producto->nombre }}">
-                    {{-- [Actualizado: Galería] Imágenes secundarias subidas desde el Panel Admin --}}
+                    {{-- Imágenes secundarias subidas desde el Panel Admin --}}
                     @foreach ($producto->galeria_imagenes ?? [] as $ruta)
                         <img src="{{ asset($ruta) }}" alt="{{ $producto->nombre }}" loading="lazy">
                     @endforeach
@@ -27,7 +27,7 @@
 
             <!-- PANEL DE INFORMACIÓN Y COMPRA -->
             <aside class="panel">
-                {{-- [Actualizado: Modo claro] Marca, categoría y SKU en una línea discreta --}}
+                {{-- Marca, categoría y SKU en una línea discreta --}}
                 <div class="brand-meta">
                     <span class="brand" id="productBrand">{{ strtoupper($producto->marca) }}</span>
                     <span class="brand-sep">•</span>
@@ -67,11 +67,15 @@
                             </button>
                         @endforeach
                     </div>
+                    {{-- Abre el modal #modalGuiaTallas (public/js/guia-tallas.js) --}}
+                    <button type="button" class="guia-tallas-enlace" id="abrirGuiaTallas" aria-haspopup="dialog" aria-controls="modalGuiaTallas">
+                        <i class="fa-solid fa-ruler"></i> Guía de tallas
+                    </button>
                 </div>
 
                 <!-- ACCIONES DE COMPRA Y FAVORITOS -->
                 <div class="actions">
-                    {{-- [Sem 11 - Migraciones, Seeders y Roles]: El admin no compra; ve un acceso directo para editar el producto --}}
+                    {{-- El admin no compra; ve un acceso directo para editar el producto --}}
                     @if (auth()->user()?->esAdmin())
                         <a href="{{ route('admin.productos.edit', $producto) }}" class="btn-primary btn-primary--enlace">
                             ⚙️ Gestionar este producto en Panel Admin
@@ -120,7 +124,7 @@
     <!-- =====================================================
          SECCIÓN DE PRODUCTOS RECOMENDADOS (TAMBIÉN TE PUEDE INTERESAR)
          ===================================================== -->
-    {{-- [Actualizado: Modo claro] Recomendados con <x-tarjeta-producto> sobre fondo claro --}}
+    {{-- Recomendados con <x-tarjeta-producto> sobre fondo claro --}}
     <section class="recomendados-section">
         <div class="recomendados-cabecera">
             <h2>También te puede interesar</h2>
@@ -142,7 +146,28 @@
         icono="fa-solid fa-circle-check" 
     />
 
-    {{-- [Actualizado: Modal carrito] Confirmación flotante con blur al agregar (estilo Puma/Nike) --}}
+    {{-- Modal "Guía de tallas": tabla de equivalencias US / EU / cm y cómo medir el pie --}}
+    <div class="guia-tallas" id="modalGuiaTallas" hidden>
+        <div class="guia-tallas-fondo" data-cerrar-guia></div>
+        <div class="guia-tallas-panel" role="dialog" aria-modal="true" aria-labelledby="guiaTallasTitulo">
+            <div class="guia-tallas-cabecera">
+                <h2 id="guiaTallasTitulo">Guía de tallas</h2>
+                <button type="button" class="guia-tallas-cerrar" data-cerrar-guia aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                </button>
+            </div>
+            <table class="guia-tallas-tabla">
+                <thead><tr><th>Talla US / Perú</th><th>Talla EU</th><th>Largo del pie (cm)</th></tr></thead>
+                <tbody>
+                    @foreach ($guiaTallas as $fila)
+                        <tr><td>{{ $fila['us'] }}</td><td>{{ $fila['eu'] }}</td><td>{{ $fila['cm'] }}</td></tr>
+                    @endforeach
+                </tbody>
+            </table>
+            <p class="guia-tallas-nota"><strong>¿Cómo medir?</strong> Apoya el talón en una pared, marca la punta del dedo más largo y mide hasta la pared. Si estás entre dos tallas, elige la mayor.</p>
+        </div>
+    </div>
+
     <div class="kx-modal-carrito" id="modalCarrito" hidden>
         <div class="kx-modal-fondo" data-cerrar-modal></div>
         <div class="kx-modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalCarritoTitulo">
@@ -180,4 +205,5 @@
 
 @push('scripts')
     <script src="{{ asset('js/producto-dinamico.js') }}"></script>
+    <script src="{{ asset('js/guia-tallas.js') }}"></script>
 @endpush

@@ -11,12 +11,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
-// [Sem 09 - Controladores y MVC]: Mantenimiento 2 (Productos): listado con filtros, create/store, edit/update, stock e imagen
-class ProductoCrudController extends Controller
+// [Semana 12-13: Eloquent ORM, Relaciones y los 7 métodos de Route::resource] CRUD 2 (Productos): listado con filtros, create/store, edit/update, tallas con stock e imágenes.
+class ProductoController extends Controller
 {
     private const TALLAS_ADULTO = [38, 39, 40, 41, 42, 43];
     private const TALLAS_NINO = [30, 31, 32, 33, 34, 35, 36];
 
+    // index (GET): los buscadores (buscar, categoria, estado, marca, stock) llegan por GET y se aplican con when(); with() trae categoría y proveedor para mostrar nombres, no IDs.
     public function index(Request $request)
     {
         $buscar = trim((string) $request->query('buscar'));
@@ -25,7 +26,6 @@ class ProductoCrudController extends Controller
         $estado = $request->query('estado');
         $stock = $request->query('stock');
 
-        // [Sem 12 - Eloquent ORM]: Carga ansiosa with() para mostrar categoría y proveedor por nombre (Regla 4.5)
         $productos = Producto::with(['categoria', 'proveedor'])
             ->withSum('tallas as stock_total', 'stock')
             ->when($buscar, fn ($q) => $q->where(function ($sub) use ($buscar) {
@@ -36,12 +36,12 @@ class ProductoCrudController extends Controller
             }))
             ->when($categoriaSlug, fn ($q) => $q->whereHas('categoria', fn ($c) => $c->where('slug', $categoriaSlug)))
             ->when($marca, fn ($q) => $q->where('marca', $marca))
-            // [Actualizado: Filtro por estado] activos, inactivos, destacados u ofertas
+
             ->when($estado === 'activos', fn ($q) => $q->where('activo', true))
             ->when($estado === 'inactivos', fn ($q) => $q->where('activo', false))
             ->when($estado === 'destacados', fn ($q) => $q->where('destacado', true))
             ->when($estado === 'ofertas', fn ($q) => $q->where('en_oferta', true))
-            // [Actualizado: Notificaciones] ?stock=critico muestra productos con alguna talla en 0, 1 o 2 pares
+
             ->when($stock === 'critico', fn ($q) => $q->whereHas('tallas', fn ($t) => $t->where('stock', '<=', 2)))
             ->orderBy('nombre')
             ->paginate(10)
@@ -53,6 +53,7 @@ class ProductoCrudController extends Controller
         return view('admin.productos.index', compact('productos', 'categorias', 'marcas', 'buscar', 'categoriaSlug', 'marca', 'estado', 'stock'));
     }
 
+    // create (GET): mezcla opciones() (categorías y proveedores para los <select>) con un Producto vacío y las tallas base.
     public function create()
     {
         $producto = new Producto(['activo' => true]);
@@ -61,6 +62,7 @@ class ProductoCrudController extends Controller
         return view('admin.productos.create', array_merge($this->opciones(), compact('producto', 'tallas')));
     }
 
+    // store (POST): DB::transaction guarda el producto y sus tallas juntos; si algo falla no queda nada a medias.
     public function store(Request $request)
     {
         $datos = $this->validar($request);
@@ -73,6 +75,7 @@ class ProductoCrudController extends Controller
         return redirect()->route('admin.productos.index')->with('exito', 'Producto creado correctamente.');
     }
 
+    // edit (GET): el producto llega por su SKU; carga sus tallas o usa las tallas base según la categoría.
     public function edit(Producto $producto)
     {
         $producto->load('tallas');
@@ -86,6 +89,7 @@ class ProductoCrudController extends Controller
         return view('admin.productos.edit', array_merge($this->opciones(), compact('producto', 'tallas')));
     }
 
+    // update (PUT): misma transacción que store, pero con $producto->update().
     public function update(Request $request, Producto $producto)
     {
         $datos = $this->validar($request, $producto);
@@ -98,7 +102,7 @@ class ProductoCrudController extends Controller
         return redirect()->route('admin.productos.index')->with('exito', 'Producto actualizado correctamente.');
     }
 
-    // Activa o desactiva el producto en la tienda (no se borra porque tiene pedidos asociados)
+    // Activa o desactiva: no se borra porque tiene pedidos asociados (order_items tiene FK restrict).
     public function estado(Producto $producto)
     {
         $producto->update(['activo' => ! $producto->activo]);
@@ -106,7 +110,8 @@ class ProductoCrudController extends Controller
         return back()->with('exito', 'Estado de ' . $producto->nombre . ' actualizado.');
     }
 
-    // [Sem 12 - Eloquent ORM]: Listas para los <select> por nombre (Regla 4.5)
+    // opciones() es privado (no es ruta) y lo reutilizan create y edit: devuelve las listas ordenadas por nombre para llenar los <select> de categoría y proveedor.
+    // Así la vista muestra $cat->nombre y $prov->razon_social, y el value interno es el id solo para la FK. Solo se listan proveedores activos.
     private function opciones(): array
     {
         return [
@@ -115,6 +120,7 @@ class ProductoCrudController extends Controller
         ];
     }
 
+    // Valida el Request, genera el SKU si viene vacío y guarda las imágenes subidas en public/images/products/uploads.
     private function validar(Request $request, ?Producto $producto = null): array
     {
         $datos = $request->validate([
@@ -141,10 +147,8 @@ class ProductoCrudController extends Controller
             'galeria_archivos.*' => 'imagen secundaria',
         ]);
 
-        // [Actualizado: SKU automático] Si el SKU llega vacío se genera desde la marca y el modelo (sin error)
         $datos['sku'] = strtoupper($datos['sku'] ?? '') ?: $this->generarSku($datos['marca'], $datos['nombre']);
 
-        // Imagen: si se sube un archivo se guarda en public/images/products/uploads; si no, se usa la ruta escrita
         if ($request->hasFile('imagen_archivo')) {
             $archivo = $request->file('imagen_archivo');
             $nombre = Str::slug($datos['sku']) . '-' . time() . '.' . $archivo->extension();
@@ -152,7 +156,6 @@ class ProductoCrudController extends Controller
             $datos['imagen'] = 'images/products/uploads/' . $nombre;
         }
 
-        // [Actualizado: Galería] Conserva las imágenes secundarias no marcadas y agrega las nuevas subidas
         $galeria = array_values(array_diff($producto?->galeria_imagenes ?? [], $request->input('galeria_quitar', [])));
         foreach ($request->file('galeria_archivos', []) as $i => $archivo) {
             $nombre = Str::slug($datos['sku']) . '-g' . $i . '-' . time() . '.' . $archivo->extension();
@@ -169,7 +172,6 @@ class ProductoCrudController extends Controller
         return $datos;
     }
 
-    // MARCA(3)-MODELO(3)-SUFIJO(3), p. ej. ADI-CAM-00S; se repite hasta que no exista en la BD
     private function generarSku(string $marca, string $nombre): string
     {
         $parte = fn (string $texto) => str_pad(substr(strtoupper(Str::slug($texto, '')), 0, 3), 3, 'X');
@@ -182,7 +184,7 @@ class ProductoCrudController extends Controller
         return $sku;
     }
 
-    // Guarda el stock por talla: crea/actualiza las filas enviadas y elimina las tallas quitadas del formulario
+    // Crea o actualiza las filas de producto_tallas enviadas y borra las tallas quitadas del formulario.
     private function sincronizarTallas(Producto $producto, array $filas): void
     {
         $tallasGuardadas = [];

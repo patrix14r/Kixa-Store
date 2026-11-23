@@ -1,6 +1,6 @@
 // ==========================================================================
 // TIENDA KIXA - VALIDACIÓN DEL FORMULARIO DE CONTÁCTANOS (FORMULARIO.JS)
-// [Actualizado: Toast único] Campos inválidos en rojo y mensajes en el toast flotante (sin alert)
+// Campos inválidos en rojo y mensajes en el toast flotante (sin alert)
 // ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const error = reglas[nombre](input.value.trim());
         const campo = input.closest(".campo");
 
-        // [Actualizado: Toast único] El campo solo se marca en rojo; el mensaje va al toast
+        // El campo solo se marca en rojo; el mensaje va al toast
         campo?.classList.toggle("invalido", Boolean(error));
         input.setAttribute("aria-invalid", error ? "true" : "false");
         if (input.title !== error) input.title = error;

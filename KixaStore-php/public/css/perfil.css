@@ -666,3 +666,78 @@ body {
         text-align: left;
     }
 }
+
+/* [BLOQUE]: MÓVIL (360px - 768px) sin desbordes */
+.kx-cuenta,
+.kx-cuenta-menu,
+.kx-cuenta-contenido,
+.kx-tarjeta,
+.kx-fav-fila,
+.kx-form,
+.kx-form label {
+    min-width: 0;
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .kx-cuenta {
+        display: block;
+        width: 100%;
+    }
+
+    .kx-cuenta-menu {
+        padding: 20px 16px;
+    }
+
+    .kx-cuenta-saludo {
+        padding-left: 0;
+        margin-bottom: 16px;
+    }
+
+    /* Pestañas apiladas en 1 columna, ancho completo */
+    .kx-cuenta-menu nav {
+        flex-direction: column;
+        overflow: visible;
+        gap: 6px;
+    }
+
+    .kx-cuenta-menu nav a {
+        width: 100%;
+        border-left: 2px solid transparent;
+        border-bottom: none;
+        border-radius: 10px;
+        background: #ffffff;
+    }
+
+    .kx-cuenta-menu nav a.activo {
+        border-left-color: #111111;
+        border-bottom-color: transparent;
+    }
+
+    .kx-cuenta-contenido {
+        padding: 24px 16px 48px;
+    }
+
+    .kx-tarjeta {
+        padding: 18px 16px;
+    }
+
+    .kx-tarjeta-cabecera {
+        flex-wrap: wrap;
+        margin: -18px -16px 16px;
+        padding: 16px;
+    }
+
+    .kx-datos {
+        grid-template-columns: 1fr;
+    }
+
+    .kx-datos dd,
+    .kx-pedido-meta {
+        overflow-wrap: anywhere;
+    }
+
+    .kx-seguimiento li {
+        font-size: 11px;
+    }
+}

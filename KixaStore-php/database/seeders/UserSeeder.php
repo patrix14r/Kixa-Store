@@ -6,12 +6,12 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
-// [Sem 11 - Migraciones, Seeders y Roles]: Usuarios de prueba enlazados a su rol mediante rol_id
+// Usuarios de prueba enlazados a su rol mediante rol_id
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $rolAdmin   = DB::table('roles')->where('nombre', 'admin')->value('id');
+        $rolAdmin   = DB::table('roles')->where('nombre', 'admin')->value('id'); // value() nos retorna el id del rol
         $rolCliente = DB::table('roles')->where('nombre', 'cliente')->value('id');
 
         DB::table('users')->insert([
@@ -27,9 +27,9 @@ class UserSeeder extends Seeder
                 'name'       => 'Cliente Kixa',
                 'email'      => 'cliente@kixa.com',
                 'password'   => Hash::make('cliente123'),
-                'rol_id'     => $rolCliente,
+                'rol_id'     => $rolCliente, 
                 'created_at' => now(),
-                'updated_at' => now(),
+                'updated_at' => now(), //now 
             ],
         ]);
     }

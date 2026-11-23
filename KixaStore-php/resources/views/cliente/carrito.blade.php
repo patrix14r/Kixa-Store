@@ -7,7 +7,7 @@
 @endpush
 
 @section('contenido')
-    {{-- [Actualizado: Carrito estilo Nike] Ítems a la izquierda, Resumen a la derecha y Favoritos abajo --}}
+    {{-- Ítems a la izquierda, Resumen a la derecha y Favoritos abajo --}}
     <main class="kx-carrito-page">
         <div class="kx-carrito-layout">
             <section class="kx-carrito-items" aria-labelledby="titulo-carrito">
@@ -47,12 +47,12 @@
                 </div>
 
                 @guest
-                    {{-- [Actualizado: Login → Checkout] Tras iniciar sesión vuelve directo al pago --}}
+                    {{-- Tras iniciar sesión vuelve directo al pago --}}
                     <a href="{{ route('login', ['redirect' => 'checkout']) }}" class="kx-btn-comprar">Iniciar sesión para comprar</a>
                 @endguest
                 @auth
                     @if (auth()->user()->esAdmin())
-                        {{-- [Sem 11 - Migraciones, Seeders y Roles]: El admin no puede pagar; se le ofrece el panel --}}
+                        {{-- El admin no puede pagar; se le ofrece el panel --}}
                         <a href="{{ route('admin.productos.index') }}" class="kx-btn-comprar">Gestionar productos en Panel Admin</a>
                         <p class="kx-resumen-nota">La cuenta Administrador es solo de gestión y no puede realizar compras.</p>
                     @else

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+// [Semana 9-10: Controladores, Request y Componentes] Carrito y compra: el carrito vive en el navegador y el servidor valida todo al procesar.
 class CarritoController extends Controller
 {
     private const MENSAJE_ADMIN = 'La cuenta Administrador es solo de gestión y no puede realizar compras de cliente.';
@@ -20,22 +21,19 @@ class CarritoController extends Controller
         return view('cliente.carrito');
     }
 
+    // Exige sesión (guest() recuerda la URL), bloquea al admin y genera un token de un solo uso contra envíos dobles.
     public function checkout()
     {
         if (!Auth::check()) {
-            // [Actualizado: Login → Checkout] guest() guarda url.intended para volver aquí tras iniciar sesión
             return redirect()->guest(route('login', ['redirect' => 'checkout']))->with('error', 'Debes iniciar sesión para proceder al pago.');
         }
 
-        // [Sem 11 - Migraciones, Seeders y Roles]: El rol admin no puede comprar en la tienda pública
         if (Auth::user()->esAdmin()) {
             return redirect()->route('carrito')->with('error', self::MENSAJE_ADMIN);
         }
 
-        // [Actualizado: Checkout] Datos del cliente para pre-llenar Nombre, DNI, Teléfono y Dirección
         $usuario = Auth::user();
 
-        // [Actualizado: Blindaje] Token de un solo uso: si el usuario vuelve con "Atrás" tras comprar, no puede reenviar el pedido
         $tokenCompra = (string) Str::uuid();
         session(['checkout_token' => $tokenCompra]);
 
@@ -46,6 +44,7 @@ class CarritoController extends Controller
             ->header('Expires', '0');
     }
 
+    // Registra el pedido y descuenta stock con DB::transaction; el precio se toma de la BD y lockForUpdate() evita vender el mismo stock dos veces.
     public function procesar(Request $request)
     {
         if (!Auth::check()) {
@@ -59,7 +58,6 @@ class CarritoController extends Controller
             return redirect()->route('login')->with('error', 'Inicia sesión para finalizar tu compra.');
         }
 
-        // [Sem 11 - Migraciones, Seeders y Roles]: Bloqueo de compra para el Administrador (también vía AJAX)
         if (Auth::user()->esAdmin()) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['exito' => false, 'mensaje' => self::MENSAJE_ADMIN], 403);
@@ -67,7 +65,6 @@ class CarritoController extends Controller
             return redirect()->route('carrito')->with('error', self::MENSAJE_ADMIN);
         }
 
-        // [Actualizado: Blindaje] Cantidades enteras de 1 a 10, talla obligatoria y al menos 1 producto
         $request->validate([
             'metodo_pago'      => ['required', 'string', 'max:50'],
             'direccion_envio'  => ['nullable', 'string', 'max:255'],
@@ -85,19 +82,16 @@ class CarritoController extends Controller
             'token_compra.required'  => 'La sesión de pago expiró. Vuelve a abrir el checkout.',
         ]);
 
-        // [Actualizado: Blindaje] El token se consume ANTES de crear el pedido: un segundo envío (doble clic o "Atrás") se rechaza
         if (! hash_equals((string) session()->pull('checkout_token'), (string) $request->input('token_compra'))) {
             return $this->rechazar($request, 'Esta compra ya fue procesada o la sesión de pago expiró. Revisa tu historial de pedidos.', 409);
         }
 
-        // [Actualizado: Checkout] Se recuerdan DNI y teléfono para pre-llenar la próxima compra
         Auth::user()->fill(array_filter($request->only(['dni', 'telefono'])))->save();
 
         $items = $request->input('items');
 
         try {
             $pedido = DB::transaction(function () use ($request, $items) {
-                // Calcular totales
                 $subtotal = 0;
                 $lineasProcesadas = [];
 
@@ -105,7 +99,6 @@ class CarritoController extends Controller
                     $cantidad = (int) $item['cantidad'];
                     $talla    = (float) $item['talla'];
 
-                    // [Sem 12 - Eloquent ORM]: El precio sale SIEMPRE de la BD (nunca del navegador)
                     $prod = Producto::activos()
                         ->where(fn ($q) => $q->where('sku', $item['id'])->orWhere('id', is_numeric($item['id']) ? (int) $item['id'] : 0))
                         ->first();
@@ -113,7 +106,6 @@ class CarritoController extends Controller
                         throw new \DomainException('Uno de los productos ya no está disponible.');
                     }
 
-                    // Bloqueo de fila para que dos compras simultáneas no vendan el mismo stock
                     $tallaRecord = ProductoTalla::where('producto_id', $prod->id)->where('talla', $talla)->lockForUpdate()->first();
                     if (! $tallaRecord || $tallaRecord->stock < $cantidad) {
                         throw new \DomainException("Stock insuficiente de {$prod->nombre} en talla " . rtrim(rtrim(number_format($talla, 1), '0'), '.') . '.');
@@ -137,7 +129,6 @@ class CarritoController extends Controller
                     throw new \DomainException('No se puede generar un pedido en cero.');
                 }
 
-                // [Actualizado: IGV] Los precios ya incluyen IGV: IGV = total * 0.18 / 1.18
                 $total = round($subtotal, 2);
                 $igv = round($total * 0.18 / 1.18, 2);
                 $subtotal = round($total - $igv, 2);
@@ -165,14 +156,12 @@ class CarritoController extends Controller
                         'subtotal'        => $linea['subtotal'],
                     ]);
 
-                    // Descontar inventario (ya validado y bloqueado arriba)
                     $linea['talla_record']->decrement('stock', $linea['cantidad']);
                 }
 
                 return $pedido;
             });
 
-            // [Actualizado: Carrito limpio] El token ya se consumió; se marca en sesión para que la vista vacíe el carrito local
             session()->forget('checkout_token');
             session()->flash('carrito_vaciado', true);
             session()->flash('exito', '¡Tu pedido ' . $pedido->codigo_orden . ' ha sido confirmado y registrado con éxito!');
@@ -190,7 +179,6 @@ class CarritoController extends Controller
             return redirect()->route('perfil', 'pedidos')->with('exito', '¡Tu pedido #' . $pedido->codigo_orden . ' se procesó exitosamente!');
 
         } catch (\DomainException $e) {
-            // Stock o producto inválido: se devuelve el token para que pueda corregir el carrito y reintentar
             session(['checkout_token' => $request->input('token_compra')]);
 
             return $this->rechazar($request, $e->getMessage(), 422);

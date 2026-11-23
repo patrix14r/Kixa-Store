@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+// [Semana 12-13: Eloquent ORM, Relaciones y los 7 métodos de Route::resource] Modelo de pedidos: guarda totales con IGV y su estado de envío.
 #[Fillable([
     'user_id',
     'codigo_orden',
@@ -33,6 +34,7 @@ class Pedido extends Model
         'metodo_pago',
     ];
 
+    // casts() mantiene subtotal, igv y total con 2 decimales.
     protected function casts(): array
     {
         return [
@@ -42,10 +44,9 @@ class Pedido extends Model
         ];
     }
 
-    // [Actualizado: Seguimiento] Pasos de la barra de progreso del historial de pedidos
     public const PASOS = ['Confirmado', 'En preparación', 'En camino', 'Entregado'];
 
-    // [Sem 12 - Eloquent ORM]: Accessor $pedido->paso_seguimiento (1 a 4; 0 si fue cancelado)
+    // Accessor: $pedido->paso_seguimiento traduce el estado (Pendiente, Pagado...) a un número de 1 a 4 para la barra de progreso.
     protected function pasoSeguimiento(): Attribute
     {
         return Attribute::get(fn () => match ($this->estado) {
@@ -57,11 +58,13 @@ class Pedido extends Model
         });
     }
 
+    // Relación BelongsTo: el pedido pertenece al cliente que compró (FK user_id).
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    // Relación HasMany: un pedido tiene muchas líneas en la tabla order_items.
     public function items(): HasMany
     {
         return $this->hasMany(DetallePedido::class, 'pedido_id');

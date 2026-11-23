@@ -5,15 +5,15 @@
 @endpush
 
 @section('contenido')
-    {{-- [Sem 08 - Rutas y Vistas Blade]: Registro con labels fijos arriba de cada input (no se montan sobre el placeholder) --}}
+    {{-- Registro con labels fijos arriba de cada input (no se montan sobre el placeholder) --}}
     <div class="auth-page">
-        {{-- [Actualizado: Registro split-screen] Misma tarjeta editorial de 2 columnas que el Login --}}
+        {{-- Misma tarjeta editorial de 2 columnas que el Login --}}
         <div class="auth-card auth-card--registro">
-            @include('auth._showcase')
+            @include('auth._portada')
 
             {{-- novalidate: validación propia con mensajes 100% en español (public/js/auth.js) --}}
-            <form id="registerForm" class="auth-form" method="POST" action="{{ route('registro.post') }}" novalidate data-validar-auth>
-                {{-- [Actualizado: Login → Checkout] Conserva ?redirect=checkout al registrarse --}}
+            <form id="registerForm" class="auth-form" method="POST" action="{{ route('register') }}" novalidate data-validar-auth>
+                {{-- Conserva ?redirect=checkout al registrarse --}}
                 @if (request('redirect'))
                     <input type="hidden" name="redirect" value="{{ request('redirect') }}">
                 @endif
@@ -22,7 +22,7 @@
                 <h1>Crea tu cuenta en <span>Kixa</span></h1>
                 <p class="auth-subtitulo">Completa tus datos para registrarte</p>
 
-                {{-- [Actualizado: Toast único] Los errores de validación se muestran en el toast flotante del layout --}}
+                {{-- Los errores de validación se muestran en el toast flotante del layout --}}
 
                 <div class="auth-campo">
                     <label for="registerName">Nombre completo</label>

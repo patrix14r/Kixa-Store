@@ -54,7 +54,7 @@
     </section>
 
 
-    {{-- [Actualizado: Lo Destacado] Carrusel horizontal estilo Nike con productos destacado = true (HomeController) --}}
+    {{-- Carrusel horizontal estilo Nike con productos destacado = true (HomeController) --}}
     <section class="kx-destacado" id="lo-destacado">
         <div class="kx-destacado-cabecera">
             <h2>Lo Destacado</h2>
@@ -104,7 +104,7 @@
 @endsection
 
 @push('scripts')
-    {{-- [Actualizado: Lo Destacado] Flechas que desplazan la pista una "página" de tarjetas --}}
+    {{-- Flechas que desplazan la pista una "página" de tarjetas --}}
     <script>
         (() => {
             const pista = document.getElementById('destacado-pista');

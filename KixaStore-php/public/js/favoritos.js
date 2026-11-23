@@ -1,6 +1,6 @@
 // ==========================================================================
 // TIENDA KIXA - FAVORITOS EN FILAS ESTILO PUMA (FAVORITOS.JS)
-// [Actualizado: Favoritos] Foto | nombre y categoría | precio + SELECCIONAR TALLA + ELIMINAR
+// Foto | Nombre y categoría | precio + SELECCIONAR TALLA + ELIMINAR
 // Se usa en /favoritos y en la pestaña /perfil/favoritos (contenedor #favoritos-filas)
 // ==========================================================================
 

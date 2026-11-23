@@ -3,7 +3,7 @@
 // Renderizado dinámico de productos, cálculo de totales y pasarela modal
 // ==========================================================================
 
-// [Actualizado: Blindaje] Se descartan ítems corruptos y cantidades <= 0, decimales o exageradas
+// Se descartan ítems corruptos y cantidades <= 0, decimales o exageradas
 const cantidadValida = (n) => Math.min(10, Math.max(1, Math.floor(Number(n)) || 1));
 let carrito = (JSON.parse(localStorage.getItem("carrito")) || [])
     .filter((p) => p && (p.sku || p.id) && Number(p.precio) > 0)
@@ -19,9 +19,9 @@ const alerta = document.getElementById("alerta");
 const mensajeAlerta = document.getElementById("mensaje-alerta");
 
 // --------------------------------------------------------------------------
-// [Actualizado: Carrito estilo Nike] Render de ítems, totales con IGV y favoritos
+// Render de ítems, totales con IGV y favoritos
 // --------------------------------------------------------------------------
-// [Actualizado: Toast único] Sin alert() nativos: todo aviso va al toast de la esquina
+// Sin alert() nativos: todo aviso va al toast de la esquina
 const avisar = (mensaje, tipo = "error") => (typeof kxToast === "function" ? kxToast(mensaje, tipo) : console.warn(mensaje));
 const soles = (n) => `S/ ${Number(n || 0).toFixed(2)}`;
 const escapar = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -316,7 +316,7 @@ function confirmar(metodo) {
         }
     }
 
-    // [Actualizado: Checkout] La dirección de entrega es obligatoria
+    // La dirección de entrega es obligatoria
     const direccionInput = document.getElementById("checkoutDireccion");
     const direccion = direccionInput ? direccionInput.value.trim() : "";
     if (direccionInput && direccion.length < 5) {
@@ -351,7 +351,7 @@ function confirmar(metodo) {
             return;
         }
         const data = await response.json();
-        // [Actualizado: Blindaje] Compra ya procesada (409): se limpia el carrito y se va al historial
+        // Compra ya procesada (409): se limpia el carrito y se va al historial
         if (response.status === 409) {
             vaciarCarritoCompleto();
             window.location.href = data.redirect_url || "/perfil/pedidos";
@@ -380,7 +380,7 @@ function confirmar(metodo) {
     });
 }
 
-// [Actualizado: Carrito limpio] Tras comprar se borran el carrito activo y sus copias por usuario (kixa:<usuario>:carrito)
+// Tras comprar se borran el carrito activo y sus copias por usuario (kixa:<usuario>:carrito)
 // así cada compra nueva crea un pedido independiente sin arrastrar zapatillas de compras anteriores
 function vaciarCarritoCompleto() {
     carrito = [];
@@ -406,7 +406,7 @@ function cerrarAlerta() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // [Actualizado: Blindaje] Checkout sin productos (p. ej. tras comprar y pulsar "Atrás") vuelve al carrito
+    // Checkout sin productos (p. ej. tras comprar y pulsar "Atrás") vuelve al carrito
     if (document.getElementById("tokenCompra") && carrito.length === 0) {
         window.location.replace("/carrito");
         return;

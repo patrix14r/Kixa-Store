@@ -3,7 +3,7 @@
 @section('titulo', 'Kixa Admin - Historial de ' . $cliente->name)
 
 @section('contenido')
-{{-- [Sem 08 - Rutas y Vistas Blade]: Historial de pedidos de un cliente con el detalle de cada compra --}}
+{{-- Historial de pedidos de un cliente con el detalle de cada compra --}}
 <a href="{{ route('admin.clientes.index') }}" class="text-sm kx-muted hover:text-white"><i class="fa-solid fa-arrow-left"></i> Clientes</a>
 <div class="mt-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>

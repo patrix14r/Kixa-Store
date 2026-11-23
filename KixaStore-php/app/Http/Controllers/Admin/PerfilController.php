@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 
-// [Sem 09 - Controladores y MVC]: Perfil propio del administrador dentro del panel oscuro (nombre, foto y contraseña)
+// [Semana 9-10: Controladores, Request y Componentes] Perfil propio del administrador dentro del panel.
 class PerfilController extends Controller
 {
     public function edit()

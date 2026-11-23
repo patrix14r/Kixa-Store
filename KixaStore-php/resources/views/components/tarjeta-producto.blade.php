@@ -1,5 +1,5 @@
-{{-- [Actualizado: Tarjetas estilo Nike] Recibe el modelo Producto: foto cuadrada uniforme + texto limpio alineado a la izquierda --}}
-{{-- [Sem 08 - Rutas y Vistas Blade]: Componente <x-tarjeta-producto :producto="$p" /> reutilizado en home, catálogo y detalle --}}
+{{-- Recibe el modelo Producto: foto cuadrada uniforme + texto limpio alineado a la izquierda --}}
+{{-- Componente <x-tarjeta-producto :producto="$p" /> reutilizado en home, catálogo y detalle --}}
 @props(['producto'])
 
 <article class="kx-card" data-marca="{{ strtolower($producto->marca) }}">

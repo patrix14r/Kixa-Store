@@ -577,3 +577,64 @@ body {
         gap: 4px;
     }
 }
+
+/* [BLOQUE]: MÓVIL (360px - 768px) una sola columna y sin scroll horizontal */
+.kx-carrito-page,
+.kx-carrito-layout > *,
+.kx-item > *,
+.kx-resumen,
+.opcion,
+.pago-form {
+    min-width: 0;
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .kx-carrito-page {
+        width: 100%;
+        padding: 28px 16px 48px;
+    }
+
+    .kx-carrito-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    .kx-carrito-layout > *,
+    .kx-resumen {
+        width: 100%;
+    }
+
+    .kx-resumen {
+        position: static;
+    }
+
+    .kx-item {
+        grid-template-columns: 96px minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .kx-campos,
+    .fila {
+        grid-template-columns: 1fr;
+    }
+
+    .opcion {
+        grid-template-columns: 36px minmax(0, 1fr) auto;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .qr {
+        max-width: 100%;
+    }
+
+    /* Botones de ancho completo y fáciles de tocar */
+    .kx-resumen .kx-btn,
+    .kx-carrito-page .kx-btn {
+        width: 100%;
+        min-height: 48px;
+        justify-content: center;
+    }
+}

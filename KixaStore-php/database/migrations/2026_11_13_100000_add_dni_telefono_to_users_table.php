@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-// [Sem 11 - Migraciones, Seeders y Roles]: DNI y teléfono del cliente para pre-llenar el checkout
+// DNI y teléfono del cliente para pre-llenar el checkout
 return new class extends Migration
 {
     public function up(): void

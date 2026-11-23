@@ -1,9 +1,10 @@
 @extends('layouts.admin')
 
+{{-- [Semana 8: Rutas y Herencia Blade] @extends hereda el layout del admin y @section rellena el título y el contenido de esta pantalla. --}}
 @section('titulo', 'Kixa Admin - Productos')
 
 @section('contenido')
-{{-- [Sem 08 - Rutas y Vistas Blade]: Listado de productos; FK por nombre (Regla 4.5) y sin columna ID (Regla 4.4) --}}
+{{-- Listado de productos; FK por nombre y sin columna ID --}}
 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
         <h1 class="text-2xl font-bold">Productos</h1>
@@ -12,7 +13,8 @@
     <a href="{{ route('admin.productos.create') }}" class="kx-btn-primary"><i class="fa-solid fa-plus"></i>Nuevo producto</a>
 </div>
 
-{{-- [Actualizado: Filtros admin] Búsqueda, categoría, estado y marca (GET para que la URL se pueda compartir) --}}
+{{-- [Semana 9-10: Controladores, Request y Componentes] Cómo se conectan los buscadores: el <form method="GET"> manda buscar, categoria, estado y marca por la URL; ProductoController::index los lee con $request->query() y los aplica con when(). --}}
+{{-- Búsqueda, categoría, estado y marca (GET para que la URL se pueda compartir) --}}
 <form action="{{ route('admin.productos.index') }}" method="GET" class="kx-card mt-6 grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-5">
     <input type="search" name="buscar" value="{{ $buscar }}" placeholder="Nombre, marca, SKU o categoría" class="kx-input sm:col-span-2">
     <select name="categoria" class="kx-input">
@@ -57,6 +59,7 @@
             </tr>
         </thead>
         <tbody>
+            {{-- [Semana 12-13: Eloquent ORM, Relaciones y los 7 métodos de Route::resource] $productos viene paginado (paginate(10)->withQueryString() conserva los filtros al cambiar de página); categoría y proveedor se muestran por nombre gracias a with(). --}}
             @forelse ($productos as $producto)
                 <tr class="kx-row">
                     <td class="kx-td">
@@ -75,7 +78,7 @@
                         <span class="whitespace-nowrap {{ $producto->stock_total == 0 ? 'kx-badge-agotado' : ($producto->stock_total <= 10 ? 'kx-badge-bajo' : 'kx-badge-ok') }}">{{ (int) $producto->stock_total }} pares</span>
                     </td>
                     <td class="kx-td">
-                        {{-- [Actualizado: Tabla compacta] Badges agrupados que bajan de línea en tablet/laptop --}}
+                        {{-- Badges agrupados que bajan de línea en tablet/laptop --}}
                         <div class="flex max-w-[11rem] flex-wrap gap-1">
                             <span class="{{ $producto->activo ? 'kx-badge-ok' : 'kx-badge-agotado' }}">{{ $producto->activo ? 'Activo' : 'Inactivo' }}</span>
                             @if ($producto->destacado)<span class="kx-badge-neutro"><i class="fa-solid fa-star text-indigo-400"></i>Destacado</span>@endif
@@ -84,11 +87,12 @@
                     </td>
                     <td class="kx-td">
                         <div class="flex justify-end gap-1.5">
-                            {{-- [Actualizado: Vista rápida] Abre un modal con la ficha resumida del producto --}}
+                            {{-- Abre un modal con la ficha resumida del producto --}}
                             <button type="button" class="kx-btn-ghost px-3 py-1.5" title="Ver" data-vista-rapida="{{ json_encode(['imagen' => str_starts_with((string) $producto->imagen, 'http') ? $producto->imagen : asset($producto->imagen), 'nombre' => $producto->nombre, 'marca' => $producto->marca, 'sku' => $producto->sku, 'categoria' => $producto->categoria->nombre, 'proveedor' => $producto->proveedor?->razon_social ?? 'Sin proveedor', 'precio' => 'S/ ' . number_format($producto->precio, 2), 'stock' => (int) $producto->stock_total . ' pares', 'descripcion' => $producto->descripcion ?: 'Sin descripción.', 'tienda' => route('producto.detalle', $producto->sku)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}"><i class="fa-regular fa-eye"></i></button>
                             <a href="{{ route('admin.productos.edit', $producto) }}" class="kx-btn-ghost px-3 py-1.5" title="Editar"><i class="fa-solid fa-pen"></i><span class="hidden 2xl:inline">Editar</span></a>
                             <form action="{{ route('admin.productos.estado', $producto) }}" method="POST">
                                 @csrf
+                                {{-- @csrf + @method('PATCH') para activar o desactivar el producto sin borrarlo. --}}
                                 @method('PATCH')
                                 <button type="submit" class="kx-btn-ghost px-3 py-1.5" title="{{ $producto->activo ? 'Desactivar' : 'Activar' }}">
                                     <i class="fa-solid {{ $producto->activo ? 'fa-toggle-on text-ok' : 'fa-toggle-off' }}"></i>

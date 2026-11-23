@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-// [Sem 11 - Migraciones, Seeders y Roles]: Columna JSON nullable para las imágenes secundarias del producto
+// para las imágenes secundarias del producto, siuuuu!!!!
 return new class extends Migration
 {
     public function up(): void

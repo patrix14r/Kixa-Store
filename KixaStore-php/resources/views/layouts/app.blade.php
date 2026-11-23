@@ -4,20 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- [Semana 8: Rutas y Herencia Blade] Layout maestro del Modo Cliente: las vistas de resources/views/cliente lo heredan con @extends('layouts.app') y rellenan @yield('titulo') y @yield('contenido'). --}}
     <title>@yield('titulo', 'KixaStore')</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/ui/favicon-round.png') }}"> 
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    {{-- [Actualizado: Tipografía] Plus Jakarta Sans (400-700) estilo Google Stitch en todo el Modo Cliente --}}
+    {{-- Plus Jakarta Sans (400-700) estilo Google Stitch en todo el Modo Cliente --}}
     <link rel="stylesheet" href="{{ asset('css/diseño.css') }}">
 
 
+    {{-- @stack('styles') recibe el CSS de cada página con @push('styles') (hombre.css, producto.css...) sin cargar todo en todas partes. --}}
     @stack('styles')
 
-    {{-- [Actualizado: Memoria por usuario] Carrito y favoritos se guardan por cuenta: al cambiar de usuario se intercambian --}}
+    {{-- Carrito y favoritos se guardan por cuenta: al cambiar de usuario se intercambian --}}
     <script>
       (() => {
         try {
@@ -34,10 +37,10 @@
               // Al iniciar sesión, lo que agregó como invitado se suma a su cuenta
               localStorage.setItem(k, JSON.stringify(propio.length ? propio : deInvitado));
             });
-            // [Actualizado: Carrito limpio] Lo del invitado ya pasó a la cuenta: se vacía su copia para que no reaparezca al salir
+            // Lo del invitado ya pasó a la cuenta: se vacía su copia para que no reaparezca al salir
             if (previo === 'invitado') localStorage.setItem('kixa:invitado:carrito', '[]');
           }
-          // [Actualizado: Carrito limpio] Tras una compra confirmada el servidor marca carrito_vaciado y se borra todo rastro
+          // Tras una compra confirmada el servidor marca carrito_vaciado y se borra todo rastro
           if (@json((bool) session('carrito_vaciado'))) {
             Object.keys(localStorage).filter(c => c === 'carrito' || /^kixa:.+:carrito$/.test(c)).forEach(c => localStorage.setItem(c, '[]'));
           }
@@ -56,13 +59,12 @@
       </filter>
     </svg>
 
-    {{-- [Sem 08 - Rutas y Vistas Blade]: Barra superior con rutas nombradas (Acerca de, Contáctanos y cuenta) --}}
+    {{-- Barra superior con rutas nombradas (Acerca de y cuenta) --}}
     <div class="top-bar">
       <div class="top-links">
         <a href="{{ route('nosotros') }}">Acerca de</a>
         <span aria-hidden="true">|</span>
-        <a href="{{ route('contacto') }}">Contáctanos</a>
-        <span aria-hidden="true">|</span>
+        {{-- [Semana 8: Rutas y Herencia Blade] @guest y @auth muestran el menú según haya sesión iniciada o no. --}}
         @guest
           <a href="{{ route('login') }}">Iniciar sesión</a>
         @endguest
@@ -72,20 +74,20 @@
       </div>
     </div>
 
-    {{-- [Sem 08 - Rutas y Vistas Blade]: routeIs('home') activa el header Liquid Glass; en el resto es carbón sólido --}}
+    {{-- routeIs('home') activa el header Liquid Glass; en el resto es carbón sólido --}}
     <header class="navbar {{ request()->routeIs('home') ? 'navbar--glass' : 'navbar--solido' }}" id="navbar-principal">
       <button type="button" class="btn-menu-movil" id="btn-menu-movil" aria-label="Abrir menú" aria-controls="menu-movil" aria-expanded="false">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
 
-      {{-- [Actualizado: Header] Solo el isotipo a la izquierda (como el Swoosh de Nike) --}}
+      {{-- Solo el isotipo a la izquierda (como el Swoosh de Nike) --}}
       <div class="logo">
         <a href="{{ route('home') }}" aria-label="KixaStore - Inicio">
           <img src="{{ asset('images/ui/web.jpg') }}" alt="KixaStore">
         </a>
       </div>
 
-      {{-- [Actualizado: Header] Menú centrado en la mitad exacta del header --}}
+      {{-- Menú centrado en la mitad exacta del header --}}
       <nav class="kixa-nav" aria-label="Categorías">
         <ul class="kixa-menu">
           <li><a href="{{ route('home') }}#lo-destacado" class="kixa-link">Destacados</a></li>
@@ -97,7 +99,7 @@
       </nav>
 
       <div class="navbar-acciones">
-      {{-- [Sem 08 - Rutas y Vistas Blade]: Buscador GET hacia CatalogoController@index (?buscar=modelo o marca) --}}
+      {{-- Buscador GET hacia CatalogoController@index (?buscar=modelo o marca) --}}
       <form action="{{ route('catalogo') }}" method="GET" class="search-bar" role="search">
         <input type="search" name="buscar" placeholder="Buscar" value="{{ request('buscar') }}" aria-label="Buscar zapatillas">
         <button type="submit" aria-label="Buscar">
@@ -144,21 +146,21 @@
       <p class="menu-movil-titulo">Kixa</p>
       <a href="{{ route('nosotros') }}"><span><i class="fa-solid fa-store"></i> Acerca de</span></a>
       <a href="{{ route('nosotros') }}#centro-ayuda"><span><i class="fa-regular fa-circle-question"></i> Centro de ayuda</span></a>
-      <a href="{{ route('contacto') }}"><span><i class="fa-regular fa-envelope"></i> Contáctanos</span></a>
       <a href="{{ Auth::check() ? route('perfil') : route('login') }}"><span><i class="fa-regular fa-user"></i> {{ Auth::check() ? 'Mi Cuenta' : 'Iniciar sesión' }}</span></a>
     </nav>
 
-    {{-- [Actualizado: Toast único] Flash y errores de validación se muestran en el toast de la esquina superior derecha --}}
+    {{-- Toast único: Flash y errores de validación en el toast de la esquina superior derecha --}}
     <div id="kx-toasts" class="kx-toasts" aria-live="polite"></div>
     <script>
       window.KX_FLASH = @json(['exito' => session('exito'), 'error' => session('error'), 'errores' => $errors->all()]);
     </script>
 
     <main>
+        {{-- Aquí se inserta el @section('contenido') de la página hija. --}}
         @yield('contenido')
     </main>
 
-    {{-- [Sem 08 - Rutas y Vistas Blade]: Footer con rutas nombradas y anclas (#mapa-tienda, #centro-ayuda) --}}
+    {{-- Footer con rutas nombradas y anclas (#ubicanos, #centro-ayuda) --}}
     <footer class="footer">
       <div class="footer-container">
         <div class="footer-column footer-marca">
@@ -173,7 +175,7 @@
           <h3>Buscar tienda</h3>
           <ul>
             <li>
-              <a href="{{ route('contacto') }}#mapa-tienda" class="footer-link-icono">
+              <a href="{{ route('nosotros') }}#ubicanos" class="footer-link-icono">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
                 Tiendas cercanas
               </a>
@@ -183,14 +185,13 @@
 
         <div class="footer-column">
           <h3>Obtener ayuda</h3>
-          {{-- [Actualizado: Ayuda] Todos llevan a las Preguntas Frecuentes de "Acerca de" --}}
+          {{-- Todos llevan a las Preguntas Frecuentes de "Acerca de" --}}
           <ul>
             <li><a href="{{ auth()->check() ? route('perfil', 'pedidos') : route('nosotros') . '#preguntas-frecuentes' }}">Estado del pedido</a></li>
             <li><a href="{{ route('nosotros') }}#preguntas-frecuentes">Envío y entrega</a></li>
             <li><a href="{{ route('nosotros') }}#preguntas-frecuentes">Cambios y devoluciones</a></li>
             <li><a href="{{ route('nosotros') }}#preguntas-frecuentes">Opciones de pago</a></li>
             <li><a href="{{ route('nosotros') }}#preguntas-frecuentes">Preguntas frecuentes</a></li>
-            <li><a href="{{ route('contacto') }}">Contáctanos</a></li>
           </ul>
         </div>
 
@@ -215,11 +216,7 @@
             </a>
           </div>
 
-          {{-- [Sem 08 - Rutas y Vistas Blade]: Libro de Reclamaciones -> formulario de Contáctanos con el motivo "reclamo" preseleccionado --}}
-          {{-- [Actualizado: Libro de Reclamaciones] Imagen oficial descargada en public/images/ui --}}
-          <a href="{{ route('contacto', ['tipo' => 'reclamo']) }}#formulario-contacto" class="libro-reclamaciones-img" aria-label="Libro de Reclamaciones">
-            <img src="{{ asset('images/ui/libro-reclamaciones.png') }}" alt="Libro de Reclamaciones" loading="lazy">
-          </a>
+          
         </div>
       </div>
 
@@ -317,6 +314,7 @@
       });
       window.addEventListener('storage', actualizarBadgesHeader);
     </script>
+    {{-- @stack('scripts') recibe el JavaScript de cada página con @push('scripts'). --}}
     @stack('scripts')
 </body>
 </html>

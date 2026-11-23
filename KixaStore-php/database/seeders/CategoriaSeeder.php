@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-// [Sem 11 - Migraciones, Seeders y Roles]: Seeder de las 4 categorías de la tienda
 class CategoriaSeeder extends Seeder
 {
     public function run(): void

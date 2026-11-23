@@ -188,7 +188,7 @@ class AuthAndCatalogTest extends TestCase
     public function test_validacion_contrasenia_minimo_8_caracteres_en_registro_y_perfil(): void
     {
         // 1. Registro con contraseña menor a 8 caracteres debe fallar
-        $badRegistro = $this->post('/registro', [
+        $badRegistro = $this->post('/register', [
             'name'                  => 'Usuario Prueba',
             'email'                 => 'prueba@kixa.com',
             'password'              => '1234567', // 7 caracteres
@@ -197,7 +197,7 @@ class AuthAndCatalogTest extends TestCase
         $badRegistro->assertSessionHasErrors(['password']);
 
         // 2. Registro con 8 o más caracteres debe ser exitoso
-        $goodRegistro = $this->post('/registro', [
+        $goodRegistro = $this->post('/register', [
             'name'                  => 'Usuario Valido',
             'email'                 => 'valido@kixa.com',
             'password'              => 'password123',
@@ -341,7 +341,7 @@ class AuthAndCatalogTest extends TestCase
             ->assertOk()
             ->assertSee('name="redirect" value="checkout"', false);
 
-        $this->post(route('login.post'), [
+        $this->post(route('login'), [
             'email' => 'cliente@kixa.com',
             'password' => 'cliente123',
             'redirect' => 'checkout',
@@ -351,7 +351,7 @@ class AuthAndCatalogTest extends TestCase
     // Un valor de redirect desconocido no se usa (evita redirecciones abiertas)
     public function test_login_ignora_redirect_desconocido(): void
     {
-        $this->post(route('login.post'), [
+        $this->post(route('login'), [
             'email' => 'cliente@kixa.com',
             'password' => 'cliente123',
             'redirect' => 'https://sitio-malicioso.test',
@@ -415,6 +415,19 @@ class AuthAndCatalogTest extends TestCase
         $this->assertSame('Enviado', $pedido->fresh()->estado);
 
         $this->actingAs($admin)->get(route('admin.perfil'))->assertOk()->assertSee('Mi Perfil');
+
+        $avatarFake = \Illuminate\Http\UploadedFile::fake()->image('admin-avatar.jpg');
+        $this->actingAs($admin)->put(route('admin.perfil.update'), [
+            'name' => 'Admin Modificado',
+            'avatar' => $avatarFake,
+        ])->assertSessionHas('exito');
+
+        $admin->refresh();
+        $this->assertSame('Admin Modificado', $admin->name);
+        $this->assertNotNull($admin->avatar);
+        $this->assertFileExists(public_path($admin->avatar));
+        @unlink(public_path($admin->avatar));
+
         $this->actingAs($admin)->get(route('admin.clientes.show', $cliente))->assertOk()->assertSee('KX-TEST-01');
     }
 }

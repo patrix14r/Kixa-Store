@@ -13,8 +13,7 @@
     --color-agotado: #ef4444;
 }
 
-/* [FASE 3.5]: Panel admin con un único tema oscuro neutro (fondo #09090b, tarjetas #121215) y acento índigo #6366f1.
-   El rojo (#ef4444) queda reservado para "Agotado", alertas críticas y acciones de borrar. */
+        
 @layer components {
     .kx-card {
         @apply rounded-2xl border border-zinc-800/80 bg-[#121215] text-zinc-100;
@@ -24,6 +23,20 @@
     }
     .kx-input {
         @apply w-full rounded-xl border border-zinc-800 bg-[#09090b] px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-indigo-500 focus:shadow-[0_0_10px_rgba(99,102,241,0.3)];
+    }
+    select.kx-input {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23a1a1aa'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+        background-position: right 0.75rem center;
+        background-repeat: no-repeat;
+        background-size: 1rem 1rem;
+        padding-right: 2.25rem;
+        cursor: pointer;
+    }
+    select.kx-input option {
+        background-color: #121215;
+        color: #f4f4f5;
     }
     .kx-label {
         @apply mb-1.5 block text-sm font-medium text-zinc-300;

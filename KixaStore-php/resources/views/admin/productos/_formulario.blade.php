@@ -1,4 +1,5 @@
-{{-- [Sem 08 - Rutas y Vistas Blade]: Formulario compartido; FK con <select> por nombre (Regla 4.5), nunca IDs visibles --}}
+{{-- [Semana 8: Rutas y Herencia Blade] El guion bajo en _formulario indica que es un parcial: create y edit lo incluyen con @include. old('campo', $producto->campo) conserva lo escrito si falla la validación. --}}
+{{-- Formulario compartido; FK con <select> por nombre, nunca IDs visibles --}}
 <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
     <div class="kx-card space-y-5 p-6 xl:col-span-2">
         <h2 class="font-bold">Datos del producto</h2>
@@ -7,6 +8,7 @@
                 <label for="categoria_id" class="kx-label">Categoría *</label>
                 <select id="categoria_id" name="categoria_id" class="kx-input" required>
                     <option value="">Selecciona una categoría</option>
+                    {{-- [Semana 9-10: Controladores, Request y Componentes] $categorias y $proveedores llegan del método privado opciones() del controlador, que consulta ambos modelos ordenados por nombre; así el <select> muestra nombres y el value guarda el id de la FK. --}}
                     @foreach ($categorias as $cat)
                         <option value="{{ $cat->id }}" @selected(old('categoria_id', $producto->categoria_id) == $cat->id)>{{ $cat->nombre }}{{ $cat->activo ? '' : ' (inactiva)' }}</option>
                     @endforeach
@@ -17,6 +19,7 @@
                 <label for="proveedor_id" class="kx-label">Proveedor</label>
                 <select id="proveedor_id" name="proveedor_id" class="kx-input">
                     <option value="">Sin proveedor</option>
+                    {{-- Mismo caso: se lista $prov->razon_social (solo proveedores activos), nunca el ID. --}}
                     @foreach ($proveedores as $prov)
                         <option value="{{ $prov->id }}" @selected(old('proveedor_id', $producto->proveedor_id) == $prov->id)>{{ $prov->razon_social }}</option>
                     @endforeach
@@ -39,7 +42,7 @@
                 @error('nombre') <p class="kx-error">{{ $message }}</p> @enderror
             </div>
             <div>
-                {{-- [Actualizado: SKU automático] Se arma con la Marca y el Modelo; si llega vacío lo genera el controlador --}}
+                {{-- Se arma con la Marca y el Modelo; si llega vacío lo genera el controlador --}}
                 <label for="sku" class="kx-label">SKU <span class="font-normal kx-muted">· automático</span></label>
                 <div class="flex gap-2">
                     <input type="text" id="sku" name="sku" value="{{ old('sku', $producto->sku) }}" class="kx-input uppercase" maxlength="30" placeholder="ADI-CAM-00S" data-sku-auto>
@@ -89,7 +92,7 @@
                 </div>
                 @error('imagen_archivo') <p class="kx-error">{{ $message }}</p> @enderror
             </div>
-            {{-- [Actualizado: Galería] Imágenes secundarias opcionales: salen como miniaturas en la ficha del producto --}}
+            {{-- Imágenes secundarias opcionales: salen como miniaturas en la ficha del producto --}}
             <div>
                 <p class="kx-label">Imágenes secundarias (opcional, máx. 6)</p>
                 <input type="file" id="galeria-input" name="galeria_archivos[]" accept="image/*" multiple class="hidden">
@@ -126,6 +129,7 @@
             </div>
             <div class="mt-3 grid grid-cols-[1fr_1fr_auto] gap-2 text-xs kx-muted"><span>Talla</span><span>Stock</span><span class="w-8"></span></div>
             <div id="tallas-filas" class="mt-1 space-y-2">
+                {{-- Una fila por talla con su stock; los nombres tallas[i][talla] y tallas[i][stock] llegan como arreglo y sincronizarTallas() los guarda en producto_tallas. --}}
                 @foreach (old('tallas', $tallas) as $i => $fila)
                     <div class="grid grid-cols-[1fr_1fr_auto] gap-2" data-fila-talla>
                         <input type="number" step="0.5" name="tallas[{{ $i }}][talla]" value="{{ $fila['talla'] ?? '' }}" class="kx-input py-2">

@@ -1,23 +1,22 @@
-@extends('layouts.admin')
+ @extends('layouts.admin')
 
 @section('titulo', 'Kixa Admin - Mi Perfil')
 
 @section('contenido')
-{{-- [Sem 08 - Rutas y Vistas Blade]: Perfil del administrador dentro del layout oscuro del panel --}}
+{{-- Perfil del administrador dentro del layout oscuro del panel --}}
 <h1 class="text-2xl font-bold">Mi Perfil</h1>
 <p class="text-sm kx-muted">Datos de tu cuenta de administrador.</p>
 
 <div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
-    <form action="{{ route('admin.perfil.update') }}" method="POST" enctype="multipart/form-data" class="kx-card p-6">
+    <form id="form-admin-perfil" action="{{ route('admin.perfil.update') }}" method="POST" enctype="multipart/form-data" class="kx-card p-6">
         @csrf
         @method('PUT')
         <h2 class="font-bold">Información de la cuenta</h2>
         <div class="mt-5 flex items-center gap-4">
-            @if ($usuario->urlAvatar())
-                <img src="{{ $usuario->urlAvatar() }}" alt="Foto de perfil" id="vista-imagen" class="h-20 w-20 rounded-full object-cover">
-            @else
-                <span class="flex h-20 w-20 items-center justify-center rounded-full bg-indigo-600 text-2xl font-bold text-white">{{ strtoupper(substr($usuario->name, 0, 1)) }}</span>
-            @endif
+            <div class="relative h-20 w-20 shrink-0">
+                <img src="{{ $usuario->urlAvatar() ?? '' }}" alt="Foto de perfil" id="vista-imagen" class="h-20 w-20 rounded-full object-cover {{ $usuario->urlAvatar() ? '' : 'hidden' }}">
+                <span id="avatar-inicial" class="flex h-20 w-20 items-center justify-center rounded-full bg-indigo-600 text-2xl font-bold text-white {{ $usuario->urlAvatar() ? 'hidden' : '' }}">{{ strtoupper(substr($usuario->name, 0, 1)) }}</span>
+            </div>
             <div>
                 <input type="file" id="imagen-input" name="avatar" accept="image/*" class="hidden">
                 <label for="imagen-input" class="kx-btn-ghost cursor-pointer"><i class="fa-solid fa-camera"></i>Cambiar foto</label>
@@ -67,3 +66,31 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.getElementById('imagen-input')?.addEventListener('change', function(e) {
+        const archivo = e.target.files[0];
+        if (!archivo) return;
+
+        const nombre = document.getElementById('imagen-nombre');
+        const vista = document.getElementById('vista-imagen');
+        const inicial = document.getElementById('avatar-inicial');
+        const form = document.getElementById('form-admin-perfil');
+
+        if (nombre) nombre.textContent = `Subiendo: ${archivo.name}...`;
+        if (vista) {
+            vista.src = URL.createObjectURL(archivo);
+            vista.classList.remove('hidden');
+        }
+        if (inicial) {
+            inicial.classList.add('hidden');
+        }
+
+        // Envía el formulario automáticamente para guardar la foto de perfil en la base de datos
+        if (form) {
+            form.requestSubmit();
+        }
+    });
+</script>
+@endpush

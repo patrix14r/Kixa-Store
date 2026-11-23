@@ -7,7 +7,7 @@
 @endpush
 
 @section('contenido')
-    {{-- [Actualizado: Perfil estilo Puma] 2 columnas: sidebar de cuenta + contenido de la pestaña elegida (ruta /perfil/{seccion?}) --}}
+    {{-- 2 columnas: sidebar de cuenta + contenido de la pestaña elegida (ruta /perfil/{seccion?}) --}}
     <div class="kx-cuenta">
         <aside class="kx-cuenta-menu" aria-label="Mi cuenta">
             <div class="kx-cuenta-saludo">
@@ -34,9 +34,9 @@
                 </a>
             </nav>
 
-            {{-- [Sem 11 - Migraciones, Seeders y Roles]: Acceso al panel solo para el rol admin --}}
+            {{-- Acceso al panel solo para el rol admin --}}
             @if ($usuario->esAdmin())
-                {{-- [Actualizado: Botón admin] Rectángulo limpio alineado con el menú lateral e ícono de panel --}}
+                {{-- Rectángulo limpio alineado con el menú lateral e ícono de panel --}}
                 <a href="{{ route('admin.home') }}" class="kx-cuenta-admin">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
                     Ir al Panel de Administración
@@ -50,7 +50,7 @@
         </aside>
 
         <main class="kx-cuenta-contenido">
-            {{-- [Actualizado: Toast único] Avisos de éxito/error llegan al toast flotante del layout --}}
+            {{-- Avisos de éxito/error llegan al toast flotante del layout --}}
 
             {{-- ============ 1) INFORMACIÓN DE LA CUENTA ============ --}}
             @if ($seccion === 'cuenta')
@@ -87,7 +87,7 @@
                         <div><dt>Correo electrónico</dt><dd>{{ $usuario->email }}</dd></div>
                     </dl>
 
-                    {{-- [Sem 09 - Controladores y MVC]: PUT a AuthController@actualizarPerfil (multipart por la foto) --}}
+                    {{-- PUT a AuthController@actualizarPerfil (multipart por la foto) --}}
                     <form id="formPerfil" method="POST" action="{{ route('perfil.update') }}" enctype="multipart/form-data" class="kx-form kx-solo-edicion">
                         @csrf
                         @method('PUT')
@@ -153,7 +153,7 @@
                             <strong class="kx-pedido-total">S/ {{ number_format($pedido->total, 2) }}</strong>
                         </div>
 
-                        {{-- [Sem 12 - Eloquent ORM]: accessor paso_seguimiento traduce el estado a la barra de progreso --}}
+                        {{-- Accessor paso_seguimiento traduce el estado a la barra de progreso --}}
                         @if ($pedido->paso_seguimiento > 0)
                             <ol class="kx-seguimiento" style="--paso: {{ $pedido->paso_seguimiento }}">
                                 @foreach ($pasos as $i => $paso)
@@ -218,7 +218,7 @@
     <script src="{{ asset('js/perfil-avatar.js') }}"></script>
     <script src="{{ asset('js/favoritos.js') }}"></script>
     <script>
-        // [Actualizado: Perfil] Botones EDITAR / Cancelar alternan la tarjeta entre lectura y edición
+        // Botones EDITAR / Cancelar alternan la tarjeta entre lectura y edición
         document.querySelectorAll('[data-alternar-edicion]').forEach((btn) => {
             btn.addEventListener('click', () => btn.closest('[data-editable]')?.classList.toggle('editando'));
         });

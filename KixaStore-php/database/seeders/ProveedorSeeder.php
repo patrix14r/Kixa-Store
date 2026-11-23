@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-// [Sem 11 - Migraciones, Seeders y Roles]: Seeder de proveedores oficiales con DB::table()->insert()
+// Seeder de proveedores oficiales con DB::table()->insert()
 class ProveedorSeeder extends Seeder
 {
     public function run(): void

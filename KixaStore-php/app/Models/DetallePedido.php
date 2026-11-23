@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+// [Semana 12-13: Eloquent ORM, Relaciones y los 7 métodos de Route::resource] Modelo de order_items (una línea por zapatilla y talla comprada); se declara $table porque el nombre no sigue la convención.
 #[Fillable([
     'pedido_id',
     'producto_id',
@@ -27,6 +28,7 @@ class DetallePedido extends Model
         'subtotal',
     ];
 
+    // casts() fija talla, cantidad y montos al tipo correcto.
     protected function casts(): array
     {
         return [
@@ -37,11 +39,13 @@ class DetallePedido extends Model
         ];
     }
 
+    // Relación BelongsTo: la línea pertenece a un pedido (FK pedido_id con cascadeOnDelete).
     public function pedido(): BelongsTo
     {
         return $this->belongsTo(Pedido::class, 'pedido_id');
     }
 
+    // Relación BelongsTo: producto comprado en esta línea (FK producto_id con restrictOnDelete).
     public function producto(): BelongsTo
     {
         return $this->belongsTo(Producto::class, 'producto_id');

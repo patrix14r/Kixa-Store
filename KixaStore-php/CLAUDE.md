@@ -1,85 +1,98 @@
-<laravel-boost-guidelines>
-# KixaStore - Reglas del Proyecto y Guía Académica (Laravel 13)
+# KixaStore — Contexto del proyecto (Laravel 13 + MySQL)
 
-## 1. Carpetas Prohibidas (Ahorro de Tokens)
+Tienda de zapatillas con dos modos: **Cliente** (catálogo, carrito, checkout, perfil) y **Admin** (panel oscuro con CRUDs). Proyecto académico del curso de Laravel (Tecsup): el código debe ser claro y explicable en la exposición oral.
 
-- NUNCA leas ni escanees: `vendor/`, `node_modules/`, `storage/`, `public/images/`, `.git/`, ni `../Tienda-Kixa_2/`.
-- NUNCA hagas `git commit` automáticamente. Todos los commits los hará el usuario manualmente.
+## 1. Reglas de trabajo
 
-## 2. Limpieza Visual y Arquitectura Blade
+- Responde y explica SIEMPRE en español.
+- NUNCA hagas `git commit` ni `git push`: los commits los hace el usuario.
+- No leas ni escanees `vendor/`, `node_modules/`, `storage/`, `public/images/`, `.git/` ni `../Tienda-Kixa_2/`.
+- No crees archivos `.gitignore` extra dentro de `public/images/`.
+- Antes de dar algo por terminado corre `php artisan test` y `php -l` en lo tocado.
+- Mantén `README.md` con un resumen corto de qué hace cada Controlador y Modelo, y actualiza `GUIA_FLUJOS_KIXASTORE.md` solo si cambian rutas, controladores o flujos principales.
 
-- Elimina todos los comentarios antiguos largos (`{{-- [ORIGEN]... --}}`).
-- NUNCA pongas bloques `@php ... @endphp` grandes ni `<style>` dentro de archivos `.blade.php`. Toda lógica va en Controladores y el diseño del Admin usa Tailwind CSS con un único tema oscuro (fondo `#09090b`, tarjetas `#121215`, bordes `zinc-800/80`) y acento índigo `#6366f1`; el rojo `#ef4444` solo para "Agotado", alertas críticas y borrar.
-- En el Modo Cliente (`resources/views/cliente/`), mejora el diseño visual pero CONSERVA intactos los IDs y clases que utilizan `public/js/movimiento.js` y `public/js/carrito.js`.
+## 2. Stack
 
-## 3. Reglas Estrictas de la Rúbrica (Laboratorio 13 - Docente Paul Vergel)
+- PHP ^8.3, Laravel 13, MySQL, Vite 8.
+- Admin: Tailwind CSS 4 (`resources/css/app.css` + `resources/js/app.js`, cargados con `@vite`).
+- Cliente: CSS modular en `public/css/*.css` (`diseño.css` es la base) y JS plano en `public/js/*.js`.
+- Tests: `tests/Feature/AdminCrudTest.php` y `AuthAndCatalogTest.php`.
 
-- **Regla 4.2 (Roles y Usuarios):** Separa los roles en una tabla/relación limpia (o Spatie/Fortify). Los CRUDs NUNCA deben ser sobre Usuarios ni Roles.
-- **Regla 4.4 (Prohibido mostrar IDs):** JAMÁS muestres la columna `id` autogenerada en tablas de listado, vistas de detalle ni formularios de los CRUDs.
-- **Regla 4.5 (Llaves Foráneas con Nombres):** En las tablas y detalles muestra siempre el nombre de la relación (`$producto->categoria->nombre`, `$producto->proveedor->razon_social`), NUNCA el número ID. En formularios de Crear/Editar usa `<select>` desplegables con esos nombres.
+## 3. Base de datos (migraciones en `database/migrations/`)
 
-## 4. Comentarios Académicos por Semana (Para Estudio del Alumno)
+| Tabla                    | Campos clave                                                                                                                  | Llaves foráneas                                                   |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `roles`                  | nombre (unique), descripcion                                                                                                  | —                                                                 |
+| `users`                  | name, email, dni, telefono, direccion, password, avatar                                                                       | `rol_id` → roles (restrictOnDelete)                               |
+| `categorias`             | nombre, slug (unique), descripcion, activo                                                                                    | —                                                                 |
+| `proveedores`            | razon_social, ruc (char 11, unique), contacto_nombre, telefono, correo, direccion, activo                                     | —                                                                 |
+| `productos`              | marca, nombre, subcategoria, sku (unique), precio, descripcion, imagen, galeria_imagenes (json), destacado, en_oferta, activo | `categoria_id` (restrict), `proveedor_id` nullable (nullOnDelete) |
+| `producto_tallas`        | talla decimal(3,1), stock                                                                                                     | `producto_id` (cascadeOnDelete)                                   |
+| `pedidos`                | codigo_orden (unique), subtotal, igv, total, estado, direccion_envio, metodo_pago                                             | `user_id` (restrict)                                              |
+| `order_items`            | talla, cantidad, precio_unitario, subtotal                                                                                    | `pedido_id` (cascade), `producto_id` (restrict)                   |
+| `ordenes_abastecimiento` | codigo_lote, cantidad_solicitada, costo_unitario, costo_total, estado, fecha_recepcion                                        | `proveedor_id`, `producto_talla_id`, `user_id`                    |
+
+Orden de seeders (`DatabaseSeeder`): Rol → User → Categoria → Proveedor → Producto.
+Estados de pedido: Pendiente, Pagado, Enviado, Entregado, Cancelado.
+
+## 4. Modelos Eloquent (`app/Models/`)
+
+Todos usan el atributo `#[Fillable([...])]`, `casts()` como método y `#[Scope]` para scopes.
+
+- `User`: `rol()` BelongsTo, `pedidos()` HasMany, `esAdmin()`, `urlAvatar()`.
+- `Rol`: `usuarios()` HasMany.
+- `Categoria`: ruta por `slug`, scope `activas`, `productos()` HasMany.
+- `Producto`: ruta por `sku`, scopes `activos` y `destacados`, accessors `modelo` y `tipo_calzado`, relaciones `categoria()`, `proveedor()`, `tallas()`.
+- `ProductoTalla`: `producto()` BelongsTo.
+- `Proveedor`: `productos()` HasMany _(agregar `getRouteKeyName()` por `ruc` al implementar CRUD 3)_.
+- `Pedido`: accessor `paso_seguimiento`, `usuario()` BelongsTo, `items()` HasMany.
+- `DetallePedido` (tabla `order_items`): `pedido()`, `producto()`.
+- `OrdenAbastecimiento`: `proveedor()`, `talla()`, `usuario()`.
+
+## 5. Rutas (`routes/web.php`) y middleware
+
+- Públicas: `/` (home), `/catalogo/{categoria?}`, `/producto/{sku?}`, `/producto/{sku}/tallas` (JSON), `/nosotros` (`NosotrosController` invocable con `__invoke()`, incluye sección `#ubicanos` con mapa de Tecsup), `/ayuda` (redirige a `/nosotros#centro-ayuda`).
+- Sin rutas de `/contacto` ni Libro de Reclamaciones.
+- Autenticación: `/login`, `/registro`, `/logout` (`AuthController`).
+- Cuenta del cliente (middleware `auth`): `/perfil/{seccion?}` y los PUT de perfil, password y dirección.
+- Compra: `/carrito`, `/favoritos`, `/checkout`, `POST /checkout/procesar` (`auth`).
+- Panel: grupo `prefix('admin')->name('admin.')->middleware(['auth', 'admin'])`. El alias `admin` (en `bootstrap/app.php`) apunta a `AdminMiddleware`, que usa `esAdmin()` para sacar a los clientes.
+    - `categorias` y `productos`: `Route::resource` sin `show` ni `destroy` (baja lógica con `PATCH .../estado`); parámetro por `slug` o `sku`.
+    - `clientes` (index, show, edit, update), `pedidos` (index y `PATCH estado`), `perfil`.
+    - Pendientes por implementar para Semana 16: **CRUD 3 (`proveedores`)**, **CRUD 4 (`tallas`)** y **Proceso Secundario (`abastecimiento`)** (hoy apuntan a `resources/views/admin/pendientes/`).
+
+## 6. Controladores (`app/Http/Controllers/`)
+
+- Cliente: `HomeController`, `NosotrosController` (invocable), `CatalogoController` (filtros por Request, buscador, `show` solo `activos()` por `sku`, `tallas`), `CarritoController` (checkout con token de un solo uso; `procesar` usa `DB::transaction` y `lockForUpdate` para descontar stock), `AuthController` (login, registro, perfil con pestañas).
+- Admin: `AdminController` (dashboard), `Admin/CategoriaController`, `Admin/ProductoController` (`opciones()` con categorías y proveedores, `sincronizarTallas`, SKU automático), `Admin/PedidoController`, `Admin/ClienteController`, `Admin/PerfilController`.
+- Pendientes: `Admin/ProveedorController` (CRUD 3), `Admin/TallaController` (CRUD 4) y `Admin/AbastecimientoController` (Proceso Secundario).
+
+## 7. Vistas (`resources/views/`)
+
+- `layouts/app.blade.php` (cliente: top bar limpia con `Acerca de`, `Ubícanos` -> `/nosotros#ubicanos` e `Iniciar sesión`) y `layouts/admin.blade.php` (admin con sidebar).
+- `auth/_portada.blade.php` (parcial en español para login y registro).
+- `admin/<modulo>/{index,create,edit}.blade.php` + parcial `_formulario.blade.php` compartido por crear y editar.
+- `components/`: `alerta`, `tarjeta-producto`, `admin/estado-pedido`, `admin/seguimiento-pedido`.
+
+## 8. Reglas de la rúbrica (Laboratorio 13 y Entrega Final)
+
+- **Roles y usuarios:** los roles viven en su propia tabla `roles`. Los 4 CRUDs NUNCA son sobre Usuarios ni Roles.
+- **Prohibido mostrar IDs:** nunca muestres la columna `id` autoincremental en listados, detalles ni formularios. Las URLs usan `slug`, `sku` o `ruc` con `getRouteKeyName()`.
+- **Llaves foráneas con nombres:** en tablas y detalles muestra `$producto->categoria->nombre` o `$producto->proveedor->razon_social`, nunca el número. En Crear/Editar usa `<select>` con esos nombres.
+- Toda lógica va en Controladores. No pongas `@php ... @endphp` grandes ni `<style>` dentro de `.blade.php`.
+
+## 9. Diseño
+
+- **Admin:** Tailwind CSS v4 con tema oscuro neutro: fondo `#09090b`, tarjetas `#121215`, bordes `zinc-800/80`, acento índigo `#6366f1`. Sin tema rojo de marca (el rojo solo se reserva para etiquetas de "Agotado" o errores críticos de validación). Clases propias `kx-*` definidas en `resources/css/app.css`.
+- **Cliente:** estilo retail deportivo editorial limpio (modo claro, blanco/negro/grises neutros). Títulos con `font-weight: 800` y `letter-spacing: -0.03em`, secciones con `padding: 64px 5%`. Tarjetas de calzado con imagen `aspect-ratio: 1/1`, fondo `#f5f5f7`, `object-fit: contain`.
+- En `resources/views/cliente/` conserva intactos los IDs y clases que usa `public/js/carrito.js`.
+
+## 10. Comentarios de estudio
 
 En los Controladores, Modelos, Rutas y Vistas principales, agrega comentarios cortos de 1 línea que referencien la semana del curso donde se vio ese tema:
 
 - `// [Sem 08 - Rutas y Vistas Blade]: Rutas nombradas, directivas @extends, @section, @foreach y componentes <x-...>`
-- `// [Sem 09 - Controladores y MVC]: Controladores Resource (7 métodos CRUD) e inyección de Request`
+- `// [Sem 09 - Controladores y Middleware]: Controladores normales, invocables (__invoke), inyección de Request y Middleware`
 - `// [Sem 11 - Migraciones, Seeders y Roles]: Esquema MySQL, llaves foráneas constrained() y control de acceso por Rol`
 - `// [Sem 12 - Eloquent ORM]: Modelos con #[Fillable], casts(), Scopes #[Scope] y relaciones BelongsTo / HasMany`
-  IMPORTANTE: Responde, explica y comunícate SIEMPRE en idioma ESPAÑOL en la terminal.
-  Además, mantén actualizado en `README.md` un resumen corto de estudio explicando qué hace cada Controlador y Modelo para la exposición oral.
-
-## 5. Estándar de Diseño Visual UI/UX (Prohibido Diseño Básico de IA)
-
-- PROHIBIDO crear diseños planos o genéricos de IA (cajas cuadradas sin jerarquía, bordes gruesos toscos, sombras pesadas o colores chillones).
-- Inspiración obligatoria para el Modo Cliente: Retail deportivo editorial de alto nivel (Nike.com / Adidas.com / Puma.com).
-- Tipografía y espaciado: Jerarquía marcada (títulos display con `font-weight: 800` y `letter-spacing: -0.03em`, subtítulos limpios, aire generoso entre secciones `padding: 64px 5%`).
-- Header minimalista: Prioridad visual al isotipo/logo, enlaces de categorías con indicador inferior animado al hacer hover (`transform: scaleX`), buscador tipo píldora estilizada e íconos SVG de trazo uniforme (`stroke-width: 1.75`).
-- Tarjetas de calzado: Contenedor de imagen cuadrado uniforme (`aspect-ratio: 1/1`, fondo neutro `#f5f5f7`, `object-fit: contain`), micro-interacción suave al pasar el cursor (`translateY(-4px)`) y etiquetas de precio/categoría limpias.
-
-# Laravel Application
-
-This repository contains a Laravel application. Complete the following setup before working on the user's request.
-
-## Prerequisites
-
-Verify that PHP and Composer are available:
-
-```sh
-php -v
-composer -V
-```
-
-If either command is unavailable, detect the user's operating system and install the prerequisites with the appropriate command:
-
-macOS:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
-```
-
-Windows PowerShell:
-
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
-```
-
-Linux:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
-```
-
-After installation, ask the user to restart their terminal. If the agent needs the restarted shell to continue, ask the user to reopen their terminal and rerun their original prompt.
-
-## Agent Setup
-
-Install Laravel Boost from the application root before making application changes:
-
-```sh
-composer require laravel/boost --dev
-php artisan boost:install
-```
-
-Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
-</laravel-boost-guidelines>
+- `// [Sem 13 - CRUDs, Query Builder y Paginación]: Route::resource, validación con validate(), paginate(), baja lógica y Query Builder / DB::transaction()`

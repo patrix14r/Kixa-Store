@@ -1,6 +1,6 @@
 // ==========================================================================
 // TIENDA KIXA - ALERTAS FLOTANTES UNIFICADAS (TOAST.JS)
-// [Actualizado: Toast único] Esquina superior derecha bajo el header, blur, ícono y cierre automático en 4 s.
+// Esquina superior derecha bajo el header, blur, ícono y cierre automático en 4 s.
 // Uso: kxToast("Mensaje", "error" | "ok" | "info"). Los flash de Laravel llegan en window.KX_FLASH.
 // ==========================================================================
 

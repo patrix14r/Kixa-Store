@@ -1,63 +1,39 @@
 <?php
-
-use App\Http\Controllers\Admin\CategoriaCrudController;
+use App\Http\Controllers\Admin\CategoriaController;
+use App\Http\Controllers\Admin\AbastecimientoController;
 use App\Http\Controllers\Admin\ClienteController;
 use App\Http\Controllers\Admin\PedidoController;
 use App\Http\Controllers\Admin\PerfilController;
-use App\Http\Controllers\Admin\ProductoCrudController;
+use App\Http\Controllers\Admin\ProductoController;
+use App\Http\Controllers\Admin\ProveedorController;
+use App\Http\Controllers\Admin\TallaController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NosotrosController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Rutas web de KixaStore
-|--------------------------------------------------------------------------
-| [Sem 08 - Rutas y Vistas Blade]: Cada ruta tiene nombre (->name()) para llamarla con route() desde Blade.
-| Orden: 1) Públicas  2) Autenticación  3) Cuenta del cliente  4) Proceso de compra  5) Panel Admin
-*/
-
-/*
-|--------------------------------------------------------------------------
-| 1. RUTAS PÚBLICAS (tienda e informativas)
-|--------------------------------------------------------------------------
-*/
-// [Sem 09 - Controladores y MVC]: Home con carrusel y "Lo Destacado"
+// Rutas públicas de la tienda.
+// [Semana 8: Rutas y Herencia Blade] Cada ruta tiene ->name() para llamarla con route('nombre') desde Blade; {categoria?} es un parámetro opcional.
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Catálogo por categoría (hombre, mujer, ninos, deporte) y ficha del producto por SKU
 Route::get('/catalogo/{categoria?}', [CatalogoController::class, 'index'])->name('catalogo');
 Route::get('/producto/{sku?}', [CatalogoController::class, 'show'])->name('producto.detalle');
-// JSON con las tallas en stock (botón "Seleccionar talla" de Favoritos)
 Route::get('/producto/{sku}/tallas', [CatalogoController::class, 'tallas'])->name('producto.tallas');
 
-// [Sem 08 - Rutas y Vistas Blade]: Páginas informativas con Route::view (sin controlador)
-Route::view('/nosotros', 'informativas.nosotros')->name('nosotros');
-Route::view('/contacto', 'informativas.contacto')->name('contacto');
-// La antigua página de Ayuda ahora vive dentro de "Acerca de" (redirección 301)
+// Controlador invocable: una sola acción, por eso la ruta recibe solo la clase.
+Route::get('/nosotros', NosotrosController::class)->name('nosotros');
 Route::redirect('/ayuda', '/nosotros#centro-ayuda', 301)->name('ayuda');
 
-/*
-|--------------------------------------------------------------------------
-| 2. AUTENTICACIÓN (login, registro y cierre de sesión)
-|--------------------------------------------------------------------------
-*/
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-Route::get('/registro', [AuthController::class, 'showRegistro'])->name('registro');
-Route::post('/registro', [AuthController::class, 'registrar'])->name('registro.post');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// Login, registro y logout los manejan las rutas de Laravel Fortify (GET /login, GET|POST /register, POST /logout); ver FortifyServiceProvider.
+// Redirige el antiguo /registro al nuevo /register para no romper enlaces.
+Route::redirect('/registro', '/register');
 
-/*
-|--------------------------------------------------------------------------
-| 3. CUENTA DEL CLIENTE (requiere sesión: middleware auth)
-|--------------------------------------------------------------------------
-*/
+// Cuenta del cliente.
+// El middleware auth deja entrar solo a usuarios con sesión; group() evita repetirlo en cada ruta.
 Route::middleware('auth')->group(function () {
-    // Perfil con pestañas: /perfil, /perfil/favoritos, /perfil/pedidos, /perfil/direcciones
     Route::get('/perfil/{seccion?}', [AuthController::class, 'perfil'])
         ->whereIn('seccion', ['cuenta', 'favoritos', 'pedidos', 'direcciones'])
         ->name('perfil');
@@ -66,52 +42,60 @@ Route::middleware('auth')->group(function () {
     Route::put('/perfil/direccion', [AuthController::class, 'actualizarDireccion'])->name('perfil.direccion');
 });
 
-/*
-|--------------------------------------------------------------------------
-| 4. PROCESO DE COMPRA (carrito, favoritos y checkout)
-|--------------------------------------------------------------------------
-*/
+// Proceso de compra.
+// [Semana 9-10: Controladores, Request y Componentes] El carrito vive en el navegador y procesar() recibe el Request y valida todo en el servidor.
 Route::get('/carrito', [CarritoController::class, 'index'])->name('carrito');
 Route::view('/favoritos', 'cliente.favoritos')->name('favoritos');
-// Checkout: el invitado va a login?redirect=checkout; envía cabeceras anti-caché y un token de un solo uso
 Route::get('/checkout', [CarritoController::class, 'checkout'])->name('checkout');
 Route::post('/checkout/procesar', [CarritoController::class, 'procesar'])->middleware('auth')->name('checkout.procesar');
 
-/*
-|--------------------------------------------------------------------------
-| 5. PANEL ADMINISTRADOR (prefijo /admin, nombres admin.*)
-|--------------------------------------------------------------------------
-| [Sem 11 - Migraciones, Seeders y Roles]: Protegido por los middleware auth y admin (control por rol)
-*/
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
-    // Dashboard "Resumen General"
+// Protege los CRUDs permitiendo acceso solo al rol admin.
+// [Semana 11: Migraciones, FK y Seeders] 'admin' es el alias de AdminMiddleware (bootstrap/app.php) y se apoya en la tabla roles creada por migración y RolSeeder.
+// prefix('admin') antepone /admin a las URLs y name('admin.') antepone admin. a los nombres de ruta.
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () { //prefix es 
     Route::get('/', [AdminController::class, 'home'])->name('home');
 
-    // [Sem 09 - Controladores y MVC]: Mantenimiento 1 - Categorías (Resource sin show/destroy: se activa/desactiva)
-    Route::resource('categorias', CategoriaCrudController::class)->except(['show', 'destroy'])
+    // [Semana 12-13: Eloquent ORM, Relaciones y los 7 métodos de Route::resource]
+    // Route::resource crea index, create, store, show, edit, update y destroy; aquí se usa except() porque show y destroy no existen
+    // (las categorías se activan o desactivan con el PATCH de estado) y parameters() cambia {categorias} por {categoria} para el binding por slug.
+    Route::resource('categorias', CategoriaController::class)->except(['show', 'destroy'])
         ->parameters(['categorias' => 'categoria']);
-    Route::patch('categorias/{categoria}/estado', [CategoriaCrudController::class, 'estado'])->name('categorias.estado');
+    Route::patch('categorias/{categoria}/estado', [CategoriaController::class, 'estado'])->name('categorias.estado');
 
-    // [Sem 09 - Controladores y MVC]: Mantenimiento 2 - Productos (vista rápida en modal, SKU automático y galería)
-    Route::resource('productos', ProductoCrudController::class)->except(['show', 'destroy'])
+    // Mismo patrón de Route::resource para productos; el binding usa el SKU definido en Producto::getRouteKeyName().
+    Route::resource('productos', ProductoController::class)->except(['show', 'destroy'])
         ->parameters(['productos' => 'producto']);
-    Route::patch('productos/{producto}/estado', [ProductoCrudController::class, 'estado'])->name('productos.estado');
+    Route::patch('productos/{producto}/estado', [ProductoController::class, 'estado'])->name('productos.estado');
 
-    // Clientes (solo rol cliente): listado, historial de pedidos y edición de datos básicos (no gestiona roles, Regla 4.2)
+    // CRUD 3: proveedores. El plural irregular obliga a parameters() para que el parámetro sea {proveedor}; el binding usa el RUC.
+    Route::resource('proveedores', ProveedorController::class)->except(['show', 'destroy'])
+        ->parameters(['proveedores' => 'proveedor']);
+    Route::patch('proveedores/{proveedor}/estado', [ProveedorController::class, 'estado'])->name('proveedores.estado');
+
+    // only() deja solo los métodos necesarios: no hay crear ni borrar clientes (la rúbrica prohíbe CRUD de usuarios y roles).
     Route::resource('clientes', ClienteController::class)->only(['index', 'show', 'edit', 'update'])
         ->parameters(['clientes' => 'cliente']);
 
-    // [Sem 09 - Controladores y MVC]: Proceso 2 - Gestión y despacho de pedidos (cambio de estado con PATCH)
     Route::get('pedidos', [PedidoController::class, 'index'])->name('pedidos.index');
     Route::patch('pedidos/{pedido}/estado', [PedidoController::class, 'estado'])->name('pedidos.estado');
 
-    // Perfil propio del administrador dentro del panel oscuro
     Route::get('perfil', [PerfilController::class, 'edit'])->name('perfil');
     Route::put('perfil', [PerfilController::class, 'update'])->name('perfil.update');
     Route::put('perfil/password', [PerfilController::class, 'password'])->name('perfil.password');
 
-    // [Sem 08 - Rutas y Vistas Blade]: Módulos pendientes con vista en blanco (ningún enlace del sidebar queda muerto)
-    Route::view('proveedores', 'admin.pendientes.proveedores')->name('proveedores');
-    Route::view('tallas', 'admin.pendientes.tallas')->name('tallas');
-    Route::view('abastecimiento', 'admin.pendientes.abastecimiento')->name('abastecimiento');
+    // CRUD 4: tallas y stock. Una talla no tiene slug propio, así que la URL lleva el SKU del producto y el número de talla
+    // (/admin/tallas/{producto}/{talla}/edit) y el controlador la busca con $producto->tallas(); así no se expone ningún ID.
+    Route::get('tallas', [TallaController::class, 'index'])->name('tallas.index');
+    Route::get('tallas/create', [TallaController::class, 'create'])->name('tallas.create');
+    Route::post('tallas', [TallaController::class, 'store'])->name('tallas.store');
+    Route::get('tallas/{producto}/{talla}/edit', [TallaController::class, 'edit'])->name('tallas.edit');
+    Route::put('tallas/{producto}/{talla}', [TallaController::class, 'update'])->name('tallas.update');
+    Route::delete('tallas/{producto}/{talla}', [TallaController::class, 'destroy'])->name('tallas.destroy');
+
+    // Proceso secundario: abastecimiento. El parámetro {orden} se resuelve por código de lote (OrdenAbastecimiento::getRouteKeyName).
+    Route::get('abastecimiento', [AbastecimientoController::class, 'index'])->name('abastecimiento.index');
+    Route::get('abastecimiento/create', [AbastecimientoController::class, 'create'])->name('abastecimiento.create');
+    Route::post('abastecimiento', [AbastecimientoController::class, 'store'])->name('abastecimiento.store');
+    Route::patch('abastecimiento/{orden}/recibir', [AbastecimientoController::class, 'recibir'])->name('abastecimiento.recibir');
+    Route::patch('abastecimiento/{orden}/cancelar', [AbastecimientoController::class, 'cancelar'])->name('abastecimiento.cancelar');
 });

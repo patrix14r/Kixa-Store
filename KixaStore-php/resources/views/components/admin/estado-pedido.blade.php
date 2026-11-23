@@ -1,5 +1,5 @@
 @props(['estado'])
-{{-- [Sem 08 - Rutas y Vistas Blade]: Componente <x-admin.estado-pedido> con el color de cada estado --}}
+{{-- Componente <x-admin.estado-pedido> con el color de cada estado --}}
 <span {{ $attributes->class([
     'whitespace-nowrap',
     'kx-badge-bajo' => $estado === 'Pendiente',

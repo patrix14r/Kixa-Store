@@ -1,6 +1,6 @@
 // ==========================================================================
 // TIENDA KIXA - VALIDACIÓN DE LOGIN Y REGISTRO (AUTH.JS)
-// [Actualizado: Login split-screen] Los formularios usan novalidate: aquí se validan con mensajes 100% en español
+// Los formularios usan novalidate: aquí se validan con mensajes 100% en español
 // (sin "Please fill out this field." del navegador). El servidor vuelve a validar todo en AuthController.
 // ==========================================================================
 

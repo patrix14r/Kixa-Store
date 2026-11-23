@@ -1,4 +1,4 @@
-// [FASE 3]: Interacciones del panel admin (menús desplegables, buscador ⌘K, filtros y tallas)
+// Panel admin  
 
 // Menús desplegables (campanita y perfil): se cierran al hacer clic fuera
 document.querySelectorAll('[data-dropdown]').forEach((caja) => {
@@ -35,21 +35,6 @@ const alternarSidebar = () => {
 document.getElementById('btn-sidebar')?.addEventListener('click', alternarSidebar);
 fondo?.addEventListener('click', alternarSidebar);
 
-// Pestañas de filtro por marca en "Alertas de Inventario Crítico" (filtrado instantáneo)
-document.querySelectorAll('[data-filtro-marca]').forEach((boton) => {
-    boton.addEventListener('click', () => {
-        const marca = boton.dataset.filtroMarca;
-        document.querySelectorAll('[data-filtro-marca]').forEach((b) => b.classList.toggle('kx-tab-activa', b === boton));
-        let visibles = 0;
-        document.querySelectorAll('[data-marca]').forEach((fila) => {
-            const mostrar = marca === 'todas' || fila.dataset.marca === marca;
-            fila.classList.toggle('hidden', !mostrar);
-            if (mostrar) visibles++;
-        });
-        document.getElementById('alertas-vacio')?.classList.toggle('hidden', visibles > 0);
-    });
-});
-
 // Formulario de producto: agregar / quitar filas de tallas
 const contenedorTallas = document.getElementById('tallas-filas');
 const plantillaTalla = document.getElementById('plantilla-talla');
@@ -74,7 +59,7 @@ document.getElementById('imagen-input')?.addEventListener('change', (e) => {
     }
 });
 
-// [Actualizado: Toast admin] El aviso flotante se oculta a los 4 segundos o con la X
+// El aviso flotante se oculta a los 4 segundos o con la X
 document.querySelectorAll('[data-toast]').forEach((toast) => {
     const cerrar = () => {
         toast.classList.add('opacity-0', 'translate-x-4');
@@ -84,7 +69,7 @@ document.querySelectorAll('[data-toast]').forEach((toast) => {
     setTimeout(cerrar, 4000);
 });
 
-// [Actualizado: Slug automático] El slug de la categoría se arma en vivo desde el nombre
+// El slug de la categoría se arma en vivo desde el nombre
 const aSlug = (texto) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 const campoSlug = document.querySelector('[data-slug-auto]');
@@ -95,7 +80,7 @@ if (campoSlug) {
     origen.addEventListener('input', () => { if (!manual) campoSlug.value = aSlug(origen.value); });
 }
 
-// [Actualizado: SKU automático] MARCA(3)-MODELO(3)-SUFIJO(3), p. ej. ADI-CAM-00S
+// MARCA(3)-MODELO(3)-SUFIJO(3), p. ej. ADI-CAM-00S
 const campoSku = document.getElementById('sku');
 if (campoSku && campoSku.hasAttribute('data-sku-auto')) {
     const marca = document.getElementById('marca');
@@ -113,13 +98,13 @@ if (campoSku && campoSku.hasAttribute('data-sku-auto')) {
     document.getElementById('btn-autogenerar-sku')?.addEventListener('click', () => { skuManual = false; generar(); });
 }
 
-// [Actualizado: Galería] Muestra cuántas imágenes secundarias se eligieron
+// Muestra cuántas imágenes secundarias se eligieron
 document.getElementById('galeria-input')?.addEventListener('change', (e) => {
     const n = e.target.files.length;
     document.getElementById('galeria-nombre').textContent = n ? `${n} imagen(es) seleccionada(s)` : 'Ninguna imagen secundaria';
 });
 
-// [Actualizado: Vista rápida] Modal con los datos del producto desde la tabla del admin
+// Modal con los datos del producto desde la tabla del admin
 const modalVista = document.getElementById('modal-vista');
 document.querySelectorAll('[data-vista-rapida]').forEach((boton) => {
     boton.addEventListener('click', () => {

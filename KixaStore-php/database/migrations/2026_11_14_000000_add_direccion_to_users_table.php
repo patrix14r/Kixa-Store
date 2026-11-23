@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-// [Sem 11 - Migraciones, Seeders y Roles]: Dirección de envío predeterminada del cliente (pestaña Direcciones del perfil)
+// Dirección de envío predeterminada del cliente (pestaña Direcciones del perfil)
 return new class extends Migration
 {
     public function up(): void

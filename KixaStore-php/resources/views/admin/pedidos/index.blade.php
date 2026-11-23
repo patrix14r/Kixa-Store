@@ -3,7 +3,7 @@
 @section('titulo', 'Kixa Admin - Pedidos')
 
 @section('contenido')
-{{-- [Sem 08 - Rutas y Vistas Blade]: Proceso 2 - Gestión y despacho de pedidos; cliente por nombre y sin IDs (Reglas 4.4 y 4.5) --}}
+{{-- Proceso 2 - Gestión y despacho de pedidos; cliente por nombre y sin IDs (Reglas 4.4 y 4.5) --}}
 <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
     <div>
         <h1 class="text-2xl font-bold">Pedidos</h1>
@@ -19,7 +19,7 @@
     </form>
 </div>
 
-{{-- [Actualizado: Resumen de pedidos] Tarjetas con los totales reales de MySQL --}}
+{{-- Tarjetas con los totales reales de MySQL --}}
 <div class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
     @foreach ($resumen as $tarjeta)
         <div class="kx-card p-5 {{ $loop->last ? 'col-span-2 md:col-span-1' : '' }}">
@@ -64,7 +64,7 @@
                     <p class="text-xs kx-muted">Total</p>
                     <p class="font-semibold">S/ {{ number_format($pedido->total, 2) }}</p>
                 </div>
-                {{-- [Actualizado: Despacho] Cambio de estado con PATCH; el toast confirma el cambio --}}
+                {{-- Cambio de estado con PATCH; el toast confirma el cambio --}}
                 <form action="{{ route('admin.pedidos.estado', $pedido) }}" method="POST" class="col-span-2 flex items-center gap-2 md:col-span-1">
                     @csrf
                     @method('PATCH')
@@ -76,7 +76,7 @@
                     </select>
                 </form>
             </div>
-            {{-- [Actualizado: Seguimiento] Barra de 4 pasos sincronizada con el perfil del cliente --}}
+            {{-- Barra de 4 pasos sincronizada con el perfil del cliente --}}
             <div class="mt-5 border-t border-zinc-800/80 pt-5">
                 <x-admin.seguimiento-pedido :pedido="$pedido" />
             </div>

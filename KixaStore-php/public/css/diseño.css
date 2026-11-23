@@ -20,10 +20,15 @@ body {
     letter-spacing: -0.005em;
 }
 
+html,
+body {
+    max-width: 100%;
+    overflow-x: clip;
+}
+
 body {
     background: #ffffff;
     color: #111111;
-    overflow-x: hidden;
 }
 
 /* --------------------------------------------------------------------------
@@ -504,7 +509,7 @@ body.menu-movil-activo {
     overflow: hidden;
     background-image:
         linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
-        url("https://1000marcas.net/wp-content/uploads/2025/04/fondo-de-pantalla-negro.png");
+        url("../images/ui/backgrounds/Baner nitro.jpg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -1463,13 +1468,15 @@ body.menu-movil-activo {
         display: none;
     }
 
+    /* Una sola fila: [hamburguesa + logo] [buscador compacto] [íconos] */
     .navbar {
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        align-items: center;
         justify-content: flex-start;
-        height: auto;
-        padding: 10px 16px 12px;
-        gap: 10px 12px;
+        height: 60px;
+        padding: 0 12px;
+        gap: 8px;
     }
 
     /* En teléfono el header no se superpone al hero: arranca en carbón sólido */
@@ -1498,22 +1505,46 @@ body.menu-movil-activo {
         display: none;
     }
 
-    .navbar-acciones {
-        display: contents;
+    .logo {
+        flex-shrink: 0;
     }
 
-    .icons {
-        margin-left: auto;
-        gap: 18px;
+    /* Buscador y íconos comparten el resto de la fila sin desbordar */
+    .navbar-acciones {
+        flex: 1;
+        min-width: 0;
+        justify-content: flex-end;
+        gap: 10px;
     }
 
     .search-bar {
-        order: 4;
-        width: 100%;
+        flex: 1 1 0;
+        min-width: 0;
+        width: auto;
     }
 
     .search-bar input {
+        padding: 8px 38px 8px 14px;
         font-size: 16px;
+    }
+
+    .search-bar button {
+        width: 28px;
+        height: 28px;
+    }
+
+    .icons {
+        gap: 12px;
+    }
+
+    .icons svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .avatar-header {
+        width: 26px;
+        height: 26px;
     }
 
     /* 2. CATALOGO DE PRODUCTOS Y TARJETAS */

@@ -7,7 +7,7 @@
 @endpush
 
 @section('contenido')
-    {{-- [Actualizado: Favoritos estilo Puma] Filas horizontales: foto, nombre, precio, SELECCIONAR TALLA y ELIMINAR --}}
+    {{-- Filas horizontales: foto, nombre, precio, SELECCIONAR TALLA y ELIMINAR --}}
     <main class="kx-favoritos-pagina">
         <div class="kx-favoritos-pagina-cabecera">
             <h1>Favoritos</h1>

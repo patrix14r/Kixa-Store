@@ -1,5 +1,5 @@
 @props(['pedido'])
-{{-- [Sem 08 - Rutas y Vistas Blade]: Componente <x-admin.seguimiento-pedido>: misma barra de 4 pasos que ve el cliente en su perfil --}}
+{{-- Componente <x-admin.seguimiento-pedido>: misma barra de 4 pasos que ve el cliente en su perfil --}}
 {{-- Usa Pedido::PASOS y el accessor paso_seguimiento, así admin y cliente siempre muestran el mismo avance --}}
 @if ($pedido->paso_seguimiento > 0)
     <ol class="relative grid grid-cols-4 text-center text-[11px] sm:text-xs">

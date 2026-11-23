@@ -7,17 +7,17 @@ use App\Models\Pedido;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-// [Sem 09 - Controladores y MVC]: Proceso 2 - Gestión y despacho de pedidos (listado y cambio de estado)
+// [Semana 9-10: Controladores, Request y Componentes] Gestión de pedidos: listado con filtros y cambio de estado con PATCH.
 class PedidoController extends Controller
 {
     public const ESTADOS = ['Pendiente', 'Pagado', 'Enviado', 'Entregado', 'Cancelado'];
 
+    // Lista pedidos con with() para traer cliente e items en pocas consultas; filtra por estado y búsqueda.
     public function index(Request $request)
     {
         $buscar = trim((string) $request->query('buscar'));
         $estado = $request->query('estado');
 
-        // [Sem 12 - Eloquent ORM]: with() trae cliente y zapatillas compradas en pocas consultas (cliente por nombre, Regla 4.5)
         $pedidos = Pedido::with(['usuario', 'items.producto'])
             ->when(in_array($estado, self::ESTADOS, true), fn ($q) => $q->where('estado', $estado))
             ->when($buscar, fn ($q) => $q->where(fn ($sub) => $sub
@@ -30,7 +30,6 @@ class PedidoController extends Controller
         $conteos = Pedido::selectRaw('estado, count(*) as total')->groupBy('estado')->pluck('total', 'estado');
         $estados = self::ESTADOS;
 
-        // [Actualizado: Resumen de pedidos] Tarjetas superiores; los ingresos no cuentan los pedidos cancelados
         $ingresos = (float) Pedido::where('estado', '!=', 'Cancelado')->sum('total');
         $resumen = [
             ['etiqueta' => 'Total de pedidos', 'valor' => $conteos->sum(), 'icono' => 'fa-receipt', 'color' => 'text-indigo-400'],
@@ -43,7 +42,7 @@ class PedidoController extends Controller
         return view('admin.pedidos.index', compact('pedidos', 'conteos', 'estados', 'buscar', 'estado', 'resumen'));
     }
 
-    // El cliente ve el nuevo estado en "Historial de pedidos" de su perfil (misma columna estado)
+    // Valida que el estado esté en ESTADOS y lo guarda; el cliente lo ve en su historial.
     public function estado(Request $request, Pedido $pedido)
     {
         $datos = $request->validate(['estado' => ['required', Rule::in(self::ESTADOS)]]);

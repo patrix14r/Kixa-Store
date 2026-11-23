@@ -7,7 +7,7 @@
 @endpush
 
 @section('contenido')
-    {{-- [Actualizado: Checkout] Datos pre-llenados del usuario; el cliente solo indica dirección y método de pago --}}
+    {{-- Datos pre-llenados del usuario; el cliente solo indica dirección y método de pago --}}
     <main class="kx-carrito-page">
         <div class="kx-checkout-cabecera">
             <h1>Finalizar compra</h1>
@@ -16,7 +16,7 @@
 
         <div class="kx-carrito-layout">
             <section class="kx-checkout-pasos">
-                {{-- [Actualizado: Blindaje] Token de un solo uso generado por CarritoController@checkout --}}
+                {{-- Token de un solo uso generado por CarritoController@checkout --}}
                 <input type="hidden" id="tokenCompra" value="{{ $tokenCompra }}">
                 <div class="kx-paso">
                     <h2><span>1</span> Tus datos</h2>

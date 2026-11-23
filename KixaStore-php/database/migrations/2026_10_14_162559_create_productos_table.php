@@ -21,7 +21,7 @@ return new class extends Migration
         $table->string('sku', 30)->unique();
         $table->decimal('precio', 10, 2);
         $table->text('descripcion')->nullable();
-        $table->string('imagen', 255)->nullable();
+        $table->string('imagen', 255)->nullable(); 
         $table->boolean('destacado')->default(false);
         $table->boolean('en_oferta')->default(false);
          $table->boolean('activo')->default(true);
