@@ -7,12 +7,12 @@
 | `AuthController` | Solo el perfil del cliente. Login, registro y logout los maneja Laravel Fortify (`FortifyServiceProvider`, `CreateNewUser`, `LoginResponse`). |
 | `CatalogoController` | Catálogo estilo Nike: título con contador, sidebar de filtros (categoría, marca, disciplina y talla obtenidos de los productos reales), orden por `?orden=` (destacados, precio, lo más nuevo) y ficha de producto con recomendados. Oculta productos de categorías inactivas. |
 | `CarritoController` | Carrito, checkout y `procesar()`: crea el `Pedido` y sus detalles en una transacción y descuenta stock. **Bloquea las compras del rol admin.** |
-| `AdminController` | Dashboard: KPIs reales (clientes, pedidos, ventas, productos), arco de disponibilidad de stock, barras por categoría y alertas críticas. |
+| `AdminController` | Dashboard: KPIs de clientes y pedidos, barras de productos por marca, arco de disponibilidad de stock, ingresos de 7/30 días, 5 alertas críticas y pedidos recientes. |
 | `Admin\CategoriaController` | **Mantenimiento 1**: listar, crear, editar y activar/desactivar categorías (no se borran por la FK `restrictOnDelete`). El slug se arma solo desde el nombre (JS en vivo y `Str::slug` en el servidor). |
 | `Admin\ProveedorController` | **Mantenimiento 3**: listado con buscador (razón social/RUC), paginación y `withCount('productos')`; crear/editar validando RUC de 11 dígitos único y teléfono de 9; activar/desactivar (sin borrar). La URL usa el RUC. |
-| `Admin\TallaController` | **Mantenimiento 4**: tallas y stock por producto con filtro por producto/stock bajo, paginación, `<select>` de productos y baja con `destroy`. |
-| `Admin\AbastecimientoController` | Órdenes de reposición: lote automático `LOT-0001`, proveedor activo, costo total calculado; `recibir` (en `DB::transaction`) suma el stock y `cancelar` la anula. Muestra el resumen de stock crítico (<= 2). |
-| `Admin\ProductoController` | **Mantenimiento 2**: listado con buscador y filtros, crear/editar con `<select>` de categoría y proveedor, subida de imagen, galería de imágenes secundarias (JSON `galeria_imagenes`), stock por talla, SKU automático (`MARCA-MODELO-XXX`) si llega vacío, filtro por estado y vista rápida en modal. |
+| `Admin\MarcaController` | **Mantenimiento 4**: marcas (fabricantes) con buscador, `withCount('productos')`, paginación, logo opcional en `public/images/brands/` y activar/desactivar (sin borrar). La URL usa el slug; al renombrar sincroniza el texto `marca` de sus productos. |
+| `Admin\AbastecimientoController` | Órdenes de reposición: lote automático `LOT-0001`, proveedor activo, selects encadenados Producto → Talla (con stock actual), costo total calculado; `recibir` (en `DB::transaction`) suma el stock y `cancelar` la anula. Muestra el resumen de stock crítico (<= 2). |
+| `Admin\ProductoController` | **Mantenimiento 2**: listado con buscador y filtros, crear/editar con `<select>` de categoría, proveedor y marca (sincroniza el texto `marca` para el catálogo), subida de imagen, galería de imágenes secundarias (JSON `galeria_imagenes`), stock por talla, SKU automático (`MARCA-MODELO-XXX`) si llega vacío, filtro por estado y vista rápida en modal. |
 | `Admin\ClienteController` | Solo usuarios con rol cliente: listado, historial de pedidos (`show`) y edición de nombre, correo, DNI y celular. No toca roles (Regla 4.2). |
 | `Admin\PedidoController` | **Proceso 2 - Despacho**: lista los pedidos con cliente, fecha, pago, total y zapatillas; el admin cambia el estado (Pendiente → Entregado / Cancelado) y el cliente lo ve en su historial. |
 | `Admin\PerfilController` | Perfil del admin dentro del panel oscuro: nombre, foto y contraseña (`current_password`). |
@@ -23,8 +23,9 @@
 | `User` | `belongsTo(Rol)`; `esAdmin()` controla el acceso. |
 | `Rol` | `hasMany(User)` — roles separados en su propia tabla (Regla 4.2). |
 | `Categoria` | `hasMany(Producto)`; scope `activas`; URLs por `slug`. |
-| `Producto` | `belongsTo(Categoria)`, `belongsTo(Proveedor)`, `hasMany(ProductoTalla)`; accessors `modelo` (nombre sin la marca repetida) y `tipo_calzado` ("Zapatillas urbanas", "Chimpunes de fútbol"…); URLs por `sku`. |
-| `ProductoTalla` | `belongsTo(Producto)`; stock por talla. |
+| `Marca` | `hasMany(Producto)`; URLs por `slug`; scope `activos`; accessor `url_logo`. |
+| `Producto` | `belongsTo(Categoria)`, `belongsTo(Proveedor)`, `belongsTo(Marca)` (`marca()`), `hasMany(ProductoTalla)`; accessors `modelo` (nombre sin la marca repetida) y `tipo_calzado` ("Zapatillas urbanas", "Chimpunes de fútbol"…); URLs por `sku`. |
+| `ProductoTalla` | `belongsTo(Producto)`; stock por talla; `STOCK_CRITICO = 2`. |
 | `Proveedor` | `hasMany(Producto)`; URLs por `ruc`; scope `activos`. |
 | `OrdenAbastecimiento` | `belongsTo` Proveedor, ProductoTalla (`talla()`) y User; URLs por `codigo_lote`. |
 | `Pedido` / `DetallePedido` | Pedido del cliente (`belongsTo(User)`, `hasMany(DetallePedido)`) y sus líneas. |
@@ -48,7 +49,7 @@
 
 ## Panel Administrador
 
-- Sidebar con el enlace activo encuadrado (`mx-3`) y la sección **Clientes**; Proveedores, Tallas, Abastecimiento y Pedidos quedan como contenedores en blanco.
+- Sidebar con el enlace activo encuadrado (`mx-3`) y la sección **Clientes**; Categorías, Productos, Proveedores y Marcas (CRUDs 1-4) y, en Operaciones, Abastecimiento, Clientes y Pedidos.
 - Los mensajes flash salen como toast flotante arriba a la derecha (`resources/js/app.js`).
 - El menú de la cuenta admin tiene Mi Perfil, Ver Tienda Pública y Cerrar Sesión.
 - `routes/web.php` está ordenado en 5 módulos: Públicas, Autenticación, Cuenta, Proceso de compra y Panel Admin.

@@ -2,6 +2,7 @@
 
 @section('titulo', 'Kixa Admin - Nueva orden de abastecimiento')
 
+{{-- [Sem 08 - Rutas y Vistas Blade]: formulario del proceso secundario; los <select> muestran nombres (razón social, producto, talla), nunca IDs. --}}
 @section('contenido')
 <h1 class="text-2xl font-bold">Nueva orden de abastecimiento</h1>
 <form action="{{ route('admin.abastecimiento.store') }}" method="POST" class="kx-card mt-6 p-6">
@@ -22,12 +23,24 @@
             </select>
             @error('proveedor_id') <p class="kx-error">{{ $message }}</p> @enderror
         </div>
-        <div class="md:col-span-2">
-            <label for="producto_talla_id" class="kx-label">Producto y talla *</label>
-            <select id="producto_talla_id" name="producto_talla_id" class="kx-input" required>
-                <option value="">Selecciona producto y talla</option>
-                @foreach ($tallas as $talla)
-                    <option value="{{ $talla->id }}" @selected((int) old('producto_talla_id', $seleccionada) === $talla->id)>{{ $talla->producto->nombre }} · talla {{ $talla->talla_etiqueta }} (stock {{ $talla->stock }})</option>
+        {{-- [Sem 09 - Controladores y Middleware]: selects encadenados. El 1.º lista los productos (value = SKU, nunca el ID visible);
+             el 2.º se llena con JS (resources/js/app.js) usando el mapa data-tallas que arma el controlador. --}}
+        <div>
+            <label for="producto" class="kx-label">Producto *</label>
+            <select id="producto" name="producto" class="kx-input" required data-producto-abastecimiento>
+                <option value="">Selecciona un producto</option>
+                @foreach ($productos as $producto)
+                    <option value="{{ $producto->sku }}" @selected($productoSku === $producto->sku)>{{ $producto->nombre }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label for="producto_talla_id" class="kx-label">Talla *</label>
+            <select id="producto_talla_id" name="producto_talla_id" class="kx-input" required data-tallas='@json($tallasPorProducto)' @disabled($tallasIniciales->isEmpty())>
+                <option value="">{{ $productoSku ? 'Selecciona una talla' : 'Primero elige un producto' }}</option>
+                {{-- Las tallas del producto ya elegido se pintan desde el servidor para que "+ Reponer" llegue preseleccionado. --}}
+                @foreach ($tallasIniciales as $talla)
+                    <option value="{{ $talla['id'] }}" @selected($seleccionada === $talla['id'])>{{ $talla['texto'] }}</option>
                 @endforeach
             </select>
             @error('producto_talla_id') <p class="kx-error">{{ $message }}</p> @enderror

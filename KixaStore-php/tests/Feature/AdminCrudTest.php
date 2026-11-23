@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Categoria;
+use App\Models\Marca;
 use App\Models\OrdenAbastecimiento;
 use App\Models\Pedido;
 use App\Models\Producto;
@@ -119,6 +120,8 @@ class AdminCrudTest extends TestCase
             ->assertOk()
             ->assertSee('name="categoria_id"', false)
             ->assertSee('name="proveedor_id"', false)
+            ->assertSee('name="marca_id"', false)
+            ->assertSee('New Balance')
             ->assertSee('Hombre')
             ->assertSee($proveedor->razon_social);
     }
@@ -131,7 +134,7 @@ class AdminCrudTest extends TestCase
         $this->actingAs($this->admin)->post(route('admin.productos.store'), [
             'categoria_id' => $categoria->id,
             'proveedor_id' => $proveedor->id,
-            'marca' => 'Nike',
+            'marca_id' => Marca::where('nombre', 'Nike')->value('id'),
             'nombre' => 'Nike Air Max Test',
             'sku' => 'nik-test-01',
             'precio' => 499.90,
@@ -147,6 +150,9 @@ class AdminCrudTest extends TestCase
         $producto = Producto::where('sku', 'NIK-TEST-01')->first();
         $this->assertNotNull($producto);
         $this->assertSame('Air Max Test', $producto->modelo);
+        // La columna de texto 'marca' queda sincronizada con la FK para el catálogo.
+        $this->assertSame('Nike', $producto->marca);
+        $this->assertSame('Nike', $producto->marca()->first()->nombre);
         $this->assertCount(2, $producto->tallas);
         $this->assertSame(5, $producto->tallas()->where('talla', 40)->value('stock'));
     }
@@ -154,7 +160,7 @@ class AdminCrudTest extends TestCase
     public function test_crear_producto_sin_categoria_falla(): void
     {
         $this->actingAs($this->admin)->post(route('admin.productos.store'), [
-            'marca' => 'Nike',
+            'marca_id' => Marca::first()->id,
             'nombre' => 'Sin categoría',
             'sku' => 'SIN-CAT',
             'precio' => 100,
@@ -172,7 +178,7 @@ class AdminCrudTest extends TestCase
         $this->actingAs($this->admin)->put(route('admin.productos.update', $producto), [
             'categoria_id' => $producto->categoria_id,
             'proveedor_id' => $producto->proveedor_id,
-            'marca' => $producto->marca,
+            'marca_id' => $producto->marca_id,
             'nombre' => $producto->nombre,
             'sku' => $producto->sku,
             'precio' => 999.00,
@@ -203,29 +209,18 @@ class AdminCrudTest extends TestCase
         $this->actingAs($this->admin)->get(route('admin.home'))
             ->assertOk()
             ->assertSee('admin?marca=Jordan#alertas', false)
-            ->assertSee('Alertas de Inventario Crítico')
+            ->assertSee('Alertas de Stock Crítico')
             ->assertDontSee('Jordan Jordan')
             ->assertDontSee('Nike Nike');
     }
 
-    public function test_dashboard_limita_alertas_a_8_y_filtra_por_marca_en_el_servidor(): void
+    public function test_dashboard_limita_alertas_a_5_y_filtra_por_marca_en_el_servidor(): void
     {
         $respuesta = $this->actingAs($this->admin)->get(route('admin.home', ['marca' => 'Jordan']));
         $respuesta->assertOk();
         $alertas = $respuesta->viewData('alertas');
-        $this->assertLessThanOrEqual(8, $alertas->count());
+        $this->assertLessThanOrEqual(5, $alertas->count());
         $this->assertTrue($alertas->every(fn ($t) => $t->producto->marca === 'Jordan'));
-    }
-
-    public function test_tallas_filtra_por_estado_marca_y_busqueda(): void
-    {
-        $respuesta = $this->actingAs($this->admin)->get(route('admin.tallas.index', ['estado' => 'agotado']));
-        $respuesta->assertOk();
-        $this->assertTrue($respuesta->viewData('tallas')->every(fn ($t) => $t->stock === 0));
-
-        $producto = Producto::first();
-        $porSku = $this->actingAs($this->admin)->get(route('admin.tallas.index', ['q' => $producto->sku, 'marca' => $producto->marca]));
-        $this->assertTrue($porSku->viewData('tallas')->every(fn ($t) => $t->producto_id === $producto->id));
     }
 
     public function test_abastecimiento_muestra_kpis_y_reponer_preselecciona_talla(): void
@@ -237,7 +232,27 @@ class AdminCrudTest extends TestCase
         $talla = ProductoTalla::with('producto')->first();
         $this->actingAs($this->admin)
             ->get(route('admin.abastecimiento.create', ['producto' => $talla->producto->sku, 'talla' => $talla->talla]))
-            ->assertOk()->assertSee('value="' . $talla->id . '" selected', false);
+            ->assertOk()
+            // Selects encadenados: el producto (por SKU) y su talla llegan preseleccionados.
+            ->assertSee('value="' . $talla->producto->sku . '" selected', false)
+            ->assertSee('value="' . $talla->id . '" selected', false)
+            ->assertSee('Talla ' . $talla->talla_etiqueta . ' — Stock: ' . $talla->stock);
+    }
+
+    public function test_abastecimiento_create_solo_lista_tallas_del_producto_elegido(): void
+    {
+        $producto = Producto::with('tallas')->first();
+        $otraTalla = ProductoTalla::where('producto_id', '!=', $producto->id)->first();
+
+        $respuesta = $this->actingAs($this->admin)->get(route('admin.abastecimiento.create', ['producto' => $producto->sku]));
+        $respuesta->assertOk()
+            ->assertSee('data-producto-abastecimiento', false)
+            ->assertDontSee('<option value="' . $otraTalla->id . '"', false);
+        $this->assertCount($producto->tallas->count(), $respuesta->viewData('tallasIniciales'));
+
+        // Sin producto elegido, el select de tallas sale deshabilitado y vacío.
+        $this->actingAs($this->admin)->get(route('admin.abastecimiento.create'))
+            ->assertOk()->assertSee('Primero elige un producto');
     }
 
     // ---------- Restricción: el admin no compra ----------
@@ -314,11 +329,11 @@ class AdminCrudTest extends TestCase
 
     public function test_buscador_de_proveedores_filtra_por_razon_social_y_ruc(): void
     {
-        $this->actingAs($this->admin)->get(route('admin.proveedores.index', ['buscar' => 'Nike']))
-            ->assertOk()->assertSee('Nike Perú')->assertDontSee('Adidas Perú');
+        $this->actingAs($this->admin)->get(route('admin.proveedores.index', ['buscar' => 'Deportiva']))
+            ->assertOk()->assertSee('Distribuidora Deportiva Perú')->assertDontSee('Importadora Andina');
 
         $this->actingAs($this->admin)->get(route('admin.proveedores.index', ['buscar' => '20345678912']))
-            ->assertOk()->assertSee('Adidas Perú')->assertDontSee('Nike Perú');
+            ->assertOk()->assertSee('Importadora Andina')->assertDontSee('Distribuidora Deportiva');
     }
 
     public function test_admin_crea_proveedor(): void
@@ -387,64 +402,92 @@ class AdminCrudTest extends TestCase
             ->assertSee('Talla EU');
     }
 
-    // ---------- Mantenimiento 4: Tallas y Stock ----------
+    // ---------- Mantenimiento 4: Marcas ----------
 
-    public function test_listado_de_tallas_muestra_nombre_de_producto_y_filtra(): void
+    public function test_listado_de_marcas_muestra_nombre_y_conteo_sin_ids(): void
     {
-        $talla = ProductoTalla::with('producto')->first();
-        $otra = ProductoTalla::with('producto')->where('producto_id', '!=', $talla->producto_id)->first();
+        $nike = Marca::withCount('productos')->where('slug', 'nike')->first();
 
-        $this->actingAs($this->admin)->get(route('admin.tallas.index'))
-            ->assertOk()->assertSee($talla->producto->nombre);
-
-        $this->actingAs($this->admin)->get(route('admin.tallas.index', ['producto' => $talla->producto->sku]))
-            ->assertOk()->assertSee($talla->producto->nombre)->assertDontSee('>' . $otra->producto->nombre . '</td>', false);
+        $respuesta = $this->actingAs($this->admin)->get(route('admin.marcas.index'));
+        $respuesta->assertOk()
+            ->assertSee('Nike')
+            ->assertSee('New Balance')
+            ->assertDontSee('<th class="kx-th">ID</th>', false);
+        $this->assertGreaterThan(0, $nike->productos_count);
+        $this->assertSame($nike->productos_count, $respuesta->viewData('marcas')->firstWhere('slug', 'nike')->productos_count);
     }
 
-    public function test_filtro_stock_bajo_solo_muestra_tallas_con_dos_o_menos(): void
+    public function test_seeder_asigna_marca_a_todos_los_productos(): void
     {
-        $producto = Producto::first();
-        ProductoTalla::where('producto_id', $producto->id)->delete();
-        ProductoTalla::create(['producto_id' => $producto->id, 'talla' => 40, 'stock' => 1]);
-        ProductoTalla::create(['producto_id' => $producto->id, 'talla' => 41, 'stock' => 50]);
-
-        $respuesta = $this->actingAs($this->admin)->get(route('admin.tallas.index', ['producto' => $producto->sku, 'stock' => 'bajo']));
-        $respuesta->assertOk();
-        $this->assertCount(1, $respuesta->viewData('tallas'));
+        $this->assertSame(9, Marca::count());
+        $this->assertSame(0, Producto::whereNull('marca_id')->count());
+        // La columna de texto coincide con el nombre de la marca relacionada.
+        $this->assertTrue(Producto::with('marca')->get()->every(fn ($p) => $p->marca === $p->getRelation('marca')->nombre));
     }
 
-    public function test_admin_crea_edita_y_elimina_talla(): void
+    public function test_buscador_de_marcas_filtra_por_nombre(): void
     {
-        $producto = Producto::first();
-
-        $this->actingAs($this->admin)->post(route('admin.tallas.store'), ['producto_id' => $producto->id, 'talla' => 48.5, 'stock' => 7])
-            ->assertRedirect(route('admin.tallas.index'));
-        $this->assertDatabaseHas('producto_tallas', ['producto_id' => $producto->id, 'talla' => 48.5, 'stock' => 7]);
-
-        $talla = ProductoTalla::where('producto_id', $producto->id)->where('talla', 48.5)->first();
-        $this->actingAs($this->admin)->get(route('admin.tallas.edit', [$producto, $talla->talla]))->assertOk();
-
-        $this->actingAs($this->admin)->put(route('admin.tallas.update', [$producto, $talla->talla]), ['producto_id' => $producto->id, 'talla' => 48.5, 'stock' => 20])
-            ->assertRedirect(route('admin.tallas.index'));
-        $this->assertDatabaseHas('producto_tallas', ['id' => $talla->id, 'stock' => 20]);
-
-        $this->actingAs($this->admin)->delete(route('admin.tallas.destroy', [$producto, $talla->talla]))->assertRedirect(route('admin.tallas.index'));
-        $this->assertDatabaseMissing('producto_tallas', ['id' => $talla->id]);
+        $respuesta = $this->actingAs($this->admin)->get(route('admin.marcas.index', ['buscar' => 'bal']));
+        $respuesta->assertOk()->assertSee('New Balance');
+        $this->assertSame(['New Balance'], $respuesta->viewData('marcas')->pluck('nombre')->all());
     }
 
-    public function test_talla_valida_duplicado_y_stock_negativo(): void
+    public function test_admin_crea_marca_con_slug_automatico(): void
     {
-        $existente = ProductoTalla::first();
+        $this->actingAs($this->admin)->get(route('admin.marcas.create'))->assertOk()->assertSee('name="logo_archivo"', false);
 
-        $this->actingAs($this->admin)->post(route('admin.tallas.store'), ['producto_id' => $existente->producto_id, 'talla' => $existente->talla, 'stock' => 1])
-            ->assertSessionHasErrors('talla');
-        $this->actingAs($this->admin)->post(route('admin.tallas.store'), ['producto_id' => $existente->producto_id, 'talla' => 49, 'stock' => -1])
-            ->assertSessionHasErrors('stock');
+        $this->actingAs($this->admin)->post(route('admin.marcas.store'), ['nombre' => 'Under Armour', 'activo' => '1'])
+            ->assertRedirect(route('admin.marcas.index'));
+
+        $this->assertDatabaseHas('marcas', ['nombre' => 'Under Armour', 'slug' => 'under-armour', 'activo' => true, 'logo' => null]);
     }
 
-    public function test_cliente_no_accede_a_tallas_ni_abastecimiento(): void
+    public function test_marca_valida_nombre_requerido_y_unico(): void
     {
-        $this->actingAs($this->cliente)->get(route('admin.tallas.index'))->assertRedirect(route('home'));
+        $this->actingAs($this->admin)->post(route('admin.marcas.store'), ['nombre' => ''])->assertSessionHasErrors('nombre');
+        $this->actingAs($this->admin)->post(route('admin.marcas.store'), ['nombre' => 'Nike'])->assertSessionHasErrors('nombre');
+        $this->actingAs($this->admin)->post(route('admin.marcas.store'), ['nombre' => 'new-balance'])->assertSessionHasErrors('nombre');
+        $this->assertSame(9, Marca::count());
+    }
+
+    public function test_admin_edita_marca_por_slug_y_sincroniza_productos(): void
+    {
+        $marca = Marca::where('slug', 'dc-shoes')->first();
+        $this->assertStringContainsString('/marcas/dc-shoes/edit', route('admin.marcas.edit', $marca));
+
+        $this->actingAs($this->admin)->get(route('admin.marcas.edit', $marca))->assertOk()->assertSee('DC Shoes');
+
+        $this->actingAs($this->admin)->put(route('admin.marcas.update', $marca), ['nombre' => 'DC', 'activo' => '1'])
+            ->assertRedirect(route('admin.marcas.index'));
+
+        $this->assertDatabaseHas('marcas', ['id' => $marca->id, 'nombre' => 'DC', 'slug' => 'dc']);
+        $this->assertSame(0, Producto::where('marca', 'DC Shoes')->count());
+        $this->assertGreaterThan(0, Producto::where('marca', 'DC')->count());
+    }
+
+    public function test_admin_activa_y_desactiva_marca_sin_borrarla(): void
+    {
+        $marca = Marca::where('slug', 'umbro')->first();
+
+        $this->actingAs($this->admin)->patch(route('admin.marcas.estado', $marca))->assertRedirect();
+        $this->assertDatabaseHas('marcas', ['slug' => 'umbro', 'activo' => false]);
+
+        // Una marca inactiva ya no aparece para productos nuevos ni se acepta al guardarlos.
+        $this->actingAs($this->admin)->get(route('admin.productos.create'))->assertOk()->assertDontSee('>Umbro</option>', false);
+        $this->actingAs($this->admin)->post(route('admin.productos.store'), [
+            'categoria_id' => Categoria::first()->id,
+            'marca_id' => $marca->id,
+            'nombre' => 'Umbro Test',
+            'precio' => 100,
+        ])->assertSessionHasErrors('marca_id');
+
+        $this->actingAs($this->admin)->patch(route('admin.marcas.estado', $marca))->assertRedirect();
+        $this->assertDatabaseHas('marcas', ['slug' => 'umbro', 'activo' => true]);
+    }
+
+    public function test_cliente_no_accede_a_marcas_ni_abastecimiento(): void
+    {
+        $this->actingAs($this->cliente)->get(route('admin.marcas.index'))->assertRedirect(route('home'));
         $this->actingAs($this->cliente)->get(route('admin.abastecimiento.index'))->assertRedirect(route('home'));
     }
 
@@ -532,7 +575,22 @@ class AdminCrudTest extends TestCase
         $this->actingAs($this->admin)->get(route('admin.home'))
             ->assertOk()
             ->assertSee('id="graficoVentas"', false)
+            ->assertSee('data-rango="30"', false)
             ->assertSee('chart.js', false);
+    }
+
+    public function test_dashboard_grafica_productos_por_marca_e_ingresos_de_30_dias(): void
+    {
+        $respuesta = $this->actingAs($this->admin)->get(route('admin.home'));
+        $respuesta->assertOk()
+            ->assertSee('Productos por Marca')
+            ->assertSee('id="graficoMarcas"', false)
+            ->assertSee('Disponibilidad de Stock');
+
+        $marcas = $respuesta->viewData('productosPorMarca');
+        $this->assertTrue($marcas->contains('marca', 'Nike'));
+        $this->assertSame(\App\Models\Producto::where('marca', 'Jordan')->count(), $marcas->firstWhere('marca', 'Jordan')['cantidad']);
+        $this->assertCount(30, $respuesta->viewData('grafico'));
     }
 
     public function test_cliente_no_entra_al_resto_del_panel(): void

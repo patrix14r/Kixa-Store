@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
                 ['texto' => 'Categorías', 'ruta' => route('admin.categorias.index'), 'icono' => 'fa-solid fa-tags', 'activo' => request()->routeIs('admin.categorias.*')],
                 ['texto' => 'Productos', 'ruta' => route('admin.productos.index'), 'icono' => 'svg-paquete', 'activo' => request()->routeIs('admin.productos.*')],
                 ['texto' => 'Proveedores', 'ruta' => route('admin.proveedores.index'), 'icono' => 'fa-solid fa-truck', 'activo' => request()->routeIs('admin.proveedores.*')],
-                ['texto' => 'Tallas y Stock', 'ruta' => route('admin.tallas.index'), 'icono' => 'fa-solid fa-ruler', 'activo' => request()->routeIs('admin.tallas.*')],
+                ['texto' => 'Marcas', 'ruta' => route('admin.marcas.index'), 'icono' => 'fa-solid fa-copyright', 'activo' => request()->routeIs('admin.marcas.*')],
             ]);
             $vista->with('menuOperaciones', [
                 ['texto' => 'Abastecimiento', 'ruta' => route('admin.abastecimiento.index'), 'icono' => 'fa-solid fa-boxes-stacked', 'activo' => request()->routeIs('admin.abastecimiento.*')],
@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
 
             // Alertas reales para la campanita (tallas agotadas, críticas y últimos pedidos)
             $agotadas = ProductoTalla::where('stock', 0)->count();
-            $criticas = ProductoTalla::whereBetween('stock', [1, 2])->count();
+            $criticas = ProductoTalla::whereBetween('stock', [1, ProductoTalla::STOCK_CRITICO])->count();
             $ultimosPedidos = Pedido::with('usuario')->latest()->take(5)->get();
 
             $vista->with('notificaciones', [

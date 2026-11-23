@@ -86,15 +86,17 @@ if (campoSku && campoSku.hasAttribute('data-sku-auto')) {
     const marca = document.getElementById('marca');
     const nombre = document.getElementById('nombre');
     const parte = (texto, n) => aSlug(texto).replace(/-/g, '').toUpperCase().slice(0, n).padEnd(n, 'X');
+    // La marca es un <select>: el texto sale del data-nombre de la opción elegida (el value es la FK).
+    const textoMarca = () => marca.selectedOptions?.[0]?.dataset.nombre || '';
     const generar = () => {
-        if (!marca.value.trim() || !nombre.value.trim()) return;
+        if (!textoMarca() || !nombre.value.trim()) return;
         const palabras = aSlug(nombre.value).split('-').filter(Boolean);
         const sufijo = (palabras.slice(1).join('') + Math.random().toString(36).slice(2)).toUpperCase().slice(-3);
-        campoSku.value = `${parte(marca.value, 3)}-${parte(palabras[0] || nombre.value, 3)}-${sufijo}`;
+        campoSku.value = `${parte(textoMarca(), 3)}-${parte(palabras[0] || nombre.value, 3)}-${sufijo}`;
     };
     let skuManual = campoSku.value !== '';
     campoSku.addEventListener('input', () => { skuManual = campoSku.value !== ''; });
-    [marca, nombre].forEach((c) => c.addEventListener('input', () => { if (!skuManual) generar(); }));
+    [marca, nombre].forEach((c) => c.addEventListener(c === marca ? 'change' : 'input', () => { if (!skuManual) generar(); }));
     document.getElementById('btn-autogenerar-sku')?.addEventListener('click', () => { skuManual = false; generar(); });
 }
 
@@ -126,3 +128,18 @@ modalVista?.addEventListener('click', (e) => {
         modalVista.classList.remove('flex');
     }
 });
+
+// Abastecimiento: selects encadenados Producto -> Talla.
+// data-tallas trae { SKU: [{ id, texto }] } desde el controlador; al cambiar el producto se reconstruyen las opciones de talla.
+const selectProducto = document.querySelector('[data-producto-abastecimiento]');
+const selectTalla = document.getElementById('producto_talla_id');
+if (selectProducto && selectTalla?.dataset.tallas) {
+    const tallasPorProducto = JSON.parse(selectTalla.dataset.tallas);
+    selectProducto.addEventListener('change', () => {
+        const tallas = tallasPorProducto[selectProducto.value] || [];
+        selectTalla.innerHTML = '';
+        selectTalla.add(new Option(selectProducto.value ? (tallas.length ? 'Selecciona una talla' : 'Este producto no tiene tallas') : 'Primero elige un producto', ''));
+        tallas.forEach((t) => selectTalla.add(new Option(t.texto, t.id)));
+        selectTalla.disabled = tallas.length === 0;
+    });
+}

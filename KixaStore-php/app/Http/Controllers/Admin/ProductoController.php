@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Categoria;
+use App\Models\Marca;
 use App\Models\Producto;
+use App\Models\ProductoTalla;
 use App\Models\Proveedor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -42,7 +44,7 @@ class ProductoController extends Controller
             ->when($estado === 'destacados', fn ($q) => $q->where('destacado', true))
             ->when($estado === 'ofertas', fn ($q) => $q->where('en_oferta', true))
 
-            ->when($stock === 'critico', fn ($q) => $q->whereHas('tallas', fn ($t) => $t->where('stock', '<=', 2)))
+            ->when($stock === 'critico', fn ($q) => $q->whereHas('tallas', fn ($t) => $t->where('stock', '<=', ProductoTalla::STOCK_CRITICO)))
             ->orderBy('nombre')
             ->paginate(10)
             ->withQueryString();
@@ -59,7 +61,7 @@ class ProductoController extends Controller
         $producto = new Producto(['activo' => true]);
         $tallas = collect(self::TALLAS_ADULTO)->map(fn ($t) => ['talla' => $t, 'stock' => 0])->all();
 
-        return view('admin.productos.create', array_merge($this->opciones(), compact('producto', 'tallas')));
+        return view('admin.productos.create', array_merge($this->opciones($producto), compact('producto', 'tallas')));
     }
 
     // store (POST): DB::transaction guarda el producto y sus tallas juntos; si algo falla no queda nada a medias.
@@ -86,7 +88,7 @@ class ProductoController extends Controller
             $tallas = collect($base)->map(fn ($t) => ['talla' => $t, 'stock' => 0])->all();
         }
 
-        return view('admin.productos.edit', array_merge($this->opciones(), compact('producto', 'tallas')));
+        return view('admin.productos.edit', array_merge($this->opciones($producto), compact('producto', 'tallas')));
     }
 
     // update (PUT): misma transacción que store, pero con $producto->update().
@@ -110,13 +112,15 @@ class ProductoController extends Controller
         return back()->with('exito', 'Estado de ' . $producto->nombre . ' actualizado.');
     }
 
-    // opciones() es privado (no es ruta) y lo reutilizan create y edit: devuelve las listas ordenadas por nombre para llenar los <select> de categoría y proveedor.
-    // Así la vista muestra $cat->nombre y $prov->razon_social, y el value interno es el id solo para la FK. Solo se listan proveedores activos.
-    private function opciones(): array
+    // opciones() es privado (no es ruta) y lo reutilizan create y edit: devuelve las listas ordenadas por nombre para llenar los <select> de categoría, proveedor y marca.
+    // Así la vista muestra $cat->nombre, $prov->razon_social y $m->nombre, y el value interno es el id solo para la FK. Solo se listan proveedores y marcas activos
+    // (más la marca actual del producto, por si fue desactivada después, para no perderla al editar).
+    private function opciones(Producto $producto): array
     {
         return [
             'categorias'  => Categoria::orderBy('nombre')->get(),
             'proveedores' => Proveedor::where('activo', true)->orderBy('razon_social')->get(),
+            'marcas'      => Marca::where('activo', true)->orWhere('id', $producto->marca_id)->orderBy('nombre')->get(),
         ];
     }
 
@@ -126,7 +130,8 @@ class ProductoController extends Controller
         $datos = $request->validate([
             'categoria_id'      => ['required', 'exists:categorias,id'],
             'proveedor_id'      => ['nullable', 'exists:proveedores,id'],
-            'marca'             => ['required', 'string', 'max:50'],
+            // La marca llega como FK y debe estar activa (o ser la que el producto ya tenía).
+            'marca_id'          => ['required', Rule::exists('marcas', 'id')->where(fn ($q) => $q->where('activo', true)->orWhere('id', $producto?->marca_id))],
             'nombre'            => ['required', 'string', 'max:120'],
             'subcategoria'      => ['nullable', 'string', 'max:50'],
             'sku'               => ['nullable', 'string', 'max:30', 'alpha_dash', Rule::unique('productos', 'sku')->ignore($producto)],
@@ -143,9 +148,13 @@ class ProductoController extends Controller
         ], [], [
             'categoria_id' => 'categoría',
             'proveedor_id' => 'proveedor',
+            'marca_id' => 'marca',
             'imagen_archivo' => 'imagen',
             'galeria_archivos.*' => 'imagen secundaria',
         ]);
+
+        // Sincroniza la columna de texto 'marca' con el nombre de la marca elegida: el catálogo y sus filtros la siguen usando.
+        $datos['marca'] = Marca::whereKey($datos['marca_id'])->value('nombre');
 
         $datos['sku'] = strtoupper($datos['sku'] ?? '') ?: $this->generarSku($datos['marca'], $datos['nombre']);
 

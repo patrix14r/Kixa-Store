@@ -2,11 +2,11 @@
 use App\Http\Controllers\Admin\CategoriaController;
 use App\Http\Controllers\Admin\AbastecimientoController;
 use App\Http\Controllers\Admin\ClienteController;
+use App\Http\Controllers\Admin\MarcaController;
 use App\Http\Controllers\Admin\PedidoController;
 use App\Http\Controllers\Admin\PerfilController;
 use App\Http\Controllers\Admin\ProductoController;
 use App\Http\Controllers\Admin\ProveedorController;
-use App\Http\Controllers\Admin\TallaController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CarritoController;
@@ -83,14 +83,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::put('perfil', [PerfilController::class, 'update'])->name('perfil.update');
     Route::put('perfil/password', [PerfilController::class, 'password'])->name('perfil.password');
 
-    // CRUD 4: tallas y stock. Una talla no tiene slug propio, así que la URL lleva el SKU del producto y el número de talla
-    // (/admin/tallas/{producto}/{talla}/edit) y el controlador la busca con $producto->tallas(); así no se expone ningún ID.
-    Route::get('tallas', [TallaController::class, 'index'])->name('tallas.index');
-    Route::get('tallas/create', [TallaController::class, 'create'])->name('tallas.create');
-    Route::post('tallas', [TallaController::class, 'store'])->name('tallas.store');
-    Route::get('tallas/{producto}/{talla}/edit', [TallaController::class, 'edit'])->name('tallas.edit');
-    Route::put('tallas/{producto}/{talla}', [TallaController::class, 'update'])->name('tallas.update');
-    Route::delete('tallas/{producto}/{talla}', [TallaController::class, 'destroy'])->name('tallas.destroy');
+    // [Sem 13 - CRUDs, Query Builder y Paginación]: CRUD 4 (marcas) con Route::resource sin show ni destroy; la baja lógica va por PATCH .../estado.
+    // El binding usa el slug (Marca::getRouteKeyName), así la URL queda /admin/marcas/new-balance/edit sin exponer IDs.
+    Route::resource('marcas', MarcaController::class)->except(['show', 'destroy'])
+        ->parameters(['marcas' => 'marca']);
+    Route::patch('marcas/{marca}/estado', [MarcaController::class, 'estado'])->name('marcas.estado');
 
     // Proceso secundario: abastecimiento. El parámetro {orden} se resuelve por código de lote (OrdenAbastecimiento::getRouteKeyName).
     Route::get('abastecimiento', [AbastecimientoController::class, 'index'])->name('abastecimiento.index');

@@ -85,7 +85,7 @@
     <div class="kx-card mt-6 overflow-x-auto">
         <div class="flex items-center justify-between px-5 pt-5">
             <h2 class="text-lg font-bold">Más urgentes</h2>
-            <a href="{{ route('admin.tallas.index', ['estado' => 'critico']) }}" class="text-sm text-indigo-400 hover:underline">Ver todas en Tallas y Stock</a>
+            <a href="{{ route('admin.productos.index', ['stock' => 'critico']) }}" class="text-sm text-indigo-400 hover:underline">Ver productos con stock crítico</a>
         </div>
         <table class="mt-3 w-full text-sm">
             <thead><tr><th class="kx-th">Producto</th><th class="kx-th">Talla</th><th class="kx-th">Stock</th><th class="kx-th text-right">Acción</th></tr></thead>

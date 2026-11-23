@@ -13,6 +13,9 @@ class ProductoTalla extends Model
 {
     protected $table = 'producto_tallas';
 
+    // Umbral de stock crítico (2 o menos) que comparten dashboard, productos y abastecimiento.
+    public const STOCK_CRITICO = 2;
+
     protected $fillable = ['producto_id', 'talla', 'stock'];
 
     // casts() deja la talla con un decimal (39.5) y el stock como entero.
