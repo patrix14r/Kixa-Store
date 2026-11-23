@@ -14,8 +14,8 @@ Tienda de zapatillas con dos modos: **Cliente** (catálogo, carrito, checkout, p
 ## 2. Stack
 
 - PHP ^8.3, Laravel 13, MySQL, Vite 8.
-- Admin: Tailwind CSS 4 (`resources/css/app.css` + `resources/js/app.js`, cargados con `@vite`).
-- Cliente: CSS modular en `public/css/*.css` (`diseño.css` es la base) y JS plano en `public/js/*.js`.
+- Cliente y Admin: Tailwind CSS 4 compilado con Vite (`resources/css/app.css` + `resources/js/app.js`, cargados con `@vite` en `layouts/app.blade.php` y `layouts/admin.blade.php`). Ya no existe `public/css/`.
+- Cliente: utilidades de Tailwind directamente en las vistas; JS plano en `public/js/*.js` (Tailwind también escanea esos archivos con `@source`).
 - Tests: `tests/Feature/AdminCrudTest.php` (CRUDs 1-4, abastecimiento, dashboard) y `AuthAndCatalogTest.php`.
 
 ## 3. Base de datos (migraciones en `database/migrations/`)
@@ -76,7 +76,7 @@ Todos usan el atributo `#[Fillable([...])]`, `casts()` como método y `#[Scope]`
 - `layouts/app.blade.php` (cliente: top bar limpia con `Acerca de`, `Ubícanos` -> `/nosotros#ubicanos` e `Iniciar sesión`) y `layouts/admin.blade.php` (admin con sidebar).
 - `auth/_portada.blade.php` (parcial en español para login y registro).
 - `admin/<modulo>/{index,create,edit}.blade.php` + parcial `_formulario.blade.php` compartido por crear y editar.
-- `components/`: `alerta`, `tarjeta-producto`, `admin/estado-pedido`, `admin/seguimiento-pedido`.
+- `components/`: `alerta`, `tarjeta-producto`, `filtro-catalogo`, `pregunta-frecuente`, `admin/estado-pedido`, `admin/seguimiento-pedido`.
 
 ## 8. Reglas de la rúbrica (Laboratorio 13 y Entrega Final)
 
@@ -88,7 +88,9 @@ Todos usan el atributo `#[Fillable([...])]`, `casts()` como método y `#[Scope]`
 ## 9. Diseño
 
 - **Admin:** Tailwind CSS v4 con tema oscuro neutro: fondo `#09090b`, tarjetas `#121215`, bordes `zinc-800/80`, acento índigo `#6366f1`. Sin tema rojo de marca (el rojo solo se reserva para etiquetas de "Agotado" o errores críticos de validación). Clases propias `kx-*` definidas en `resources/css/app.css`.
-- **Cliente:** estilo retail deportivo editorial limpio (modo claro, blanco/negro/grises neutros). Títulos con `font-weight: 800` y `letter-spacing: -0.03em`, secciones con `padding: 64px 5%`. Tarjetas de calzado con imagen `aspect-ratio: 1/1`, fondo `#f5f5f7`, `object-fit: contain`.
+- **Cliente:** estilo retail deportivo editorial limpio (modo claro, blanco/negro/grises neutros), hecho con utilidades de Tailwind en cada vista. Tema propio en `@theme` de `app.css`: colores `tinta` (#111), `suave` (#707072), `perla` (#f5f5f7), `carbon` (#121215), `noche` (#09090b), `exito` (#059669); fuente `font-jakarta` (Plus Jakarta Sans); `--spacing-navbar` (76px) y breakpoint `escritorio` (769px, usar `max-escritorio:` para teléfonos). Tarjetas de calzado con imagen `aspect-square`, fondo `bg-perla`, `object-contain`.
+- Solo los estados que cambia JavaScript en el cliente (carrusel `.kx-carrusel .slide.*` y drawer de filtros `.kx-catalogo-cuerpo` / `.kx-filtros` / `.kx-grid`) van en `@layer components` de `app.css`; no reutilices en el cliente las clases `kx-*` del admin (`kx-card`, `kx-btn`, `kx-input`…).
+- Usa tamaños de texto arbitrarios (`text-[15px]`) en el cliente: los nombres `text-sm`, `text-base`… cambian también el `line-height`.
 - En `resources/views/cliente/` conserva intactos los IDs y clases que usa `public/js/carrito.js`.
 
 ## 10. Comentarios de estudio

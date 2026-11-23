@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Marca;
+use App\Models\Categoria;
 use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\ProductoTalla;
@@ -10,66 +10,64 @@ use App\Models\Rol;
 use App\Models\User;
 use Illuminate\Http\Request;
 
-// [Sem 09 - Controladores y Middleware]: Dashboard del admin; el controlador calcula totales, gráficos y alertas y la vista solo los muestra.
+// [Semana 9-10: Controladores, Request y Componentes] Dashboard del admin: calcula totales y alertas con Eloquent y la vista solo los muestra.
 class AdminController extends Controller
 {
-    // [Sem 12 - Eloquent ORM]: count()/sum(), withCount('productos') por marca y relaciones con with() para evitar consultas N+1.
+    // Cuenta clientes, pedidos y ventas con count()/sum() y agrupa productos por categoría con withCount().
     public function home(Request $request)
     {
-        // Bloque superior: KPI de clientes y pedidos.
         $rolCliente = Rol::where('nombre', 'cliente')->value('id');
         $totalClientes = User::where('rol_id', $rolCliente)->count();
+
         $totalPedidos = Pedido::count();
-        $pedidosPendientes = Pedido::where('estado', 'Pendiente')->count();
+        $totalVentas = (float) Pedido::sum('total');
 
-        // Gráfico de barras: productos por marca (CRUD 4), de la marca con más productos a la de menos.
-        $productosPorMarca = Marca::activos()
-            ->withCount('productos')
-            ->orderByDesc('productos_count')
-            ->get()
-            ->map(fn ($marca) => ['marca' => $marca->nombre, 'cantidad' => $marca->productos_count])
-            ->values();
+        $totalProductos = Producto::count();
+        $stockCritico = ProductoTalla::with('producto')->where('stock', '<=', 2)->orderBy('stock')->get();
+        $marcasFiltro = ['Nike', 'Jordan', 'Adidas', 'Puma', 'Umbro'];
 
-        // Tarjeta "Disponibilidad de Stock": % de tallas con stock + 3 métricas compactas.
+        // Alertas: las 8 más urgentes; ?marca= filtra en el servidor (solo marcas de la lista cerrada).
+        $marcaActiva = in_array($request->query('marca'), $marcasFiltro, true) ? $request->query('marca') : null;
+        $alertas = ProductoTalla::with('producto')
+            ->where('stock', '<=', 2)
+            ->when($marcaActiva, fn ($q) => $q->whereHas('producto', fn ($p) => $p->where('marca', $marcaActiva)))
+            ->orderBy('stock')
+            ->limit(8)
+            ->get();
+
+        $pedidosRecientes = Pedido::with('usuario')->latest()->limit(5)->get();
+
         $totalTallas = ProductoTalla::count();
         $tallasConStock = ProductoTalla::where('stock', '>', 0)->count();
-        $tallasAgotadas = $totalTallas - $tallasConStock;
         $disponibilidad = $totalTallas > 0 ? round($tallasConStock / $totalTallas * 100, 2) : 0;
-        $totalVentas = (float) Pedido::where('estado', '!=', 'Cancelado')->sum('total');
-        $totalProductos = Producto::count();
 
-        // Bloque medio: ingresos diarios de los últimos 30 días (sin cancelados); el JS muestra 7 o 30 días según la pestaña.
-        $pedidosMes = Pedido::where('estado', '!=', 'Cancelado')
-            ->where('created_at', '>=', now()->subDays(29)->startOfDay())
+        $porCategoria = Categoria::withCount('productos')->get();
+        $maxCategoria = max(1, (int) $porCategoria->max('productos_count'));
+        $barras = $porCategoria->map(fn ($c) => [
+            'nombre' => $c->nombre,
+            'cantidad' => $c->productos_count,
+            'altura' => round($c->productos_count / $maxCategoria * 100),
+        ]);
+
+        // Ingresos de los últimos 7 días (sin contar cancelados) para el gráfico lineal de Chart.js.
+        $pedidosSemana = Pedido::where('estado', '!=', 'Cancelado')
+            ->where('created_at', '>=', now()->subDays(6)->startOfDay())
             ->get()
             ->groupBy(fn ($pedido) => $pedido->created_at->toDateString());
 
-        $grafico = collect(range(29, 0))->map(function ($atras) use ($pedidosMes) {
+        $grafico = collect(range(6, 0))->map(function ($atras) use ($pedidosSemana) {
             $dia = now()->subDays($atras);
+            $delDia = $pedidosSemana->get($dia->toDateString(), collect());
 
             return [
                 'dia' => $dia->format('d/m'),
-                'ingresos' => round((float) $pedidosMes->get($dia->toDateString(), collect())->sum('total'), 2),
+                'ingresos' => round((float) $delDia->sum('total'), 2),
             ];
         })->values();
 
-        // Bloque inferior izquierdo: las 5 alertas más urgentes; ?marca= filtra en el servidor (solo marcas de la lista cerrada).
-        $marcasFiltro = ['Nike', 'Jordan', 'Adidas', 'Puma', 'Umbro'];
-        $marcaActiva = in_array($request->query('marca'), $marcasFiltro, true) ? $request->query('marca') : null;
-        $alertas = ProductoTalla::with('producto')
-            ->where('stock', '<=', ProductoTalla::STOCK_CRITICO)
-            ->when($marcaActiva, fn ($q) => $q->whereHas('producto', fn ($p) => $p->where('marca', $marcaActiva)))
-            ->orderBy('stock')
-            ->limit(5)
-            ->get();
-
-        // Bloque inferior derecho: 5 pedidos más recientes con su cliente y productos (para la miniatura del primero).
-        $pedidosRecientes = Pedido::with(['usuario', 'items.producto'])->latest()->limit(5)->get();
-
         return view('admin.home', compact(
-            'totalClientes', 'totalPedidos', 'pedidosPendientes', 'productosPorMarca',
-            'disponibilidad', 'tallasConStock', 'totalTallas', 'tallasAgotadas', 'totalVentas', 'totalProductos',
-            'grafico', 'marcasFiltro', 'marcaActiva', 'alertas', 'pedidosRecientes'
+            'totalClientes', 'totalPedidos', 'totalVentas', 'totalProductos',
+            'stockCritico', 'marcasFiltro', 'marcaActiva', 'alertas', 'pedidosRecientes', 'disponibilidad', 'tallasConStock', 'totalTallas', 'barras', 'grafico'
         ));
     }
 }

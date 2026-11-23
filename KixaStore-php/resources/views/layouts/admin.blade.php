@@ -8,7 +8,7 @@
     {{-- [Semana 8: Rutas y Herencia Blade] Layout maestro del admin: cada pantalla hija lo hereda con @extends('layouts.admin') y rellena @yield('titulo') y @yield('contenido'). --}}
     <title>@yield('titulo', 'Kixa Admin')</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> <!-- esto es para iconos -->
-    {{-- @vite carga el Tailwind compilado (resources/css/app.css) y resources/js/app.js; el Admin usa Tailwind y el Cliente usa CSS modular de public/css. --}}
+    {{-- @vite carga el Tailwind compilado (resources/css/app.css) y resources/js/app.js; el mismo Tailwind lo usa también el Modo Cliente (layouts/app.blade.php). --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#09090b] text-zinc-100 antialiased font-sans">

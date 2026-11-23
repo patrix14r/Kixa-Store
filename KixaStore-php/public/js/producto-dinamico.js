@@ -84,14 +84,15 @@ document.addEventListener("DOMContentLoaded", () => {
         addBtn.addEventListener("click", () => {
             // [CAMBIO: VALIDACION DE TALLA SELECCIONADA ANTES DE AGREGAR AL CARRITO]
             if (!selectedSize) {
-                // Aviso flotante + sacudida suave del bloque de tallas
+                // Aviso flotante + sacudida suave (animate-sacudir del tema) y borde rojo (ring) en el bloque de tallas
                 if (typeof kxToast === "function") kxToast("Selecciona una talla disponible antes de agregar al carrito.", "error");
                 const bloqueTallas = document.getElementById("sizes");
                 if (bloqueTallas) {
-                    bloqueTallas.classList.remove("kx-sacudir");
+                    const alerta = ["ring-2", "ring-agotado/45"];
+                    bloqueTallas.classList.remove("animate-sacudir");
                     void bloqueTallas.offsetWidth;
-                    bloqueTallas.classList.add("kx-sacudir", "kx-tallas-alerta");
-                    setTimeout(() => bloqueTallas.classList.remove("kx-tallas-alerta"), 1600);
+                    bloqueTallas.classList.add("animate-sacudir", ...alerta);
+                    setTimeout(() => bloqueTallas.classList.remove(...alerta), 1600);
                 }
                 return;
             }
@@ -163,7 +164,7 @@ function mostrarModalCarrito(item, tipo, carrito) {
 
     modal.hidden = false;
     requestAnimationFrame(() => modal.classList.add("abierto"));
-    modal.querySelector(".kx-modal-btn")?.focus();
+    modal.querySelector("[data-enfocar]")?.focus();
 }
 
 // Al hacer clic en una miniatura se muestra como foto principal

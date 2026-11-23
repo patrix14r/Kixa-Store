@@ -38,7 +38,7 @@ Aparece en la ficha del producto (`/producto/{sku}`), justo debajo de los botone
 | --- | --- |
 | Datos de la tabla (`$guiaTallas`) | `CatalogoController@show` (la lógica va en el controlador) |
 | Botón `#abrirGuiaTallas` y modal `#modalGuiaTallas` | `resources/views/cliente/producto.blade.php` |
-| Estilos (`.guia-tallas-*`) | `public/css/producto.css` |
+| Estilos | Clases de Tailwind en la misma vista (el estado `abierto` usa la variante `[&.abierto]:opacity-100`) |
 | Abrir/cerrar | `public/js/guia-tallas.js` |
 
 **Flujo:** clic en el enlace → se quita `hidden` y se agrega la clase `abierto` (animación de opacidad) → se cierra con la X, haciendo clic en el fondo o con la tecla Escape. Usa atributos propios (`data-cerrar-guia`), así no interfiere con el modal del carrito (`#modalCarrito`, `data-cerrar-modal`) de `producto-dinamico.js`.
@@ -94,6 +94,27 @@ Estructura en 3 bloques (`admin/home.blade.php`), con datos calculados en `Admin
 - `NosotrosController` invocable en `/nosotros`; la sección "Ubícanos" (mapa de la sede) está en `informativas/nosotros.blade.php`. La ruta `/contacto` ya no existe.
 - `auth/_portada.blade.php` reemplaza a `_showcase`.
 - `CatalogoController@show` solo muestra productos activos y busca únicamente por `sku`.
+
+## 7. Estilos: Tailwind CSS v4 en Cliente y Admin
+
+Todo el proyecto usa **un solo Tailwind CSS v4 compilado con Vite**: `resources/css/app.css` + `resources/js/app.js`, cargados con `@vite([...])` en `layouts/app.blade.php` (Cliente) y `layouts/admin.blade.php` (Admin). Ya no existe la carpeta `public/css/`.
+
+| Pieza | Dónde está |
+| --- | --- |
+| Tema del cliente (colores `tinta`, `suave`, `perla`, `carbon`, `exito`; fuente `font-jakarta`; `--spacing-navbar` = 76px; breakpoint `escritorio` = 769px; animación `animate-sacudir`) | `@theme` en `resources/css/app.css` |
+| Clases del Admin (`kx-card`, `kx-input`, `kx-btn-primary`…) | primer `@layer components` de `app.css` (sin cambios) |
+| Estados que cambia JavaScript en el cliente (carrusel 3D `.kx-carrusel .slide.active…` y drawer de filtros `.kx-catalogo-cuerpo.filtros-ocultos` / `.drawer-abierto`) | segundo `@layer components` de `app.css` |
+| Íconos SVG reutilizables (flecha de los `<select>`, check de los filtros) | variables `--kx-icono-flecha` y `--kx-icono-check`, usadas con `bg-(image:--kx-icono-flecha)` |
+| Todo lo demás del cliente (header, footer, catálogo, ficha, carrito, checkout, perfil, login, nosotros) | utilidades de Tailwind directamente en cada vista Blade |
+| HTML que arma JavaScript (filas del carrito, favoritos, formularios de pago, toasts) | utilidades de Tailwind dentro de `public/js/*.js` (Tailwind los escanea con `@source '../../public/js/*.js'`) |
+
+**Patrones usados en las vistas del cliente:**
+- **Responsive:** `max-escritorio:` (teléfonos, hasta 768px) y valores puntuales como `max-[900px]:` o `max-[1100px]:`.
+- **Estados por clase de JS:** `[&.abierto]:visible`, `[&.selected]:bg-tinta`, `group-[.editando]:block`, `data-visible:opacity-100` (toasts).
+- **Hijos con el mismo estilo:** variantes como `[&>a]:...` o `[&_input]:...` en el contenedor (menú móvil, footer, formularios).
+- **Componentes Blade nuevos:** `<x-filtro-catalogo>` (acordeón de filtros del catálogo) y `<x-pregunta-frecuente>` (acordeón del Centro de Ayuda).
+- **Imágenes de fondo locales:** Blade pasa la URL con `asset()` en una variable CSS (`style="--fondo: url(...)"`) y la clase usa `var(--fondo)`; así Vite no reescribe la ruta.
+- Se conservan todos los `id`, `data-*` y clases que usan los scripts (`.slide`, `.dot`, `.size-btn`, `.btn-fav-card`, `.kx-fav-fila`, `.auth-campo`, `#kx-toasts`, etc.).
 
 ## Autenticación con Laravel Fortify
 

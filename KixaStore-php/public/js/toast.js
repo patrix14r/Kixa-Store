@@ -5,6 +5,11 @@
 // ==========================================================================
 
 (() => {
+    // Clases de Tailwind: el aviso entra desde la derecha cuando recibe el atributo data-visible
+    const CLASE_CAJA = "pointer-events-none fixed top-[calc(var(--spacing-navbar)_+_16px)] right-5 z-3000 flex w-[min(380px,calc(100vw_-_32px))] flex-col gap-2.5 max-escritorio:top-[120px] max-escritorio:right-4";
+    const CLASE_TOAST = "pointer-events-auto grid grid-cols-[20px_1fr_auto] items-start gap-3 rounded-[14px] border bg-white/88 py-3.5 pr-3.5 pl-4 text-[14px] leading-[1.45] text-tinta opacity-0 shadow-[0_18px_40px_-16px_rgba(0,0,0,0.35)] backdrop-blur-[12px] translate-x-4 transition-[opacity,translate] duration-250 data-visible:translate-x-0 data-visible:opacity-100";
+    const COLOR = { ok: "text-exito", error: "text-agotado", info: "text-tinta" };
+
     const ICONOS = {
         ok: '<path d="m8 12 3 3 5-6"/><circle cx="12" cy="12" r="9"/>',
         error: '<circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/>',
@@ -16,7 +21,7 @@
         if (!caja) {
             caja = document.createElement("div");
             caja.id = "kx-toasts";
-            caja.className = "kx-toasts";
+            caja.className = CLASE_CAJA;
             caja.setAttribute("aria-live", "polite");
             document.body.appendChild(caja);
         }
@@ -26,7 +31,7 @@
     window.kxToast = function (mensaje, tipo = "info", duracion = 4000) {
         if (!mensaje) return;
         const toast = document.createElement("div");
-        toast.className = `kx-toast kx-toast--${tipo}`;
+        toast.className = `${CLASE_TOAST} ${tipo === "error" ? "border-agotado/25" : "border-[rgba(17,17,17,0.08)]"}`;
         toast.setAttribute("role", tipo === "error" ? "alert" : "status");
 
         const icono = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -34,6 +39,12 @@
         icono.setAttribute("width", "20");
         icono.setAttribute("height", "20");
         icono.setAttribute("aria-hidden", "true");
+        icono.setAttribute("fill", "none");
+        icono.setAttribute("stroke", "currentColor");
+        icono.setAttribute("stroke-width", "1.75");
+        icono.setAttribute("stroke-linecap", "round");
+        icono.setAttribute("stroke-linejoin", "round");
+        icono.setAttribute("class", `mt-px ${COLOR[tipo] || COLOR.info}`);
         icono.innerHTML = ICONOS[tipo] || ICONOS.info;
 
         const texto = document.createElement("p");
@@ -41,16 +52,16 @@
 
         const cerrar = document.createElement("button");
         cerrar.type = "button";
-        cerrar.className = "kx-toast-cerrar";
+        cerrar.className = "cursor-pointer border-none bg-transparent text-[20px] leading-none text-suave hover:text-tinta";
         cerrar.setAttribute("aria-label", "Cerrar aviso");
         cerrar.textContent = "×";
 
         toast.append(icono, texto, cerrar);
         contenedor().appendChild(toast);
-        requestAnimationFrame(() => toast.classList.add("visible"));
+        requestAnimationFrame(() => { toast.dataset.visible = ""; });
 
         const quitar = () => {
-            toast.classList.remove("visible");
+            delete toast.dataset.visible;
             setTimeout(() => toast.remove(), 300);
         };
         cerrar.addEventListener("click", quitar);

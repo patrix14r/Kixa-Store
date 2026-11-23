@@ -261,7 +261,8 @@ class AuthAndCatalogTest extends TestCase
         $this->assertFileExists(public_path($avatar));
 
         $this->actingAs($cliente->fresh())->get(route('home'))
-            ->assertSee('class="avatar-header"', false)
+            // La miniatura del header se reconoce por su alt (ya no depende de una clase CSS)
+            ->assertSee('alt="Foto de ' . $cliente->name . '"', false)
             ->assertDontSee('PANEL ADMIN');
 
         @unlink(public_path($avatar));

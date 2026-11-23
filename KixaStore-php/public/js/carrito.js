@@ -69,10 +69,10 @@ function mostrarCarrito() {
     if (carrito.length === 0) {
         if (cantidadProductos) cantidadProductos.textContent = "";
         contenedor.innerHTML = `
-            <div class="kx-carrito-vacio">
-                <h2>Tu carrito está vacío</h2>
-                <p>Agrega tus zapatillas favoritas y aparecerán aquí.</p>
-                <a href="/catalogo" class="kx-btn-comprar">Explorar catálogo</a>
+            <div class="py-10">
+                <h2 class="text-[18px] font-semibold">Tu carrito está vacío</h2>
+                <p class="mt-1.5 mb-5 text-suave">Agrega tus zapatillas favoritas y aparecerán aquí.</p>
+                <a href="/catalogo" class="mt-2 inline-flex w-auto cursor-pointer items-center justify-center rounded-full border-none bg-tinta px-7 py-3.5 text-[16px] font-medium text-white transition-colors duration-200 hover:bg-[#333]">Explorar catálogo</a>
             </div>`;
         pintarTotales();
         return;
@@ -82,17 +82,17 @@ function mostrarCarrito() {
     if (cantidadProductos) cantidadProductos.textContent = `${unidades} ${unidades === 1 ? "artículo" : "artículos"}`;
 
     contenedor.innerHTML = carrito.map((p, i) => `
-        <article class="kx-item">
-            <a href="/producto/${encodeURIComponent(p.sku || p.id)}" class="kx-item-img">
-                <img src="${escapar(p.imagen)}" alt="${escapar(p.nombre)}">
+        <article class="grid grid-cols-[150px_minmax(0,1fr)] gap-5 border-b border-[#e5e5e5] py-6 *:max-w-full *:min-w-0 max-escritorio:grid-cols-[96px_minmax(0,1fr)] max-escritorio:gap-3.5">
+            <a href="/producto/${encodeURIComponent(p.sku || p.id)}" class="block aspect-square rounded-xl bg-perla p-3">
+                <img src="${escapar(p.imagen)}" alt="${escapar(p.nombre)}" class="inline size-full align-baseline object-contain mix-blend-multiply">
             </a>
-            <div class="kx-item-info">
-                <div class="kx-item-fila">
-                    <h3>${escapar(p.nombre)}</h3>
-                    <strong class="kx-item-precio">${soles((Number(p.precio) || 0) * (Number(p.cantidad) || 1))}</strong>
+            <div>
+                <div class="flex justify-between gap-4 max-[600px]:flex-col max-[600px]:gap-1">
+                    <h3 class="text-[16px] leading-[1.35] font-semibold">${escapar(p.nombre)}</h3>
+                    <strong class="text-[16px] font-medium whitespace-nowrap">${soles((Number(p.precio) || 0) * (Number(p.cantidad) || 1))}</strong>
                 </div>
-                <p class="kx-item-tipo">${escapar(p.tipo || p.marca || "Calzado KixaStore")}</p>
-                <div class="kx-item-selectores">
+                <p class="mt-0.5 text-[15px] text-suave">${escapar(p.tipo || p.marca || "Calzado KixaStore")}</p>
+                <div class="mt-3 flex flex-wrap gap-6 [&_label]:inline-flex [&_label]:items-center [&_label]:gap-2 [&_label]:text-[15px] [&_label]:text-suave [&_select]:cursor-pointer [&_select]:appearance-none [&_select]:rounded-md [&_select]:border-none [&_select]:bg-transparent [&_select]:bg-(image:--kx-icono-flecha) [&_select]:bg-[position:right_4px_center] [&_select]:bg-no-repeat [&_select]:py-1 [&_select]:pr-[22px] [&_select]:pl-1 [&_select]:text-[15px] [&_select]:text-tinta [&_select:hover]:bg-perla">
                     <label>Talla
                         <select onchange="cambiarTalla(${i}, this.value)" aria-label="Talla de ${escapar(p.nombre)}">${opcionesTalla(p)}</select>
                     </label>
@@ -100,7 +100,7 @@ function mostrarCarrito() {
                         <select onchange="cambiarCantidad(${i}, this.value)" aria-label="Cantidad de ${escapar(p.nombre)}">${opcionesCantidad(p)}</select>
                     </label>
                 </div>
-                <div class="kx-item-acciones">
+                <div class="mt-3 flex gap-1.5 [&>button]:inline-flex [&>button]:size-10 [&>button]:cursor-pointer [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border-none [&>button]:bg-transparent [&>button]:text-tinta [&>button]:transition-colors [&>button]:duration-200 [&>button:hover]:bg-perla">
                     <button type="button" onclick="moverAFavoritos(${i})" title="Mover a Favoritos" aria-label="Mover a Favoritos">
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>
                     </button>
@@ -145,29 +145,29 @@ function moverAFavoritos(i) {
     renderFavoritos("favoritos-carrito", 4);
 }
 
-// Tarjetas de favoritos con el mismo estilo Nike (.kx-card); se usan en el carrito y en /favoritos
+// Tarjetas de favoritos con el mismo estilo que <x-tarjeta-producto>; se usan en el carrito
 function renderFavoritos(idContenedor, limite = null) {
     const caja = document.getElementById(idContenedor);
     if (!caja) return;
 
     const favs = JSON.parse(localStorage.getItem("favoritos")) || [];
     if (favs.length === 0) {
-        caja.innerHTML = `<p class="kx-favoritos-vacio">Aún no guardas favoritos. Toca el ♡ en cualquier zapatilla para verla aquí.</p>`;
+        caja.innerHTML = `<p class="text-[15px] text-suave">Aún no guardas favoritos. Toca el ♡ en cualquier zapatilla para verla aquí.</p>`;
         return;
     }
 
     const lista = limite ? favs.slice(0, limite) : favs;
-    caja.innerHTML = `<div class="kx-favoritos-grid">${lista.map((f, i) => `
-        <article class="kx-card">
-            <a href="/producto/${encodeURIComponent(f.sku || f.id)}" class="kx-card-enlace">
-                <div class="kx-card-img"><img src="${escapar(f.imagen)}" alt="${escapar(f.nombre)}" loading="lazy"></div>
-                <div class="kx-card-info">
-                    <h3 class="kx-card-nombre">${escapar(f.nombre)}</h3>
-                    <p class="kx-card-tipo">${escapar(f.tipo || f.marca || "KixaStore")}</p>
-                    <div class="kx-card-precio"><span>${soles(f.precio)}</span></div>
+    caja.innerHTML = `<div class="grid grid-cols-4 gap-x-4 gap-y-8 max-[960px]:grid-cols-2">${lista.map((f, i) => `
+        <article class="group relative text-tinta transition-[translate] duration-300 hover:-translate-y-1">
+            <a href="/producto/${encodeURIComponent(f.sku || f.id)}" class="block">
+                <div class="aspect-square overflow-hidden rounded-xl bg-perla p-5"><img src="${escapar(f.imagen)}" alt="${escapar(f.nombre)}" loading="lazy" class="block size-full object-contain mix-blend-multiply transition-[scale] duration-500 group-hover:scale-104"></div>
+                <div class="px-0.5 pt-3.5 text-left">
+                    <h3 class="text-[15px] leading-[1.35] font-semibold tracking-[-0.01em] text-tinta max-escritorio:text-[14px]">${escapar(f.nombre)}</h3>
+                    <p class="mt-0.5 truncate text-[14px] text-suave max-escritorio:text-[13px]">${escapar(f.tipo || f.marca || "KixaStore")}</p>
+                    <div class="mt-2 flex flex-wrap items-center gap-2 text-[15px] font-medium text-tinta max-escritorio:text-[14px]"><span>${soles(f.precio)}</span></div>
                 </div>
             </a>
-            <button type="button" class="kx-fav-quitar" onclick="quitarFavorito(${i}, '${idContenedor}', ${limite || "null"})" aria-label="Quitar de favoritos" title="Quitar de favoritos">
+            <button type="button" class="absolute top-3 right-3 flex size-9 cursor-pointer items-center justify-center rounded-full border-none bg-white text-tinta shadow-[0_1px_4px_rgba(0,0,0,0.08)]" onclick="quitarFavorito(${i}, '${idContenedor}', ${limite || "null"})" aria-label="Quitar de favoritos" title="Quitar de favoritos">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>
             </button>
         </article>`).join("")}</div>`;
@@ -217,16 +217,20 @@ window.addEventListener("click", function(event) {
 // --------------------------------------------------------------------------
 // [CAMBIO]: Opciones de métodos de pago dentro del modal
 // --------------------------------------------------------------------------
+// Clases de Tailwind compartidas por los 3 formularios de pago (los inputs toman el estilo de la sección del checkout)
+const CLASE_PAGO = "mt-[18px] max-w-full min-w-0 rounded-[14px] bg-perla p-5 [&>p]:text-[14px] [&>p]:leading-[1.6] [&>p]:text-suave [&_label]:mt-3 [&_label]:mb-1.5 [&_label]:block [&_label]:text-[13px] [&_label]:text-suave";
+const CLASE_CONFIRMAR = "mt-[18px] flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full border-none bg-tinta p-4 text-[15px] font-medium text-white hover:bg-[#333]";
+
 function mostrarContraentrega() {
     if (!contenidoPago) return;
     contenidoPago.innerHTML = `
-        <div class="pago-form">
-            <h3>
+        <div class="${CLASE_PAGO}">
+            <h3 class="mb-2 flex items-center gap-2 text-[16px] font-semibold">
                 <i class="fa-solid fa-box"></i>
                 Pago Contraentrega
             </h3>
             <p>Pagarás en efectivo o POS al momento de recibir tu pedido en tu domicilio.</p>
-            <button class="btn-confirmar" onclick="confirmar('Contraentrega')" type="button">
+            <button class="${CLASE_CONFIRMAR}" onclick="confirmar('Contraentrega')" type="button">
                 Confirmar pedido
                 <i class="fa-solid fa-arrow-right"></i>
             </button>
@@ -237,15 +241,15 @@ function mostrarContraentrega() {
 function mostrarTarjeta() {
     if (!contenidoPago) return;
     contenidoPago.innerHTML = `
-        <div class="pago-form">
-            <h3>
+        <div class="${CLASE_PAGO}">
+            <h3 class="mb-2 flex items-center gap-2 text-[16px] font-semibold">
                 <i class="fa-solid fa-credit-card"></i>
                 Pago con Tarjeta
             </h3>
             <label>Número de tarjeta</label>
             <input type="text" placeholder="0000 0000 0000 0000" maxlength="19">
 
-            <div class="fila">
+            <div class="grid grid-cols-2 gap-3 max-escritorio:grid-cols-1">
                 <div>
                     <label>MM/AA</label>
                     <input type="text" placeholder="05/28" maxlength="5">
@@ -256,7 +260,7 @@ function mostrarTarjeta() {
                 </div>
             </div>
 
-            <button class="btn-confirmar" onclick="confirmar('Tarjeta')" type="button">
+            <button class="${CLASE_CONFIRMAR}" onclick="confirmar('Tarjeta')" type="button">
                 Pagar ahora
                 <i class="fa-solid fa-lock"></i>
             </button>
@@ -267,18 +271,18 @@ function mostrarTarjeta() {
 function mostrarYape() {
     if (!contenidoPago) return;
     contenidoPago.innerHTML = `
-        <div class="pago-form yape-form">
-            <h3>
+        <div class="${CLASE_PAGO}">
+            <h3 class="mb-2 flex items-center gap-2 text-[16px] font-semibold">
                 <i class="fa-solid fa-mobile-screen-button"></i>
                 Pago con Yape
             </h3>
             <p>Escanea el código QR desde tu app Yape para completar el pago.</p>
-            <img src="/images/payments/yape.jpg" class="qr" alt="Código QR de Yape">
-            <div class="numero-yape">
+            <img src="/images/payments/yape.jpg" class="mx-auto my-3.5 block w-[180px] max-w-full rounded-xl" alt="Código QR de Yape">
+            <div class="text-center font-semibold">
                 <i class="fa-solid fa-phone"></i>
                 916 934 205
             </div>
-            <button class="btn-confirmar" onclick="confirmar('Yape')" type="button">
+            <button class="${CLASE_CONFIRMAR}" onclick="confirmar('Yape')" type="button">
                 He realizado el pago
                 <i class="fa-solid fa-check"></i>
             </button>
