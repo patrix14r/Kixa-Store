@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Categoria;
+use App\Models\Marca;
 use App\Models\ProductoTalla;
 use App\Models\Proveedor;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'categoria_id',
     'proveedor_id',
+    'marca_id',
     'marca',
     'nombre',
     'subcategoria',
@@ -36,6 +38,7 @@ class Producto extends Model
     protected $fillable = [
         'categoria_id',
         'proveedor_id',
+        'marca_id',
         'marca',
         'nombre',
         'subcategoria',
@@ -127,7 +130,12 @@ class Producto extends Model
         return $this->belongsTo(Categoria::class, 'categoria_id');
     }
 
-    
+    // [Sem 12 - Eloquent ORM]: BelongsTo con la tabla marcas (FK marca_id). Se usa como $producto->marca() en consultas (whereHas('marca')).
+    // Ojo: $producto->marca (sin paréntesis) devuelve la columna de texto, que el controlador mantiene igual a marcas.nombre para el catálogo.
+    public function marca(): BelongsTo
+    {
+        return $this->belongsTo(Marca::class, 'marca_id');
+    }
 
     // Relación BelongsTo: cada producto tiene un proveedor opcional (FK proveedor_id con nullOnDelete); se muestra con ->proveedor->razon_social.
     public function proveedor(): BelongsTo

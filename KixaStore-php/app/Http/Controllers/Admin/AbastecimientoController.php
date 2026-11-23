@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\OrdenAbastecimiento;
+use App\Models\Producto;
 use App\Models\ProductoTalla;
 use App\Models\Proveedor;
 use Illuminate\Http\Request;
@@ -22,11 +23,11 @@ class AbastecimientoController extends Controller
         $kpis = [
             'pendientes' => OrdenAbastecimiento::where('estado', 'Pendiente')->count(),
             'agotadas'   => ProductoTalla::where('stock', 0)->count(),
-            'criticas'   => ProductoTalla::whereBetween('stock', [1, TallaController::STOCK_CRITICO])->count(),
+            'criticas'   => ProductoTalla::whereBetween('stock', [1, ProductoTalla::STOCK_CRITICO])->count(),
         ];
 
         $urgentes = ProductoTalla::with('producto')
-            ->where('stock', '<=', TallaController::STOCK_CRITICO)
+            ->where('stock', '<=', ProductoTalla::STOCK_CRITICO)
             ->orderBy('stock')
             ->limit(5)
             ->get();
@@ -34,19 +35,36 @@ class AbastecimientoController extends Controller
         return view('admin.abastecimiento.index', compact('ordenes', 'kpis', 'urgentes'));
     }
 
-    // create (GET): <select> de proveedores activos y de producto + talla; ?producto={sku}&talla={n} preselecciona la talla (sin exponer IDs).
+    // create (GET): dos <select> encadenados (Producto -> Talla). ?producto={sku}&talla={n} (botón "+ Reponer") preselecciona ambos sin exponer IDs.
     public function create(Request $request)
     {
-        $seleccionada = null;
-        if ($request->filled('producto') && is_numeric($request->query('talla'))) {
-            $seleccionada = ProductoTalla::where('talla', $request->query('talla'))
+        // with('tallas') trae las tallas de cada producto en una sola consulta extra (evita N+1).
+        $productos = Producto::with(['tallas' => fn ($q) => $q->orderBy('talla')])->orderBy('nombre')->get();
+
+        // Talla elegida: primero old() (si falló la validación), si no la del enlace "+ Reponer".
+        $seleccionada = (int) $request->old('producto_talla_id');
+        if (! $seleccionada && $request->filled('producto') && is_numeric($request->query('talla'))) {
+            $seleccionada = (int) ProductoTalla::where('talla', $request->query('talla'))
                 ->whereHas('producto', fn ($q) => $q->where('sku', $request->query('producto')))
                 ->value('id');
         }
 
+        // El producto seleccionado sale de la talla; si no hay talla, del ?producto= o del old('producto').
+        $productoSku = $seleccionada
+            ? ProductoTalla::find($seleccionada)?->producto?->sku
+            : $request->old('producto', $request->query('producto'));
+
+        // Mapa SKU => tallas con su texto ya armado ("Talla 43 — Stock: 0 (Agotado)"); el JS lo usa para llenar el 2.º <select>.
+        $tallasPorProducto = $productos->mapWithKeys(fn ($p) => [
+            $p->sku => $p->tallas->map(fn ($t) => ['id' => $t->id, 'texto' => $this->textoTalla($t)])->values(),
+        ]);
+
         return view('admin.abastecimiento.create', [
             'proveedores' => Proveedor::activos()->orderBy('razon_social')->get(),
-            'tallas' => ProductoTalla::with('producto')->get()->sortBy(fn ($t) => $t->producto->nombre . $t->talla),
+            'productos' => $productos,
+            'productoSku' => $productoSku,
+            'tallasIniciales' => $tallasPorProducto[$productoSku] ?? collect(),
+            'tallasPorProducto' => $tallasPorProducto,
             'codigoLote' => $this->siguienteCodigo(),
             'seleccionada' => $seleccionada,
         ]);
@@ -107,6 +125,18 @@ class AbastecimientoController extends Controller
         $orden->update(['estado' => 'Cancelado']);
 
         return back()->with('exito', "Orden {$orden->codigo_lote} cancelada.");
+    }
+
+    // Texto de cada opción del <select> de talla, con aviso de agotado o crítico.
+    private function textoTalla(ProductoTalla $talla): string
+    {
+        $aviso = match (true) {
+            $talla->stock === 0 => ' (Agotado)',
+            $talla->stock <= ProductoTalla::STOCK_CRITICO => ' (Crítico)',
+            default => '',
+        };
+
+        return "Talla {$talla->talla_etiqueta} — Stock: {$talla->stock}{$aviso}";
     }
 
     // Genera LOT-0001, LOT-0002... a partir del último código guardado.

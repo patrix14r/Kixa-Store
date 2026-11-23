@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-// Productos con FK buscadas por nombre usando value('id') y sus tallas
+// [Sem 11 - Migraciones, Seeders y Roles]: productos con FK (categoría, proveedor y marca) buscadas con value('id') / pluck() y sus tallas
 class ProductoSeeder extends Seeder
 {
     public function run(): void
@@ -15,16 +15,20 @@ class ProductoSeeder extends Seeder
         $catNinos   = DB::table('categorias')->where('nombre', 'Niños')->value('id');
         $catDeporte = DB::table('categorias')->where('nombre', 'Deporte')->value('id');
 
-        $provNike   = DB::table('proveedores')->where('razon_social', 'Nike Perú S.A.C.')->value('id');
-        $provAdidas = DB::table('proveedores')->where('razon_social', 'Adidas Perú S.A.C.')->value('id');
-        $provPuma   = DB::table('proveedores')->where('razon_social', 'Puma Sports Perú S.A.C.')->value('id');
-        $provUmbro  = DB::table('proveedores')->where('razon_social', 'Umbro Perú Deportes S.A.C.')->value('id');
+        // Proveedores = distribuidoras mayoristas (a quién se compra); la marca del producto va aparte en la tabla marcas.
+        $provDeportiva = DB::table('proveedores')->where('ruc', '20512345671')->value('id'); // Distribuidora Deportiva Perú S.A.C.
+        $provAndina    = DB::table('proveedores')->where('ruc', '20345678912')->value('id'); // Importadora Andina de Calzado S.A.C.
+        $provSportLima = DB::table('proveedores')->where('ruc', '20601122334')->value('id'); // Comercializadora Sport Lima S.A.C.
+        $provUrbano    = DB::table('proveedores')->where('ruc', '20498765432')->value('id'); // Calzado Urbano Mayorista S.A.C.
+
+        // pluck('id', 'nombre') arma ['Nike' => 1, 'Jordan' => 2, ...] para asignar marca_id a partir del texto de la marca.
+        $marcas = DB::table('marcas')->pluck('id', 'nombre');
 
         $productos = [
             // SECCIÓN HOMBRE
             [
                 'categoria_id' => $catHombre,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Jordan',
                 'nombre'       => 'Jordan Retro 4 Black Cat',
                 'subcategoria' => 'basquet',
@@ -38,7 +42,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catHombre,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Jordan',
                 'nombre'       => 'Jordan Retro 4 Thunder Yellow',
                 'subcategoria' => 'basquet',
@@ -52,7 +56,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catHombre,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Jordan',
                 'nombre'       => 'Jordan Retro 4 Fire Red',
                 'subcategoria' => 'basquet',
@@ -66,7 +70,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catHombre,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Jordan',
                 'nombre'       => 'Jordan Retro 4 Bred Reimagined',
                 'subcategoria' => 'basquet',
@@ -80,7 +84,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catHombre,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Jordan',
                 'nombre'       => 'Jordan Retro 4 Military Black',
                 'subcategoria' => 'urbano',
@@ -94,7 +98,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catHombre,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Jordan',
                 'nombre'       => 'Jordan Retro 4 Lightning Yellow',
                 'subcategoria' => 'urbano',
@@ -108,7 +112,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catHombre,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Jordan',
                 'nombre'       => 'Jordan Retro 4 University Blue',
                 'subcategoria' => 'urbano',
@@ -122,7 +126,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catHombre,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Jordan',
                 'nombre'       => 'Jordan Retro 4 Pine Green',
                 'subcategoria' => 'urbano',
@@ -138,7 +142,7 @@ class ProductoSeeder extends Seeder
             // Modelos unisex también en Hombre para poder filtrar por Nike, Adidas y Puma
             [
                 'categoria_id' => $catHombre,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Air Force 1 Low Hombre',
                 'subcategoria' => 'urbano',
@@ -152,7 +156,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catHombre,
-                'proveedor_id' => $provAdidas,
+                'proveedor_id' => $provAndina,
                 'marca'        => 'Adidas',
                 'nombre'       => 'Adidas Campus 00s Hombre',
                 'subcategoria' => 'urbano',
@@ -166,7 +170,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catHombre,
-                'proveedor_id' => $provPuma,
+                'proveedor_id' => $provSportLima,
                 'marca'        => 'Puma',
                 'nombre'       => 'Puma-180 PRM Hombre',
                 'subcategoria' => 'urbano',
@@ -182,7 +186,7 @@ class ProductoSeeder extends Seeder
             // SECCIÓN MUJER ())
             [
                 'categoria_id' => $catMujer,
-                'proveedor_id' => $provPuma,
+                'proveedor_id' => $provSportLima,
                 'marca'        => 'Puma',
                 'nombre'       => 'Puma-180 PRM',
                 'subcategoria' => 'urbano',
@@ -196,7 +200,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catMujer,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Air Max 90',
                 'subcategoria' => 'running',
@@ -210,7 +214,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catMujer,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Air Max Plus TN',
                 'subcategoria' => 'running',
@@ -224,7 +228,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catMujer,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Air Max Plus TN / Pink',
                 'subcategoria' => 'running',
@@ -238,7 +242,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catMujer,
-                'proveedor_id' => $provPuma,
+                'proveedor_id' => $provSportLima,
                 'marca'        => 'New Balance',
                 'nombre'       => 'New Balance 530 Retro',
                 'subcategoria' => 'urbano',
@@ -252,7 +256,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catMujer,
-                'proveedor_id' => $provAdidas,
+                'proveedor_id' => $provAndina,
                 'marca'        => 'Adidas',
                 'nombre'       => 'Adidas Campus 00s',
                 'subcategoria' => 'urbano',
@@ -266,7 +270,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catMujer,
-                'proveedor_id' => $provPuma,
+                'proveedor_id' => $provSportLima,
                 'marca'        => 'Vans',
                 'nombre'       => 'Vans Knu Skool Chunky',
                 'subcategoria' => 'urbano',
@@ -280,7 +284,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catMujer,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Air Force 1 Low',
                 'subcategoria' => 'urbano',
@@ -294,7 +298,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catMujer,
-                'proveedor_id' => $provAdidas,
+                'proveedor_id' => $provAndina,
                 'marca'        => 'DC Shoes',
                 'nombre'       => 'DC Court Graffik / Pink',
                 'subcategoria' => 'urbano',
@@ -310,7 +314,7 @@ class ProductoSeeder extends Seeder
             // SECCIÓN NIÑOS
             [
                 'categoria_id' => $catNinos,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Jordan',
                 'nombre'       => 'Air Jordan Kids',
                 'subcategoria' => 'deportivo',
@@ -324,7 +328,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catNinos,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Jordan',
                 'nombre'       => 'Jordan 1 Mid Sky Blue Kids',
                 'subcategoria' => 'deportivo',
@@ -338,7 +342,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catNinos,
-                'proveedor_id' => $provPuma,
+                'proveedor_id' => $provSportLima,
                 'marca'        => 'Lacoste',
                 'nombre'       => 'Lacoste Thrill White Kids',
                 'subcategoria' => 'escolar',
@@ -352,7 +356,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catNinos,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Court Borough Low 2 Kids',
                 'subcategoria' => 'escolar',
@@ -366,7 +370,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catNinos,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Court Borough Low 2 White Edition',
                 'subcategoria' => 'escolar',
@@ -380,7 +384,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catNinos,
-                'proveedor_id' => $provAdidas,
+                'proveedor_id' => $provAndina,
                 'marca'        => 'Adidas',
                 'nombre'       => 'Adidas Tensaur Run K',
                 'subcategoria' => 'escolar',
@@ -394,7 +398,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catNinos,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Wearallday Kids',
                 'subcategoria' => 'urbano',
@@ -408,7 +412,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catNinos,
-                'proveedor_id' => $provAdidas,
+                'proveedor_id' => $provAndina,
                 'marca'        => 'Adidas',
                 'nombre'       => 'Adidas Grand Court Kids',
                 'subcategoria' => 'escolar',
@@ -422,7 +426,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catNinos,
-                'proveedor_id' => $provPuma,
+                'proveedor_id' => $provSportLima,
                 'marca'        => 'Puma',
                 'nombre'       => 'Puma Courtflex V2 V PS',
                 'subcategoria' => 'urbano',
@@ -438,7 +442,7 @@ class ProductoSeeder extends Seeder
             // SECCIÓN DEPORTE
             [
                 'categoria_id' => $catDeporte,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Tiempo Legend 9 Academy IC / Grey',
                 'subcategoria' => 'futbol',
@@ -452,7 +456,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catDeporte,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike SB Gato / Black',
                 'subcategoria' => 'futbol',
@@ -466,7 +470,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catDeporte,
-                'proveedor_id' => $provUmbro,
+                'proveedor_id' => $provUrbano,
                 'marca'        => 'Umbro',
                 'nombre'       => 'Umbro Classico XIII LT TF / White and Blue',
                 'subcategoria' => 'futbol',
@@ -480,7 +484,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catDeporte,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Tiempo Legend 9 Academy IC / Pink',
                 'subcategoria' => 'futbol',
@@ -494,7 +498,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catDeporte,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Tiempo Legend 10 Club Turf / Black',
                 'subcategoria' => 'futbol',
@@ -508,7 +512,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catDeporte,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Total 90 SP',
                 'subcategoria' => 'futbol',
@@ -522,7 +526,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catDeporte,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Phantom 6 Low Club IC / Black',
                 'subcategoria' => 'futbol',
@@ -536,7 +540,7 @@ class ProductoSeeder extends Seeder
             ],
             [
                 'categoria_id' => $catDeporte,
-                'proveedor_id' => $provNike,
+                'proveedor_id' => $provDeportiva,
                 'marca'        => 'Nike',
                 'nombre'       => 'Nike Total 90 III SP Black Gum',
                 'subcategoria' => 'futbol',
@@ -551,7 +555,9 @@ class ProductoSeeder extends Seeder
         ];
 
         foreach ($productos as $prod) {
+            // marca_id (FK) se busca por el nombre; la columna de texto 'marca' se conserva igual para el catálogo.
             $productoId = DB::table('productos')->insertGetId(array_merge($prod, [
+                'marca_id'   => $marcas[$prod['marca']],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]));

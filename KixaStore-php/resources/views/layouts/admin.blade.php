@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- [Semana 8: Rutas y Herencia Blade] Layout maestro del admin: cada pantalla hija lo hereda con @extends('layouts.admin') y rellena @yield('titulo') y @yield('contenido'). --}}
     <title>@yield('titulo', 'Kixa Admin')</title>

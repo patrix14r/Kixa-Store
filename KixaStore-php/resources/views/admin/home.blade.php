@@ -2,168 +2,176 @@
 
 @section('titulo', 'Kixa Admin - Resumen')
 
+{{-- [Sem 08 - Rutas y Vistas Blade]: @extends, @section, @foreach y componentes <x-...>; los datos llegan calculados desde AdminController@home --}}
 @section('contenido')
-{{-- [FASE 2 - Paso 8]: Encabezado del dashboard --}}
 <h1 class="text-2xl font-bold md:text-3xl">Resumen General</h1>
 <p class="mt-1 text-sm kx-muted">Datos reales de la tienda en tiempo real.</p>
 
-{{-- Fila 1: KPI principales (cada tarjeta lleva a su módulo) --}}
-<div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-    <a href="{{ route('admin.clientes.index') }}" class="kx-card block p-5 transition hover:-translate-y-0.5 hover:border-indigo-500/50">
-        <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"><i class="fa-solid fa-users"></i></span>
-        <p class="mt-5 text-sm kx-muted">Clientes</p>
-        <div class="mt-1 flex items-end justify-between">
-            <p class="text-2xl font-bold">{{ $totalClientes }}</p>
-            <span class="kx-badge-ok">Registrados</span>
-        </div>
-    </a>
-    <a href="{{ route('admin.pedidos.index') }}" class="kx-card block p-5 transition hover:-translate-y-0.5 hover:border-indigo-500/50">
-        <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"><i class="fa-solid fa-box"></i></span>
-        <p class="mt-5 text-sm kx-muted">Pedidos</p>
-        <div class="mt-1 flex items-end justify-between">
-            <p class="text-2xl font-bold">{{ $totalPedidos }}</p>
-            <span class="kx-badge-neutro">Totales</span>
-        </div>
-    </a>
-    <a href="{{ route('admin.pedidos.index') }}" class="kx-card block p-5 transition hover:-translate-y-0.5 hover:border-indigo-500/50">
-        <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"><i class="fa-solid fa-sack-dollar"></i></span>
-        <p class="mt-5 text-sm kx-muted">Ventas</p>
-        <div class="mt-1 flex items-end justify-between">
-            <p class="text-2xl font-bold">S/ {{ number_format($totalVentas, 2) }}</p>
-            <span class="kx-badge-ok">Acumulado</span>
-        </div>
-    </a>
-    <a href="{{ route('admin.productos.index') }}" class="kx-card block p-5 transition hover:-translate-y-0.5 hover:border-indigo-500/50">
-        <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"><i class="fa-solid fa-box-open"></i></span>
-        <p class="mt-5 text-sm kx-muted">Total Productos</p>
-        <div class="mt-1 flex items-end justify-between">
-            <p class="text-2xl font-bold">{{ $totalProductos }}</p>
-            <span class="{{ $stockCritico->count() > 0 ? 'kx-badge-bajo' : 'kx-badge-ok' }}">{{ $stockCritico->count() }} críticos</span>
-        </div>
-    </a>
-</div>
-
-{{-- Fila 2: dos columnas balanceadas --}}
-<div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
-    {{-- Izquierda: barras verticales, productos por categoría (ocupa toda la altura de la fila) --}}
-    <div class="kx-card flex flex-col p-6">
-        <h2 class="text-lg font-bold">Productos por categoría</h2>
-        <div class="mt-6 flex min-h-56 flex-1 items-end justify-around gap-6 border-b border-zinc-800 px-4">
-            @foreach ($barras as $barra)
-                <div class="flex h-full flex-1 flex-col items-center justify-end gap-2">
-                    <span class="text-xs kx-muted">{{ $barra['cantidad'] }}</span>
-                    <div class="w-10 rounded-t-lg bg-gradient-to-t from-indigo-500/50 to-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.35)]" style="height: {{ $barra['altura'] }}%"></div>
+{{-- ===== Bloque 1: 7 columnas (KPI + barras) / 5 columnas (disponibilidad de stock) ===== --}}
+<div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-12">
+    <div class="flex flex-col gap-6 xl:col-span-7">
+        {{-- KPI compactos --}}
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <a href="{{ route('admin.clientes.index') }}" class="kx-card block p-5 transition hover:border-indigo-500/50">
+                <span class="flex h-11 w-11 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-400"><i class="fa-solid fa-users"></i></span>
+                <p class="mt-5 text-sm kx-muted">Clientes</p>
+                <div class="mt-1 flex items-end justify-between">
+                    <p class="text-2xl font-bold">{{ $totalClientes }}</p>
+                    <span class="kx-badge-ok"><i class="fa-solid fa-user-check"></i>Registrados</span>
                 </div>
-            @endforeach
-        </div>
-        <div class="mt-2 flex justify-around gap-6 px-4 text-sm kx-muted">
-            @foreach ($barras as $barra)
-                <span class="flex-1 text-center">{{ $barra['nombre'] }}</span>
-            @endforeach
-        </div>
-    </div>
-
-    {{-- Derecha: disponibilidad de stock y pedidos recientes --}}
-    <div class="space-y-6">
-        <div class="kx-card p-6">
-            <h2 class="text-lg font-bold">Disponibilidad de Stock</h2>
-            <div class="mt-4 flex flex-col items-center gap-6 sm:flex-row">
-                <div class="relative w-48 shrink-0">
-                    <svg viewBox="0 0 200 110" class="w-full">
-                        <path d="M 20 100 A 80 80 0 0 1 180 100" pathLength="100" fill="none" class="stroke-zinc-800" stroke-width="14" stroke-linecap="round"/>
-                        <path d="M 20 100 A 80 80 0 0 1 180 100" pathLength="100" fill="none" stroke="#10b981" stroke-width="14" stroke-linecap="round" stroke-dasharray="{{ $disponibilidad }} 100"/>
-                    </svg>
-                    <p class="absolute inset-x-0 bottom-1 text-center text-3xl font-bold">{{ $disponibilidad }}%</p>
+            </a>
+            <a href="{{ route('admin.pedidos.index') }}" class="kx-card block p-5 transition hover:border-indigo-500/50">
+                <span class="flex h-11 w-11 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-400"><i class="fa-solid fa-box"></i></span>
+                <p class="mt-5 text-sm kx-muted">Pedidos</p>
+                <div class="mt-1 flex items-end justify-between">
+                    <p class="text-2xl font-bold">{{ $totalPedidos }}</p>
+                    <span class="{{ $pedidosPendientes > 0 ? 'kx-badge-bajo' : 'kx-badge-ok' }}"><i class="fa-solid fa-clock"></i>{{ $pedidosPendientes }} pendientes</span>
                 </div>
-                <div class="grid flex-1 grid-cols-3 gap-2 text-center">
-                    <div><p class="text-xs kx-muted">Disponibles</p><p class="font-bold text-ok">{{ $tallasConStock }}</p></div>
-                    <div><p class="text-xs kx-muted">Críticas</p><p class="font-bold text-bajo">{{ $stockCritico->where('stock', '>', 0)->count() }}</p></div>
-                    <div><p class="text-xs kx-muted">Agotadas</p><p class="font-bold text-agotado">{{ $totalTallas - $tallasConStock }}</p></div>
-                </div>
-            </div>
-            <p class="mt-3 text-center text-sm kx-muted sm:text-left">{{ $tallasConStock }} de {{ $totalTallas }} tallas tienen stock.</p>
+            </a>
         </div>
 
-        <div class="kx-card p-6">
+        {{-- Barras: productos por marca (Chart.js; datos en data-marcas) --}}
+        <div class="kx-card flex flex-1 flex-col p-6">
             <div class="flex items-center justify-between">
-                <h2 class="text-lg font-bold">Pedidos recientes</h2>
-                <a href="{{ route('admin.pedidos.index') }}" class="text-sm text-indigo-400 hover:underline">Ver todos</a>
+                <h2 class="text-lg font-bold">Productos por Marca</h2>
+                <a href="{{ route('admin.marcas.index') }}" class="text-sm text-indigo-400 hover:underline">Ver marcas</a>
             </div>
-            <div class="mt-3 overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead><tr><th class="kx-th">Código</th><th class="kx-th">Cliente</th><th class="kx-th">Total</th><th class="kx-th">Estado</th></tr></thead>
-                    <tbody>
-                        @forelse ($pedidosRecientes as $pedido)
-                            <tr class="kx-row">
-                                <td class="kx-td font-semibold">{{ $pedido->codigo_orden }}</td>
-                                <td class="kx-td">{{ $pedido->usuario->name }}</td>
-                                <td class="kx-td">S/ {{ number_format($pedido->total, 2) }}</td>
-                                <td class="kx-td"><x-admin.estado-pedido :estado="$pedido->estado" /></td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="4" class="kx-td py-6 text-center kx-muted">Aún no hay pedidos.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            <div class="relative mt-4 min-h-56 flex-1">
+                <canvas id="graficoMarcas" data-marcas='@json($productosPorMarca)'></canvas>
+            </div>
+        </div>
+    </div>
+
+    {{-- Tarjeta alta estilo "Objetivo mensual": medidor arriba y 3 métricas abajo --}}
+    <div class="kx-card flex flex-col overflow-hidden xl:col-span-5">
+        <div class="flex flex-1 flex-col rounded-b-2xl border-b border-zinc-800/80 bg-[#121215] p-6">
+            <h2 class="text-lg font-bold">Disponibilidad de Stock</h2>
+            <p class="text-sm kx-muted">Porcentaje de tallas con al menos 1 par.</p>
+            <div class="flex flex-1 flex-col items-center justify-center py-6">
+                <div class="relative w-full max-w-72">
+                    <svg viewBox="0 0 200 110" class="w-full">
+                        <defs>
+                            <linearGradient id="kxGauge" x1="0" x2="1" y1="0" y2="0">
+                                <stop offset="0%" stop-color="#818cf8" stop-opacity="0.55"/>
+                                <stop offset="100%" stop-color="#6366f1"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M 20 100 A 80 80 0 0 1 180 100" pathLength="100" fill="none" class="stroke-zinc-800" stroke-width="12" stroke-linecap="round"/>
+                        <path d="M 20 100 A 80 80 0 0 1 180 100" pathLength="100" fill="none" stroke="url(#kxGauge)" stroke-width="12" stroke-linecap="round" stroke-dasharray="{{ $disponibilidad }} 100"/>
+                    </svg>
+                    <p class="absolute inset-x-0 bottom-2 text-center text-4xl font-bold tracking-tight">{{ $disponibilidad }}%</p>
+                </div>
+                <span class="kx-badge-neutro mt-3">{{ $tallasConStock }} / {{ $totalTallas }} tallas</span>
+                <p class="mt-4 max-w-xs text-center text-sm kx-muted">
+                    @if ($tallasAgotadas > 0)
+                        Hay {{ $tallasAgotadas }} tallas agotadas que conviene reponer.
+                    @else
+                        ¡Todas las tallas tienen stock!
+                    @endif
+                </p>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 divide-x divide-zinc-800/80 bg-[#09090b]/60 py-5 text-center">
+            <div>
+                <p class="text-xs kx-muted">Ventas (S/)</p>
+                <p class="mt-1 font-bold">{{ number_format($totalVentas, 2) }}</p>
+            </div>
+            <div>
+                <p class="text-xs kx-muted">Productos</p>
+                <p class="mt-1 font-bold">{{ $totalProductos }}</p>
+            </div>
+            <div>
+                <p class="text-xs kx-muted">Agotadas</p>
+                <p class="mt-1 font-bold {{ $tallasAgotadas > 0 ? 'text-agotado' : '' }}">{{ $tallasAgotadas }}</p>
             </div>
         </div>
     </div>
 </div>
 
-{{-- Fila 3: ancho completo, ingresos con una sola serie (Chart.js; datos calculados en AdminController) --}}
-<div class="kx-card col-span-full mt-6 p-6">
-    <h2 class="text-lg font-bold">Ingresos de los últimos 7 días (S/)</h2>
-    <p class="text-sm kx-muted">No incluye pedidos cancelados.</p>
-    <div class="mt-4 h-72">
+{{-- ===== Bloque 2: estadísticas de ingresos (ancho completo, pestañas 7 / 30 días) ===== --}}
+<div class="kx-card mt-6 p-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+            <h2 class="text-lg font-bold">Estadísticas de Ingresos (S/)</h2>
+            <p class="text-sm kx-muted">Ingresos diarios sin contar pedidos cancelados.</p>
+        </div>
+        <div class="flex gap-1 rounded-xl border border-zinc-800 bg-[#09090b] p-1">
+            <button type="button" class="kx-tab kx-tab-activa" data-rango="7">7 días</button>
+            <button type="button" class="kx-tab" data-rango="30">30 días</button>
+        </div>
+    </div>
+    <div class="relative mt-4 h-72">
         <canvas id="graficoVentas" data-grafico='@json($grafico)'></canvas>
     </div>
 </div>
 
-{{-- Fila 4: alertas de inventario (8 más urgentes); el filtro por marca se aplica en el servidor --}}
-<div id="alertas" class="kx-card mt-6 p-6">
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h2 class="text-lg font-bold">Alertas de Inventario Crítico</h2>
-        <div class="flex flex-wrap gap-1 rounded-xl border border-zinc-800 bg-[#09090b] p-1">
-            <a href="{{ route('admin.home') }}#alertas" class="kx-tab {{ $marcaActiva ? '' : 'kx-tab-activa' }}">Todas</a>
+{{-- ===== Bloque 3: 5 columnas (alertas de stock) / 7 columnas (pedidos recientes) ===== --}}
+<div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-12">
+    {{-- Alertas: 5 más urgentes; el filtro por marca se aplica en el servidor --}}
+    <div id="alertas" class="kx-card flex flex-col p-6 xl:col-span-5">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold">Alertas de Stock Crítico</h2>
+            <a href="{{ route('admin.productos.index', ['stock' => 'critico']) }}" class="text-sm text-indigo-400 hover:underline">Ver todo</a>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-1">
+            <a href="{{ route('admin.home') }}#alertas" class="kx-tab px-2.5 py-1 text-xs {{ $marcaActiva ? '' : 'kx-tab-activa' }}">Todas</a>
             @foreach ($marcasFiltro as $marcaFiltro)
-                <a href="{{ route('admin.home', ['marca' => $marcaFiltro]) }}#alertas" class="kx-tab {{ $marcaActiva === $marcaFiltro ? 'kx-tab-activa' : '' }}">{{ $marcaFiltro }}</a>
+                <a href="{{ route('admin.home', ['marca' => $marcaFiltro]) }}#alertas" class="kx-tab px-2.5 py-1 text-xs {{ $marcaActiva === $marcaFiltro ? 'kx-tab-activa' : '' }}">{{ $marcaFiltro }}</a>
             @endforeach
         </div>
+
+        <ul class="mt-4 divide-y divide-zinc-800/60">
+            @forelse ($alertas as $talla)
+                <li class="flex items-center gap-3 py-3">
+                    <img src="{{ $talla->producto->url_imagen }}" alt="{{ $talla->producto->modelo }}" loading="lazy" class="h-11 w-11 shrink-0 rounded-lg bg-zinc-900 object-contain p-1">
+                    <div class="min-w-0 flex-1">
+                        <a href="{{ route('admin.productos.edit', $talla->producto) }}" class="block truncate text-sm font-medium hover:text-indigo-400">{{ $talla->producto->modelo }}</a>
+                        <p class="text-xs kx-muted">{{ $talla->producto->marca }} · Talla {{ $talla->talla_etiqueta }}</p>
+                    </div>
+                    <span class="kx-badge-agotado shrink-0">{{ $talla->stock === 0 ? 'Agotado' : 'Stock ' . $talla->stock }}</span>
+                    <a href="{{ route('admin.abastecimiento.create', ['producto' => $talla->producto->sku, 'talla' => $talla->talla]) }}" class="kx-btn-ghost shrink-0 whitespace-nowrap px-2.5 py-1.5 text-xs">+ Reponer</a>
+                </li>
+            @empty
+                <li class="py-6 text-center text-sm kx-muted">Sin alertas de stock crítico{{ $marcaActiva ? ' para ' . $marcaActiva : '' }}.</li>
+            @endforelse
+        </ul>
     </div>
 
-    <div class="mt-4 overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead>
-                <tr>
-                    <th class="kx-th">Producto</th><th class="kx-th">Marca</th><th class="kx-th">Talla</th>
-                    <th class="kx-th">Stock</th><th class="kx-th">Estado</th><th class="kx-th text-right">Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($alertas as $talla)
-                    <tr class="kx-row">
-                        <td class="kx-td">
-                            <div class="flex items-center gap-3">
-                                <img src="{{ $talla->producto->url_imagen }}" alt="{{ $talla->producto->modelo }}" loading="lazy" class="w-10 h-10 rounded-lg object-contain bg-zinc-900 p-1">
-                                <a href="{{ route('admin.productos.edit', $talla->producto) }}" class="font-medium hover:text-indigo-400">{{ $talla->producto->modelo }}</a>
-                            </div>
-                        </td>
-                        <td class="kx-td"><span class="kx-badge-neutro">{{ $talla->producto->marca }}</span></td>
-                        <td class="kx-td">{{ $talla->talla_etiqueta }}</td>
-                        <td class="kx-td font-semibold">{{ $talla->stock }}</td>
-                        <td class="kx-td"><span class="{{ $talla->stock === 0 ? 'kx-badge-agotado' : 'kx-badge-bajo' }}">{{ $talla->stock === 0 ? 'Agotado' : 'Crítico' }}</span></td>
-                        <td class="kx-td text-right">
-                            <a href="{{ route('admin.abastecimiento.create', ['producto' => $talla->producto->sku, 'talla' => $talla->talla]) }}" class="kx-btn-ghost whitespace-nowrap px-3 py-1.5"><i class="fa-solid fa-boxes-stacked"></i>Reponer</a>
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="6" class="kx-td py-6 text-center kx-muted">Sin alertas de stock crítico{{ $marcaActiva ? ' para ' . $marcaActiva : '' }}.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-    <div class="mt-4 text-right">
-        <a href="{{ route('admin.tallas.index', ['estado' => 'bajo']) }}" class="text-sm text-indigo-400 hover:underline">Ver todas en Tallas y Stock →</a>
+    {{-- Pedidos recientes: miniatura del primer producto, código, cliente, total y estado --}}
+    <div class="kx-card p-6 xl:col-span-7">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold">Pedidos recientes</h2>
+            <a href="{{ route('admin.pedidos.index') }}" class="kx-btn-ghost px-3 py-1.5 text-xs">Ver todos</a>
+        </div>
+        <div class="mt-3 overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead><tr><th class="kx-th">Pedido</th><th class="kx-th">Cliente</th><th class="kx-th">Total</th><th class="kx-th">Estado</th></tr></thead>
+                <tbody>
+                    @forelse ($pedidosRecientes as $pedido)
+                        <tr class="kx-row">
+                            <td class="kx-td">
+                                <div class="flex items-center gap-3">
+                                    @if ($primerProducto = $pedido->items->first()?->producto)
+                                        <img src="{{ $primerProducto->url_imagen }}" alt="{{ $primerProducto->modelo }}" loading="lazy" class="h-11 w-11 shrink-0 rounded-lg bg-zinc-900 object-contain p-1">
+                                    @else
+                                        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-zinc-500"><i class="fa-solid fa-box"></i></span>
+                                    @endif
+                                    <div>
+                                        <p class="font-semibold">{{ $pedido->codigo_orden }}</p>
+                                        <p class="text-xs kx-muted">{{ $pedido->items->count() }} {{ $pedido->items->count() === 1 ? 'producto' : 'productos' }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="kx-td">{{ $pedido->usuario->name }}</td>
+                            <td class="kx-td whitespace-nowrap">S/ {{ number_format($pedido->total, 2) }}</td>
+                            <td class="kx-td"><x-admin.estado-pedido :estado="$pedido->estado" /></td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4" class="kx-td py-6 text-center kx-muted">Aún no hay pedidos.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 @endsection

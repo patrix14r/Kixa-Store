@@ -75,7 +75,7 @@ class AuthAndCatalogTest extends TestCase
         $adminResp = $this->actingAs($admin)->get('/admin');
         $adminResp->assertStatus(200);
         $adminResp->assertSee('Resumen General');
-        $adminResp->assertSee('Total Productos');
+        $adminResp->assertSee('Disponibilidad de Stock');
     }
 
     public function test_checkout_procesar_crea_pedido_y_descuenta_stock(): void
@@ -378,7 +378,7 @@ class AuthAndCatalogTest extends TestCase
 
         $this->actingAs($admin)->post(route('admin.productos.store'), [
             'categoria_id' => $categoria->id,
-            'marca'        => 'Adidas',
+            'marca_id'     => \App\Models\Marca::where('nombre', 'Adidas')->value('id'),
             'nombre'       => 'Campus 00s',
             'precio'       => 399,
             'activo'       => 1,

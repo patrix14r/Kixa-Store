@@ -28,13 +28,14 @@
             </div>
             <div>
                 <label for="marca" class="kx-label">Marca *</label>
-                <input type="text" id="marca" name="marca" list="lista-marcas" value="{{ old('marca', $producto->marca) }}" class="kx-input" required maxlength="50">
-                <datalist id="lista-marcas">
-                    @foreach (['Nike', 'Jordan', 'Adidas', 'Puma', 'Umbro', 'New Balance', 'Vans'] as $m)
-                        <option value="{{ $m }}">
+                {{-- [Sem 12 - Eloquent ORM]: FK marca_id con <select>; se muestra $m->nombre (solo marcas activas) y el value es el id. data-nombre lo usa el JS del SKU automático. --}}
+                <select id="marca" name="marca_id" class="kx-input" required>
+                    <option value="">Selecciona una marca</option>
+                    @foreach ($marcas as $m)
+                        <option value="{{ $m->id }}" data-nombre="{{ $m->nombre }}" @selected(old('marca_id', $producto->marca_id) == $m->id)>{{ $m->nombre }}</option>
                     @endforeach
-                </datalist>
-                @error('marca') <p class="kx-error">{{ $message }}</p> @enderror
+                </select>
+                @error('marca_id') <p class="kx-error">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label for="nombre" class="kx-label">Nombre del modelo *</label>

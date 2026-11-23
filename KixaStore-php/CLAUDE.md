@@ -16,7 +16,7 @@ Tienda de zapatillas con dos modos: **Cliente** (catálogo, carrito, checkout, p
 - PHP ^8.3, Laravel 13, MySQL, Vite 8.
 - Admin: Tailwind CSS 4 (`resources/css/app.css` + `resources/js/app.js`, cargados con `@vite`).
 - Cliente: CSS modular en `public/css/*.css` (`diseño.css` es la base) y JS plano en `public/js/*.js`.
-- Tests: `tests/Feature/AdminCrudTest.php` y `AuthAndCatalogTest.php`.
+- Tests: `tests/Feature/AdminCrudTest.php` (CRUDs 1-4, abastecimiento, dashboard) y `AuthAndCatalogTest.php`.
 
 ## 3. Base de datos (migraciones en `database/migrations/`)
 
@@ -26,13 +26,15 @@ Tienda de zapatillas con dos modos: **Cliente** (catálogo, carrito, checkout, p
 | `users`                  | name, email, dni, telefono, direccion, password, avatar                                                                       | `rol_id` → roles (restrictOnDelete)                               |
 | `categorias`             | nombre, slug (unique), descripcion, activo                                                                                    | —                                                                 |
 | `proveedores`            | razon_social, ruc (char 11, unique), contacto_nombre, telefono, correo, direccion, activo                                     | —                                                                 |
-| `productos`              | marca, nombre, subcategoria, sku (unique), precio, descripcion, imagen, galeria_imagenes (json), destacado, en_oferta, activo | `categoria_id` (restrict), `proveedor_id` nullable (nullOnDelete) |
+| `marcas`                 | nombre (unique), slug (unique), logo (nullable), activo                                                                       | —                                                                 |
+| `productos`              | marca (texto sincronizado), nombre, subcategoria, sku (unique), precio, descripcion, imagen, galeria_imagenes (json), destacado, en_oferta, activo | `categoria_id` (restrict), `proveedor_id` nullable (nullOnDelete), `marca_id` nullable (restrictOnDelete) |
 | `producto_tallas`        | talla decimal(3,1), stock                                                                                                     | `producto_id` (cascadeOnDelete)                                   |
 | `pedidos`                | codigo_orden (unique), subtotal, igv, total, estado, direccion_envio, metodo_pago                                             | `user_id` (restrict)                                              |
 | `order_items`            | talla, cantidad, precio_unitario, subtotal                                                                                    | `pedido_id` (cascade), `producto_id` (restrict)                   |
 | `ordenes_abastecimiento` | codigo_lote, cantidad_solicitada, costo_unitario, costo_total, estado, fecha_recepcion                                        | `proveedor_id`, `producto_talla_id`, `user_id`                    |
 
-Orden de seeders (`DatabaseSeeder`): Rol → User → Categoria → Proveedor → Producto.
+Orden de seeders (`DatabaseSeeder`): Rol → User → Categoria → Proveedor → Marca → Producto.
+Proveedores = distribuidoras mayoristas locales (p. ej. "Distribuidora Deportiva Perú S.A.C."); Marcas = fabricantes (Nike, Adidas…).
 Estados de pedido: Pendiente, Pagado, Enviado, Entregado, Cancelado.
 
 ## 4. Modelos Eloquent (`app/Models/`)
@@ -42,9 +44,10 @@ Todos usan el atributo `#[Fillable([...])]`, `casts()` como método y `#[Scope]`
 - `User`: `rol()` BelongsTo, `pedidos()` HasMany, `esAdmin()`, `urlAvatar()`.
 - `Rol`: `usuarios()` HasMany.
 - `Categoria`: ruta por `slug`, scope `activas`, `productos()` HasMany.
-- `Producto`: ruta por `sku`, scopes `activos` y `destacados`, accessors `modelo` y `tipo_calzado`, relaciones `categoria()`, `proveedor()`, `tallas()`.
-- `ProductoTalla`: `producto()` BelongsTo.
-- `Proveedor`: `productos()` HasMany _(agregar `getRouteKeyName()` por `ruc` al implementar CRUD 3)_.
+- `Producto`: ruta por `sku`, scopes `activos` y `destacados`, accessors `modelo` y `tipo_calzado`, relaciones `categoria()`, `proveedor()`, `marca()`, `tallas()`. La columna de texto `marca` se conserva (catálogo y filtros) y se sincroniza con `marcas.nombre`; `$producto->marca` devuelve el texto y `$producto->marca()` la relación.
+- `Marca`: ruta por `slug`, scope `activos`, accessor `url_logo`, `productos()` HasMany.
+- `ProductoTalla`: `producto()` BelongsTo, constante `STOCK_CRITICO = 2`.
+- `Proveedor`: ruta por `ruc`, scope `activos`, `productos()` HasMany.
 - `Pedido`: accessor `paso_seguimiento`, `usuario()` BelongsTo, `items()` HasMany.
 - `DetallePedido` (tabla `order_items`): `pedido()`, `producto()`.
 - `OrdenAbastecimiento`: `proveedor()`, `talla()`, `usuario()`.
@@ -58,14 +61,15 @@ Todos usan el atributo `#[Fillable([...])]`, `casts()` como método y `#[Scope]`
 - Compra: `/carrito`, `/favoritos`, `/checkout`, `POST /checkout/procesar` (`auth`).
 - Panel: grupo `prefix('admin')->name('admin.')->middleware(['auth', 'admin'])`. El alias `admin` (en `bootstrap/app.php`) apunta a `AdminMiddleware`, que usa `esAdmin()` para sacar a los clientes.
     - `categorias` y `productos`: `Route::resource` sin `show` ni `destroy` (baja lógica con `PATCH .../estado`); parámetro por `slug` o `sku`.
+    - CRUD 3 `proveedores` (parámetro por `ruc`) y CRUD 4 `marcas` (parámetro por `slug`): mismo patrón `Route::resource` sin `show` ni `destroy` + `PATCH .../estado`.
     - `clientes` (index, show, edit, update), `pedidos` (index y `PATCH estado`), `perfil`.
-    - Pendientes por implementar para Semana 16: **CRUD 3 (`proveedores`)**, **CRUD 4 (`tallas`)** y **Proceso Secundario (`abastecimiento`)** (hoy apuntan a `resources/views/admin/pendientes/`).
+    - Proceso Secundario `abastecimiento`: index, create, store, `PATCH {orden}/recibir` y `PATCH {orden}/cancelar` (parámetro por `codigo_lote`).
+    - Ya no existe el módulo `tallas`: el stock por talla se gestiona desde Productos y Abastecimiento.
 
 ## 6. Controladores (`app/Http/Controllers/`)
 
 - Cliente: `HomeController`, `NosotrosController` (invocable), `CatalogoController` (filtros por Request, buscador, `show` solo `activos()` por `sku`, `tallas`), `CarritoController` (checkout con token de un solo uso; `procesar` usa `DB::transaction` y `lockForUpdate` para descontar stock), `AuthController` (login, registro, perfil con pestañas).
-- Admin: `AdminController` (dashboard), `Admin/CategoriaController`, `Admin/ProductoController` (`opciones()` con categorías y proveedores, `sincronizarTallas`, SKU automático), `Admin/PedidoController`, `Admin/ClienteController`, `Admin/PerfilController`.
-- Pendientes: `Admin/ProveedorController` (CRUD 3), `Admin/TallaController` (CRUD 4) y `Admin/AbastecimientoController` (Proceso Secundario).
+- Admin: `AdminController` (dashboard), `Admin/CategoriaController` (CRUD 1), `Admin/ProductoController` (CRUD 2; `opciones()` con categorías, proveedores y marcas activas, `<select name="marca_id">`, `sincronizarTallas`, SKU automático), `Admin/ProveedorController` (CRUD 3), `Admin/MarcaController` (CRUD 4: buscador, `withCount('productos')`, logo opcional en `public/images/brands/`, baja lógica `estado`), `Admin/AbastecimientoController` (Proceso Secundario: selects encadenados Producto → Talla), `Admin/PedidoController`, `Admin/ClienteController`, `Admin/PerfilController`.
 
 ## 7. Vistas (`resources/views/`)
 
