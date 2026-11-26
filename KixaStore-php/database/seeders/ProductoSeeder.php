@@ -17,9 +17,9 @@ class ProductoSeeder extends Seeder
 
         // Proveedores = distribuidoras mayoristas (a quién se compra); la marca del producto va aparte en la tabla marcas.
         $provDeportiva = DB::table('proveedores')->where('ruc', '20512345671')->value('id'); // Distribuidora Deportiva Perú S.A.C.
-        $provAndina    = DB::table('proveedores')->where('ruc', '20345678912')->value('id'); // Importadora Andina de Calzado S.A.C.
-        $provSportLima = DB::table('proveedores')->where('ruc', '20601122334')->value('id'); // Comercializadora Sport Lima S.A.C.
-        $provUrbano    = DB::table('proveedores')->where('ruc', '20498765432')->value('id'); // Calzado Urbano Mayorista S.A.C.
+        $provAndina    = DB::table('proveedores')->where('ruc', '20345678914')->value('id'); // Distribuidora Andina de Calzado S.A.C.
+        $provSportLima = DB::table('proveedores')->where('ruc', '20601122333')->value('id'); // Comercializadora Sport Lima S.A.C.
+        $provUrbano    = DB::table('proveedores')->where('ruc', '20498765433')->value('id'); // Calzado Urbano Mayorista S.A.C.
 
         // pluck('id', 'nombre') arma ['Nike' => 1, 'Jordan' => 2, ...] para asignar marca_id a partir del texto de la marca.
         $marcas = DB::table('marcas')->pluck('id', 'nombre');

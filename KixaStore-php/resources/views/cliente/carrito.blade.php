@@ -4,8 +4,10 @@
 
 @section('contenido')
     {{-- Ítems a la izquierda, Resumen a la derecha y Favoritos abajo (en móvil todo en una sola columna, sin scroll horizontal) --}}
-    <main class="max-w-full min-w-0 bg-white px-[5%] pt-12 pb-[72px] text-tinta max-escritorio:w-full max-escritorio:px-4 max-escritorio:pt-7 max-escritorio:pb-12">
-        <div class="grid grid-cols-[minmax(0,1fr)_340px] items-start gap-14 *:max-w-full *:min-w-0 max-[960px]:grid-cols-1 max-[960px]:gap-8 max-escritorio:flex max-escritorio:flex-col max-escritorio:gap-7 max-escritorio:*:w-full">
+    <main class="max-w-full min-w-0 bg-white px-6 pt-12 pb-[72px] text-tinta max-escritorio:w-full max-escritorio:px-4 max-escritorio:pt-7 max-escritorio:pb-12">
+        {{-- Contenedor centrado de 1080px (igual que Favoritos): evita el hueco vacío entre columnas en pantallas anchas --}}
+        <div class="mx-auto w-full max-w-[1080px]">
+        <div class="grid grid-cols-[minmax(0,1fr)_340px] items-start gap-10 lg:gap-12 *:max-w-full *:min-w-0 max-[960px]:grid-cols-1 max-[960px]:gap-8 max-escritorio:flex max-escritorio:flex-col max-escritorio:gap-7 max-escritorio:*:w-full">
             <section aria-labelledby="titulo-carrito">
                 <div class="mb-2 flex items-baseline gap-3">
                     <h1 id="titulo-carrito" class="text-[24px] font-semibold tracking-[-0.02em]">Carrito de compras</h1>
@@ -56,6 +58,7 @@
                         <a href="{{ route('checkout') }}" id="btn-comprar" class="mt-2 flex w-full cursor-pointer items-center justify-center rounded-full border-none bg-tinta p-[18px] text-[16px] font-medium text-white transition-colors duration-200 hover:bg-[#333] [&.deshabilitado]:pointer-events-none [&.deshabilitado]:bg-[#e5e5e5] [&.deshabilitado]:text-[#9e9ea0]">Comprar</a>
                     @endif
                 @endauth
+                <x-metodos-pago class="mt-6 border-t border-[#e5e5e5] pt-4" />
             </aside>
         </div>
 
@@ -66,6 +69,7 @@
             </div>
             <div id="favoritos-carrito"></div>
         </section>
+        </div>
     </main>
 @endsection
 

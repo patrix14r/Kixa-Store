@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'estado',
     'direccion_envio',
     'metodo_pago',
+    'tarjeta_ultimos4',
 ])]
 class Pedido extends Model
 {
@@ -32,6 +33,7 @@ class Pedido extends Model
         'estado',
         'direccion_envio',
         'metodo_pago',
+        'tarjeta_ultimos4',
     ];
 
     // casts() mantiene subtotal, igv y total con 2 decimales.
@@ -44,7 +46,13 @@ class Pedido extends Model
         ];
     }
 
-    public const PASOS = ['Confirmado', 'En preparación', 'En camino', 'Entregado'];
+    // [Sem 08 - Rutas y Vistas Blade]: La URL del admin usa el código de orden (/admin/pedidos/PED-AB12CD/estado) en vez del ID autoincremental.
+    public function getRouteKeyName(): string
+    {
+        return 'codigo_orden';
+    }
+
+    public const PASOS =['Confirmado', 'En preparación', 'En camino', 'Entregado'];
 
     // Accessor: $pedido->paso_seguimiento traduce el estado (Pendiente, Pagado...) a un número de 1 a 4 para la barra de progreso.
     protected function pasoSeguimiento(): Attribute
@@ -56,6 +64,14 @@ class Pedido extends Model
             'Entregado' => 4,
             default     => 0,
         });
+    }
+
+    // Accessor: $pedido->metodo_pago_detalle muestra "Tarjeta •••• 4242" o "Contraentrega" en el perfil y en el panel.
+    protected function metodoPagoDetalle(): Attribute
+    {
+        return Attribute::get(fn () => $this->tarjeta_ultimos4
+            ? "{$this->metodo_pago} •••• {$this->tarjeta_ultimos4}"
+            : $this->metodo_pago);
     }
 
     // Relación BelongsTo: el pedido pertenece al cliente que compró (FK user_id).

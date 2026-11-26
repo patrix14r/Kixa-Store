@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- [Semana 8: Rutas y Herencia Blade] Layout maestro del admin: cada pantalla hija lo hereda con @extends('layouts.admin') y rellena @yield('titulo') y @yield('contenido'). --}}
     <title>@yield('titulo', 'Kixa Admin')</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/ui/favicon-32x32.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> <!-- esto es para iconos -->
     {{-- @vite carga el Tailwind compilado (resources/css/app.css) y resources/js/app.js; el mismo Tailwind lo usa también el Modo Cliente (layouts/app.blade.php). --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -123,7 +124,7 @@
                         @endif
                         <span class="hidden text-left md:block">
                             <span class="block text-sm font-semibold leading-tight">{{ Auth::user()->name }}</span>
-                            <span class="block text-xs capitalize kx-muted">{{ Auth::user()->rol?->nombre }}</span>
+                            <span class="block text-xs capitalize kx-muted">{{ Auth::user()->nombreRol() }}</span>
                         </span>
                         <i class="fa-solid fa-chevron-down text-xs kx-muted"></i>
                     </button>

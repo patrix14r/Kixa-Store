@@ -8,7 +8,7 @@
     {{-- kx-carrusel: las posiciones 3D de cada .slide están en resources/css/app.css (las cambia public/js/movimiento.js) --}}
     {{-- En escritorio el hero sube bajo el header de vidrio: crece 76px (h-navbar) y baja su contenido con pt-navbar --}}
     {{-- La imagen de fondo llega por la variable CSS --fondo (asset() arma la URL pública) para que Vite no la reescriba --}}
-    <section style="--fondo: url('{{ asset('images/ui/backgrounds/Baner nitro.jpg') }}')" class="kx-carrusel relative h-[430px] w-full overflow-hidden bg-[linear-gradient(rgba(0,0,0,0.35),rgba(0,0,0,0.35)),var(--fondo)] bg-cover bg-center bg-no-repeat max-[750px]:h-[400px] max-[500px]:h-[360px] escritorio:h-[calc(430px_+_var(--spacing-navbar))] escritorio:pt-navbar">
+    <section style="--fondo: url('{{ asset('images/ui/backgrounds/789.png') }}')" class="kx-carrusel relative h-[430px] w-full overflow-hidden bg-[linear-gradient(rgba(0,0,0,0.35),rgba(0,0,0,0.35)),var(--fondo)] bg-cover bg-center bg-no-repeat max-[750px]:h-[400px] max-[500px]:h-[360px] escritorio:h-[calc(430px_+_var(--spacing-navbar))] escritorio:pt-navbar">
         <div class="relative size-full">
             <div class="slide active">
                 <img src="{{ asset('images/banners/home/dsa6.jpg') }}" alt="Zapatillas Kixa" />

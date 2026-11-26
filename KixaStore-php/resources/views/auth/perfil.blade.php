@@ -147,7 +147,7 @@
                         <div class="-mx-7 -mt-6 mb-5 flex items-start justify-between gap-4 border-b border-[#f1f1f1] px-7 py-[22px] max-escritorio:-mx-4 max-escritorio:-mt-[18px] max-escritorio:mb-4 max-escritorio:flex-wrap max-escritorio:p-4 [&_h2]:text-[18px] [&_h2]:font-semibold">
                             <div>
                                 <h2>Orden {{ $pedido->codigo_orden }}</h2>
-                                <p class="mt-1 text-[13px] text-suave max-escritorio:[overflow-wrap:anywhere]">{{ $pedido->created_at->format('d/m/Y') }} · {{ $pedido->metodo_pago }} · Estado: {{ $pedido->estado }}</p>
+                                <p class="mt-1 text-[13px] text-suave max-escritorio:[overflow-wrap:anywhere]">{{ $pedido->created_at->format('d/m/Y') }} · {{ $pedido->metodo_pago_detalle }} · Estado: {{ $pedido->estado }}</p>
                             </div>
                             <strong class="text-[18px] font-semibold whitespace-nowrap">S/ {{ number_format($pedido->total, 2) }}</strong>
                         </div>

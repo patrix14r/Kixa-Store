@@ -330,10 +330,10 @@ class AdminCrudTest extends TestCase
     public function test_buscador_de_proveedores_filtra_por_razon_social_y_ruc(): void
     {
         $this->actingAs($this->admin)->get(route('admin.proveedores.index', ['buscar' => 'Deportiva']))
-            ->assertOk()->assertSee('Distribuidora Deportiva Perú')->assertDontSee('Importadora Andina');
+            ->assertOk()->assertSee('Distribuidora Deportiva Perú')->assertDontSee('Distribuidora Andina');
 
-        $this->actingAs($this->admin)->get(route('admin.proveedores.index', ['buscar' => '20345678912']))
-            ->assertOk()->assertSee('Importadora Andina')->assertDontSee('Distribuidora Deportiva');
+        $this->actingAs($this->admin)->get(route('admin.proveedores.index', ['buscar' => '20345678914']))
+            ->assertOk()->assertSee('Distribuidora Andina')->assertDontSee('Distribuidora Deportiva');
     }
 
     public function test_admin_crea_proveedor(): void

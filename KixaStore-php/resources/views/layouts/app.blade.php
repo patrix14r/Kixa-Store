@@ -8,7 +8,7 @@
     <title>@yield('titulo', 'KixaStore')</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/ui/favicon-round.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/ui/favicon-32x32.png') }}">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     {{-- Plus Jakarta Sans (400-700) en todo el Modo Cliente: clase font-jakarta del tema de Tailwind --}}
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -230,6 +230,7 @@
       </div>
 
       <div class="mx-auto mt-12 flex max-w-[1200px] flex-wrap justify-between gap-2 border-t border-white/8 pt-5 text-[12px] text-[#71717a] max-[520px]:justify-center max-[520px]:text-center">
+        <x-metodos-pago oscuro class="mb-3 w-full gap-y-2 border-b border-white/8 pb-4 max-[520px]:justify-center [&>span:first-child]:w-auto" />
         <p>© 2026 - KixaStore. Todos los derechos reservados.</p>
         <p>Sede Central: Av. Cascanueces 2221, Santa Anita, Lima</p>
       </div>

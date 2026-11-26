@@ -119,7 +119,13 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-            carrito.push(item);
+            // Si ya existe el mismo producto en la misma talla, se suma la cantidad (máx. 10) en vez de crear otra línea
+            const existente = carrito.find((p) => String(p.sku || p.id) === String(pSku || pId) && String(p.talla) === String(selectedSize));
+            if (existente) {
+                existente.cantidad = Math.min(10, (Number(existente.cantidad) || 1) + 1);
+            } else {
+                carrito.push(item);
+            }
             localStorage.setItem("carrito", JSON.stringify(carrito));
 
             // [CAMBIO: ACTUALIZAR BADGE DE CONTADOR DEL CARRITO EN EL HEADER]
@@ -137,6 +143,8 @@ document.addEventListener("DOMContentLoaded", () => {
 function mostrarModalCarrito(item, tipo, carrito) {
     const modal = document.getElementById("modalCarrito");
     if (!modal) return;
+    // Los avisos de error previos (p. ej. "Selecciona una talla") no deben quedar encima del modal
+    if (typeof kxToastLimpiar === "function") kxToastLimpiar("error");
 
     const soles = (n) => `S/ ${Number(n).toFixed(2)}`;
     const unidades = carrito.reduce((t, p) => t + (Number(p.cantidad) || 1), 0);

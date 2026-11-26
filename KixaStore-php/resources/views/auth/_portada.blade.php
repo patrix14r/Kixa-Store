@@ -1,6 +1,6 @@
 {{-- Columna de marca compartida por Login y Registro (@include) --}}
 {{-- La foto de fondo llega por la variable CSS --fondo (asset() arma la URL) para que Vite no la reescriba --}}
-<aside style="--fondo: url('{{ asset('images/banners/fondo-contacto.jpg') }}')" class="relative flex flex-col justify-between gap-10 bg-[#0c0c0f] bg-[linear-gradient(160deg,rgba(10,10,14,0.55)_0%,rgba(10,10,14,0.92)_70%),var(--fondo)] bg-cover bg-center bg-no-repeat px-9 py-10 text-white max-[760px]:gap-[18px] max-[760px]:px-6 max-[760px]:py-7" aria-hidden="true">
+<aside style="--fondo: url('{{ asset('images/ui/backgrounds/portada-auth.jpg') }}')" class="relative flex flex-col justify-between gap-10 bg-[#0c0c0f] bg-[linear-gradient(160deg,rgba(10,10,14,0.55)_0%,rgba(10,10,14,0.92)_70%),var(--fondo)] bg-cover bg-center bg-no-repeat px-9 py-10 text-white max-[760px]:gap-[18px] max-[760px]:px-6 max-[760px]:py-7" aria-hidden="true">
     <img src="{{ asset('images/ui/web.jpg') }}" alt="" class="h-10 w-[120px] object-contain object-left [filter:url(#kx-logo-blanco)]">
     <div>
         <span class="text-[11px] font-semibold tracking-[0.18em] text-white/60">KIXASTORE · COLECCIÓN 2026</span>

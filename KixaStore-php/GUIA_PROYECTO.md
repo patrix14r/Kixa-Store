@@ -122,8 +122,66 @@ Login, registro y logout los maneja **Laravel Fortify** (backend sin vistas prop
 
 - **Rutas (las crea Fortify):** `GET/POST /login`, `GET/POST /register`, `POST /logout`. El antiguo `/registro` redirige a `/register`. Nombres: `login`, `register`, `logout`.
 - **`FortifyServiceProvider`:** conecta las vistas con `Fortify::loginView()` y `Fortify::registerView()`, registra `CreateNewUser` y cambia las respuestas por las nuestras. Está registrado en `bootstrap/providers.php`.
-- **`CreateNewUser`** (`app/Actions/Fortify/`): valida (mensajes en español) y crea el usuario con el `rol_id` del rol `cliente`.
+- **`CreateNewUser`** (`app/Actions/Fortify/`): valida (mensajes en español), crea el usuario y le asigna el rol con `$user->assignRole('cliente')` (Spatie).
 - **`LoginResponse` y `RegisterResponse`** (`app/Http/Responses/`): si `esAdmin()` va a `admin.home`; si es cliente respeta `?redirect=checkout|carrito` o vuelve a la URL prevista (`intended`) o al home. El trait `RespuestaAutenticacion` comparte esa lógica.
 - **`config/fortify.php`:** solo la característica `registration`; no se usan recuperar contraseña, 2FA ni passkeys.
 - **`AuthController`:** quedó solo con el perfil del cliente (`perfil`, `actualizarPerfil`, `actualizarPassword`, `actualizarDireccion`).
 - El límite de intentos de login (5 por minuto) está en el `RateLimiter` del provider.
+
+## 8. Roles con Spatie Laravel Permission
+
+Los roles están **separados de `users`** con el paquete `spatie/laravel-permission` (configuración en `config/permission.php`).
+
+| Pieza | Dónde está |
+| --- | --- |
+| Migración de Spatie | `database/migrations/2026_11_25_222712_create_permission_tables.php`: crea `roles`, `permissions`, `model_has_roles`, `model_has_permissions` y `role_has_permissions` |
+| Quitar el esquema antiguo | `2026_11_25_222600_eliminar_rol_id_de_users_table.php`: corre **antes** que la de Spatie; elimina la FK/columna `users.rol_id` y nuestra tabla `roles` propia (el modelo `Rol` ya no existe) |
+| Modelo | `User` usa el trait `HasRoles` → `assignRole()`, `hasRole()`, `syncRoles()`, `getRoleNames()` y el scope `User::role('cliente')` |
+| Seeders | `RolSeeder`: `Role::findOrCreate('admin')` y `Role::findOrCreate('cliente')`. `UserSeeder`: `User::create([...])->assignRole('admin' / 'cliente')` |
+| Registro | `CreateNewUser` (Fortify) hace `$user->assignRole('cliente')` |
+| Consultas | `AdminController` (KPI de clientes) y `Admin\ClienteController@index` usan `User::role('cliente')` |
+| Acceso | `User::esAdmin()` = `$this->hasRole('admin')`; `AdminMiddleware` no cambió (sigue llamando a `esAdmin()`) |
+
+**Flujo:** al registrarse, Fortify crea el usuario y Spatie inserta una fila en `model_has_roles` (`role_id`, `model_type = App\Models\User`, `model_id`). Al entrar a `/admin`, `AdminMiddleware` pregunta `esAdmin()` → `hasRole('admin')`; si es cliente lo devuelve al home. El sidebar del admin muestra el rol con `nombreRol()` (`getRoleNames()->first()`).
+
+## 9. Simulador de pago en el Checkout
+
+El checkout ofrece 2 métodos: **Tarjeta de Crédito/Débito** y **Contraentrega (Efectivo)** (Yape se eliminó junto con su imagen).
+
+**Vista (`cliente/checkout.blade.php`).** Dos botones con `data-metodo` y `aria-pressed` (la opción elegida queda resaltada) y la capa `#procesandoPago` con un spinner "Procesando pago...".
+
+**JavaScript (`public/js/carrito.js`).**
+- `mostrarTarjeta()` pinta una tarjeta visual en Tailwind que se actualiza al escribir: número agrupado de 4 en 4, titular en mayúsculas, vencimiento con `/` automático y CVV; detecta **Visa** (empieza en 4) o **Mastercard** (51-55 / 2221-2720) y cambia el ícono y el color (`data-marca` + `group-data-[marca=visa]:`). Al enfocar el CVV la tarjeta gira (`rotate-y-180`, `transform-3d`, `backface-hidden`).
+- `datosTarjeta()` valida antes de enviar (Luhn, `MM/AA` vigente, CVV de 3-4 dígitos) y `confirmar()` muestra "Procesando pago..." al menos 1.4 s mientras responde el servidor.
+
+**Servidor (`CarritoController@procesar`).**
+- `metodo_pago` debe ser `Tarjeta` o `Contraentrega` (`Rule::in`).
+- Los campos `tarjeta_*` usan `exclude_unless:metodo_pago,Tarjeta`: solo se validan si se paga con tarjeta.
+- Número: 13-19 dígitos y **algoritmo de Luhn** (`CarritoController::pasaLuhn()`: desde la derecha se duplica un dígito sí y otro no, restando 9 si pasa de 9; la suma debe ser múltiplo de 10).
+- Vencimiento `MM/AA` vigente hasta el último día del mes (`tarjetaVigente()`), CVV de 3 o 4 dígitos y titular con solo letras.
+- **Nunca se guarda el número completo ni el CVV**: el pedido guarda `metodo_pago = 'Tarjeta'` y `tarjeta_ultimos4` (migración `2026_11_25_230000_add_tarjeta_ultimos4_to_pedidos_table.php`). Tarjeta → pedido `Pagado`; Contraentrega → `Pendiente`.
+- El historial y el panel muestran `$pedido->metodo_pago_detalle` ("Tarjeta •••• 4242").
+- Tarjetas de prueba: `4242 4242 4242 4242` (Visa) y `5555 5555 5555 4444` (Mastercard), con cualquier fecha futura y CVV `123`.
+
+**Errores en rojo.** Si un campo de tarjeta falla, `marcarErrorCampo()` le pone `border-red-500! ring-1 ring-red-500` (`aria-invalid`) y un mensaje `text-xs text-red-600 font-medium` justo debajo; `limpiarErrorCampo()` lo quita apenas se vuelve a escribir. Si el servidor responde 422, sus `errors` se marcan en los mismos campos y el mensaje sale en el banner rojo `#errorPago` sobre "Pagar ahora".
+
+**Métodos aceptados.** `<x-logo-tarjeta marca="visa|mastercard">` dibuja los logos en SVG (opción Tarjeta del checkout) y `<x-metodos-pago>` la franja "Visa · Mastercard · Efectivo contraentrega" al pie del Resumen (carrito y checkout) y del footer; usa `@container` para pasar "Efectivo contraentrega" a otra línea cuando el espacio es angosto.
+
+**Toasts.** `toast.js` muestra máximo 3 avisos (el más antiguo sale), no repite un mensaje visible (reinicia su temporizador de ~3.5 s y lo sacude con `animate-sacudir`) y expone `kxToastLimpiar("error")`, que `producto-dinamico.js` llama al abrir el modal "artículo agregado al carrito".
+
+## 10. Orden de `public/images/`
+
+| Carpeta | Contenido |
+| --- | --- |
+| `avatars/` | Fotos de perfil subidas por los usuarios |
+| `banners/` | Banners por sección: `home/`, `hombre/`, `mujer/`, `ninos/`, `deporte/` |
+| `brands/` | Logos de marcas: `nike-logo.png`, `jordan-logo.webp`, `adidas-logo.png`, `puma-logo.png`, `umbro-logo.png` (los asigna `MarcaSeeder`) y los subidos desde el CRUD 4 |
+| `products/` | Fotos de productos por categoría y `uploads/` (subidas desde el CRUD 2) |
+| `promotions/` | Imágenes de ofertas del home |
+| `ui/` | Favicon (`favicon-32x32.png`, enlazado en `layouts/app` y `layouts/admin`), fondos (`backgrounds/`) y recursos de interfaz |
+
+Se eliminaron archivos sin uso: la carpeta `lanzamientos/` y `payments/yape.jpg`. El fondo de login/registro se movió de `banners/fondo-contacto.jpg` a `ui/backgrounds/portada-auth.jpg` (lo usa `auth/_portada.blade.php`).
+
+Carrito, Checkout y Favoritos comparten un contenedor centrado de 1080px (`mx-auto max-w-[1080px]`); en Carrito y Checkout las 2 columnas (contenido + Resumen de 340px) usan `gap-10 lg:gap-12`.
+
+En `admin/marcas/index` cada logo va dentro de un contenedor uniforme `bg-white/95 rounded-lg p-1` para que logos negros o de colores se vean limpios sobre el tema oscuro.

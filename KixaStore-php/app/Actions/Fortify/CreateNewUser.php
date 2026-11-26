@@ -2,14 +2,13 @@
 
 namespace App\Actions\Fortify;
 
-use App\Models\Rol;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
-// [Sem 12 - Eloquent ORM]: Fortify llama a create() al registrarse; aquí se valida y se crea el User con rol cliente
+// [Sem 12 - Eloquent ORM]: Fortify llama a create() al registrarse; aquí se valida, se crea el User y se le asigna el rol cliente con Spatie
 class CreateNewUser implements CreatesNewUsers
 {
     /**
@@ -32,13 +31,17 @@ class CreateNewUser implements CreatesNewUsers
             'phone.size'         => 'El teléfono debe tener exactamente 9 dígitos numéricos.',
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'name'     => $input['name'],
             'email'    => $input['email'],
             'dni'      => $input['dni'] ?? null,
             'telefono' => $input['phone'] ?? null,
             'password' => Hash::make($input['password']),
-            'rol_id'   => Rol::where('nombre', 'cliente')->value('id'),
         ]);
+
+        // [Sem 11 - Migraciones, Seeders y Roles]: assignRole() inserta la fila en model_has_roles (Spatie).
+        $user->assignRole('cliente');
+
+        return $user;
     }
 }

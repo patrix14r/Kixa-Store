@@ -25,9 +25,12 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
-CLAUDE.md
-AGENTS.md
-README.md
+# Configuración local de agentes de IA y Laravel Boost (se regenera con php artisan boost:install)
+/.agents/
+/.amp/
+/.claude/
+/.mcp.json
+/boost.json
 # Fotos de perfil subidas por los usuarios
 /public/images/avatars/*
 !/public/images/avatars/.gitkeep

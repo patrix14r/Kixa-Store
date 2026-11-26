@@ -116,6 +116,16 @@ function mostrarCarrito() {
 
 function cambiarTalla(i, talla) {
     if (!carrito[i]) return;
+    // Si ya hay otra línea del mismo producto con esa talla, se juntan en una sola (máx. 10)
+    const clave = String(carrito[i].sku || carrito[i].id);
+    const j = carrito.findIndex((p, k) => k !== i && String(p.sku || p.id) === clave && String(p.talla) === String(talla));
+    if (j !== -1) {
+        carrito[j].cantidad = cantidadValida((Number(carrito[j].cantidad) || 1) + (Number(carrito[i].cantidad) || 1));
+        carrito.splice(i, 1);
+        guardarCarrito();
+        mostrarCarrito();
+        return;
+    }
     carrito[i].talla = talla;
     guardarCarrito();
 }
@@ -217,19 +227,27 @@ window.addEventListener("click", function(event) {
 // --------------------------------------------------------------------------
 // [CAMBIO]: Opciones de métodos de pago dentro del modal
 // --------------------------------------------------------------------------
-// Clases de Tailwind compartidas por los 3 formularios de pago (los inputs toman el estilo de la sección del checkout)
+// Clases de Tailwind compartidas por los 2 formularios de pago (Tarjeta y Contraentrega) (los inputs toman el estilo de la sección del checkout)
 const CLASE_PAGO = "mt-[18px] max-w-full min-w-0 rounded-[14px] bg-perla p-5 [&>p]:text-[14px] [&>p]:leading-[1.6] [&>p]:text-suave [&_label]:mt-3 [&_label]:mb-1.5 [&_label]:block [&_label]:text-[13px] [&_label]:text-suave";
 const CLASE_CONFIRMAR = "mt-[18px] flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full border-none bg-tinta p-4 text-[15px] font-medium text-white hover:bg-[#333]";
 
+// Marca el botón del método elegido (aria-pressed lo resalta con Tailwind en checkout.blade.php)
+function marcarMetodo(metodo) {
+    document.querySelectorAll("[data-metodo]").forEach((boton) => {
+        boton.setAttribute("aria-pressed", boton.dataset.metodo === metodo ? "true" : "false");
+    });
+}
+
 function mostrarContraentrega() {
     if (!contenidoPago) return;
+    marcarMetodo("Contraentrega");
     contenidoPago.innerHTML = `
         <div class="${CLASE_PAGO}">
             <h3 class="mb-2 flex items-center gap-2 text-[16px] font-semibold">
-                <i class="fa-solid fa-box"></i>
-                Pago Contraentrega
+                <i class="fa-solid fa-money-bill-wave"></i>
+                Contraentrega (Efectivo)
             </h3>
-            <p>Pagarás en efectivo o POS al momento de recibir tu pedido en tu domicilio.</p>
+            <p>Pagarás en efectivo al momento de recibir tu pedido. Tu pedido quedará <strong class="inline font-semibold text-tinta">Pendiente</strong> hasta la entrega.</p>
             <button class="${CLASE_CONFIRMAR}" onclick="confirmar('Contraentrega')" type="button">
                 Confirmar pedido
                 <i class="fa-solid fa-arrow-right"></i>
@@ -238,26 +256,107 @@ function mostrarContraentrega() {
     `;
 }
 
+// --------------------------------------------------------------------------
+// Simulador de tarjeta: vista previa interactiva + validaciones (el servidor vuelve a validar con Luhn)
+// --------------------------------------------------------------------------
+// Visa empieza en 4; Mastercard en 51-55 o 2221-2720
+function detectarMarca(numero) {
+    if (/^4/.test(numero)) return "visa";
+    if (/^(5[1-5]|222[1-9]|22[3-9]\d|2[3-6]\d{2}|27[01]\d|2720)/.test(numero)) return "mastercard";
+    return "";
+}
+
+// Algoritmo de Luhn (igual que CarritoController::pasaLuhn)
+function pasaLuhn(numero) {
+    if (!/^\d{13,19}$/.test(numero)) return false;
+    let suma = 0;
+    numero.split("").reverse().forEach((d, i) => {
+        let digito = Number(d);
+        if (i % 2 === 1) {
+            digito *= 2;
+            if (digito > 9) digito -= 9;
+        }
+        suma += digito;
+    });
+    return suma % 10 === 0;
+}
+
+// "MM/AA" vigente hasta el último día de ese mes
+function tarjetaVigente(vencimiento) {
+    const partes = /^(0[1-9]|1[0-2])\/(\d{2})$/.exec(vencimiento);
+    if (!partes) return false;
+    const finDeMes = new Date(2000 + Number(partes[2]), Number(partes[1]), 0, 23, 59, 59);
+    return finDeMes >= new Date();
+}
+
+const ICONO_MARCA = {
+    visa: '<i class="fa-brands fa-cc-visa"></i>',
+    mastercard: '<i class="fa-brands fa-cc-mastercard"></i>',
+    "": '<i class="fa-solid fa-credit-card opacity-70"></i>',
+};
+
 function mostrarTarjeta() {
     if (!contenidoPago) return;
+    marcarMetodo("Tarjeta");
+    // Las caras usan group-data-[marca=...] para cambiar de color según la marca detectada
     contenidoPago.innerHTML = `
         <div class="${CLASE_PAGO}">
-            <h3 class="mb-2 flex items-center gap-2 text-[16px] font-semibold">
+            <h3 class="mb-4 flex items-center gap-2 text-[16px] font-semibold">
                 <i class="fa-solid fa-credit-card"></i>
-                Pago con Tarjeta
+                Tarjeta de Crédito / Débito
             </h3>
-            <label>Número de tarjeta</label>
-            <input type="text" placeholder="0000 0000 0000 0000" maxlength="19">
 
-            <div class="grid grid-cols-2 gap-3 max-escritorio:grid-cols-1">
+            <div class="mx-auto mb-2 w-full max-w-[360px] perspective-[1000px]">
+                <div id="tarjetaVisual" data-marca="" class="group relative aspect-[1.586/1] w-full transition-transform duration-500 transform-3d">
+                    <div class="absolute inset-0 flex flex-col justify-between rounded-2xl bg-linear-to-br from-[#2a2a30] to-noche p-5 text-white shadow-[0_18px_40px_rgba(0,0,0,0.22)] backface-hidden group-data-[marca=visa]:from-[#1f3a8a] group-data-[marca=visa]:to-[#0b1437] group-data-[marca=mastercard]:from-[#3b2a26] group-data-[marca=mastercard]:to-[#120d0c] max-escritorio:p-4">
+                        <div class="flex items-start justify-between">
+                            <span class="h-8 w-11 rounded-md bg-linear-to-br from-[#e9d48b] to-[#b8953f]"></span>
+                            <span id="tarjetaMarca" class="text-[38px] leading-none max-escritorio:text-[32px]">${ICONO_MARCA[""]}</span>
+                        </div>
+                        <p id="tarjetaNumeroVista" class="font-mono text-[20px] tracking-[0.12em] whitespace-nowrap max-escritorio:text-[16px]">•••• •••• •••• ••••</p>
+                        <div class="flex items-end justify-between gap-4 text-[11px] uppercase tracking-[0.08em]">
+                            <div class="min-w-0">
+                                <span class="block text-white/60">Titular</span>
+                                <span id="tarjetaTitularVista" class="block truncate text-[14px] font-medium">NOMBRE APELLIDO</span>
+                            </div>
+                            <div class="shrink-0 text-right">
+                                <span class="block text-white/60">Vence</span>
+                                <span id="tarjetaVenceVista" class="block font-mono text-[14px]">MM/AA</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute inset-0 flex rotate-y-180 flex-col justify-center gap-4 rounded-2xl bg-linear-to-br from-[#2a2a30] to-noche text-white shadow-[0_18px_40px_rgba(0,0,0,0.22)] backface-hidden group-data-[marca=visa]:from-[#1f3a8a] group-data-[marca=visa]:to-[#0b1437] group-data-[marca=mastercard]:from-[#3b2a26] group-data-[marca=mastercard]:to-[#120d0c]">
+                        <span class="block h-10 w-full bg-black/80"></span>
+                        <div class="flex items-center justify-end gap-3 px-5">
+                            <span class="text-[11px] uppercase tracking-[0.08em] text-white/60">CVV</span>
+                            <span id="tarjetaCvvVista" class="min-w-16 rounded bg-white px-3 py-1.5 text-right font-mono text-[15px] text-tinta">•••</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <label for="tarjetaNumero">Número de tarjeta</label>
+            <input type="text" id="tarjetaNumero" placeholder="0000 0000 0000 0000" maxlength="23" inputmode="numeric" autocomplete="cc-number">
+
+            <label for="tarjetaTitular">Titular (como figura en la tarjeta)</label>
+            <input type="text" id="tarjetaTitular" placeholder="Ej. Ana Torres" maxlength="100" autocomplete="cc-name">
+
+            <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label>MM/AA</label>
-                    <input type="text" placeholder="05/28" maxlength="5">
+                    <label for="tarjetaVencimiento">Vencimiento (MM/AA)</label>
+                    <input type="text" id="tarjetaVencimiento" placeholder="05/28" maxlength="5" inputmode="numeric" autocomplete="cc-exp">
                 </div>
                 <div>
-                    <label>CVV</label>
-                    <input type="password" placeholder="***" maxlength="4">
+                    <label for="tarjetaCvv">CVV</label>
+                    <input type="password" id="tarjetaCvv" placeholder="•••" maxlength="4" inputmode="numeric" autocomplete="cc-csc">
                 </div>
+            </div>
+
+            <p class="mt-3 flex items-center gap-2 text-[12px]"><i class="fa-solid fa-shield-halved"></i> Simulación: no se realiza ningún cargo real. Prueba con 4242 4242 4242 4242.</p>
+
+            <div id="errorPago" role="alert" class="mt-4 flex items-start gap-2 rounded-[10px] border border-red-200 bg-red-50 px-3.5 py-2.5 text-[13px] font-medium text-red-700" hidden>
+                <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+                <span id="errorPagoTexto"></span>
             </div>
 
             <button class="${CLASE_CONFIRMAR}" onclick="confirmar('Tarjeta')" type="button">
@@ -266,28 +365,142 @@ function mostrarTarjeta() {
             </button>
         </div>
     `;
+    activarTarjeta();
 }
 
-function mostrarYape() {
-    if (!contenidoPago) return;
-    contenidoPago.innerHTML = `
-        <div class="${CLASE_PAGO}">
-            <h3 class="mb-2 flex items-center gap-2 text-[16px] font-semibold">
-                <i class="fa-solid fa-mobile-screen-button"></i>
-                Pago con Yape
-            </h3>
-            <p>Escanea el código QR desde tu app Yape para completar el pago.</p>
-            <img src="/images/payments/yape.jpg" class="mx-auto my-3.5 block w-[180px] max-w-full rounded-xl" alt="Código QR de Yape">
-            <div class="text-center font-semibold">
-                <i class="fa-solid fa-phone"></i>
-                916 934 205
-            </div>
-            <button class="${CLASE_CONFIRMAR}" onclick="confirmar('Yape')" type="button">
-                He realizado el pago
-                <i class="fa-solid fa-check"></i>
-            </button>
-        </div>
-    `;
+// Conecta los inputs con la tarjeta visual: formatea mientras se escribe y gira la tarjeta al llegar al CVV
+function activarTarjeta() {
+    const tarjeta = document.getElementById("tarjetaVisual");
+    const numero = document.getElementById("tarjetaNumero");
+    const titular = document.getElementById("tarjetaTitular");
+    const vence = document.getElementById("tarjetaVencimiento");
+    const cvv = document.getElementById("tarjetaCvv");
+    if (!tarjeta || !numero) return;
+
+    numero.addEventListener("input", () => {
+        const digitos = numero.value.replace(/\D/g, "").slice(0, 19);
+        numero.value = digitos.replace(/(\d{4})(?=\d)/g, "$1 ");
+        const marca = detectarMarca(digitos);
+        tarjeta.dataset.marca = marca;
+        document.getElementById("tarjetaMarca").innerHTML = ICONO_MARCA[marca];
+        // Muestra los dígitos escritos y completa con puntos hasta 16
+        const relleno = digitos.padEnd(Math.max(16, digitos.length), "•");
+        document.getElementById("tarjetaNumeroVista").textContent = relleno.replace(/(.{4})(?=.)/g, "$1 ");
+    });
+
+    titular.addEventListener("input", () => {
+        titular.value = titular.value.replace(/[^\p{L}\s.'-]/gu, "");
+        document.getElementById("tarjetaTitularVista").textContent = titular.value.trim().toUpperCase() || "NOMBRE APELLIDO";
+    });
+
+    vence.addEventListener("input", (e) => {
+        let digitos = vence.value.replace(/\D/g, "").slice(0, 4);
+        // Al borrar no se vuelve a poner la barra automáticamente
+        if (digitos.length >= 3 || (digitos.length === 2 && e.inputType !== "deleteContentBackward")) {
+            digitos = digitos.slice(0, 2) + "/" + digitos.slice(2);
+        }
+        vence.value = digitos;
+        document.getElementById("tarjetaVenceVista").textContent = vence.value || "MM/AA";
+    });
+
+    cvv.addEventListener("input", () => {
+        cvv.value = cvv.value.replace(/\D/g, "").slice(0, 4);
+        document.getElementById("tarjetaCvvVista").textContent = cvv.value ? "•".repeat(cvv.value.length) : "•••";
+    });
+    [numero, titular, vence, cvv].forEach((input) => input.addEventListener("input", () => {
+        limpiarErrorCampo(input.id);
+        mostrarErrorPago("");
+    }));
+
+    cvv.addEventListener("focus", () => tarjeta.classList.add("rotate-y-180"));
+    cvv.addEventListener("blur", () => tarjeta.classList.remove("rotate-y-180"));
+}
+
+// --------------------------------------------------------------------------
+// Errores en rojo por campo: borde + mensaje debajo del input (se limpian al volver a escribir)
+// --------------------------------------------------------------------------
+// border-red-500! lleva "!" porque el contenedor del checkout ya pinta el borde de todos sus inputs ([&_input]:border-...)
+const CLASES_ERROR_CAMPO = ["border-red-500!", "ring-1", "ring-red-500"];
+
+function marcarErrorCampo(id, mensaje) {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.classList.add(...CLASES_ERROR_CAMPO);
+    input.setAttribute("aria-invalid", "true");
+    input.setAttribute("aria-describedby", `${id}Error`);
+
+    let aviso = document.getElementById(`${id}Error`);
+    if (!aviso) {
+        aviso = document.createElement("span");
+        aviso.id = `${id}Error`;
+        aviso.className = "mt-1 block text-xs font-medium text-red-600";
+        input.insertAdjacentElement("afterend", aviso);
+    }
+    aviso.textContent = mensaje;
+}
+
+function limpiarErrorCampo(id) {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.classList.remove(...CLASES_ERROR_CAMPO);
+    input.removeAttribute("aria-invalid");
+    input.removeAttribute("aria-describedby");
+    document.getElementById(`${id}Error`)?.remove();
+}
+
+// Banner rojo compacto arriba de "Pagar ahora" para los errores que devuelve el servidor ("" lo oculta)
+function mostrarErrorPago(mensaje) {
+    const banner = document.getElementById("errorPago");
+    if (!banner) return false;
+    document.getElementById("errorPagoTexto").textContent = mensaje;
+    banner.hidden = !mensaje;
+    return true;
+}
+
+// Campo del backend (validate()) → id del input en la tarjeta
+const CAMPOS_TARJETA = {
+    tarjeta_numero: "tarjetaNumero",
+    tarjeta_titular: "tarjetaTitular",
+    tarjeta_vencimiento: "tarjetaVencimiento",
+    tarjeta_cvv: "tarjetaCvv",
+};
+
+// Valida la tarjeta antes de enviarla: marca en rojo cada campo con error y devuelve los datos o null
+function datosTarjeta() {
+    const campo = (id) => document.getElementById(id);
+    const numero = (campo("tarjetaNumero")?.value || "").replace(/\D/g, "");
+    const titular = (campo("tarjetaTitular")?.value || "").trim();
+    const vencimiento = (campo("tarjetaVencimiento")?.value || "").trim();
+    const cvv = (campo("tarjetaCvv")?.value || "").trim();
+    const formatoMMAA = /^(0[1-9]|1[0-2])\/\d{2}$/.test(vencimiento);
+
+    // [id del input, mensaje] solo de los campos que fallan
+    const errores = [
+        !numero ? ["tarjetaNumero", "Ingresa el número de tu tarjeta."]
+            : !pasaLuhn(numero) ? ["tarjetaNumero", "El número de tarjeta no es válido."] : null,
+        titular.length < 3 ? ["tarjetaTitular", "Ingresa el nombre del titular de la tarjeta."] : null,
+        !formatoMMAA ? ["tarjetaVencimiento", "Usa el formato MM/AA."]
+            : !tarjetaVigente(vencimiento) ? ["tarjetaVencimiento", "La tarjeta está vencida."] : null,
+        !/^\d{3,4}$/.test(cvv) ? ["tarjetaCvv", "El CVV debe tener 3 o 4 dígitos."] : null,
+    ].filter(Boolean);
+
+    Object.values(CAMPOS_TARJETA).forEach(limpiarErrorCampo);
+    errores.forEach(([id, mensaje]) => marcarErrorCampo(id, mensaje));
+    if (errores.length) {
+        campo(errores[0][0])?.focus();
+        return null;
+    }
+
+    return { tarjeta_numero: numero, tarjeta_titular: titular, tarjeta_vencimiento: vencimiento, tarjeta_cvv: cvv };
+}
+
+// Capa "Procesando pago..." de checkout.blade.php
+function mostrarProcesando(visible, detalle = "") {
+    const capa = document.getElementById("procesandoPago");
+    if (!capa) return;
+    const texto = document.getElementById("procesandoDetalle");
+    if (texto && detalle) texto.textContent = detalle;
+    capa.style.display = visible ? "flex" : "none";
 }
 
 // --------------------------------------------------------------------------
@@ -329,10 +542,19 @@ function confirmar(metodo) {
         return;
     }
 
+    // Con tarjeta se validan número (Luhn), titular, vencimiento y CVV antes de enviar
+    mostrarErrorPago("");
+    const tarjeta = metodo === "Tarjeta" ? datosTarjeta() : {};
+    if (!tarjeta) return;
+
     const csrfMeta = document.querySelector('meta[name="csrf-token"]');
     const token = csrfMeta ? csrfMeta.getAttribute("content") : "";
 
-    fetch("/checkout/procesar", {
+    // Animación breve de "Procesando pago..." (mínimo 1.4 s) mientras responde el servidor
+    mostrarProcesando(true, metodo === "Tarjeta" ? "Validando tu tarjeta de forma segura" : "Registrando tu pedido");
+    const esperaMinima = new Promise((resolver) => setTimeout(resolver, 1400));
+
+    const peticion = fetch("/checkout/procesar", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -345,10 +567,13 @@ function confirmar(metodo) {
             direccion_envio: direccion,
             dni: dniInput ? dniInput.value.trim() : null,
             telefono: telInput ? telInput.value.trim() : null,
+            ...tarjeta,
             items: carrito.map((p) => ({ id: p.sku || p.id, talla: p.talla, cantidad: cantidadValida(p.cantidad) }))
         })
-    })
-    .then(async response => {
+    });
+
+    Promise.all([peticion, esperaMinima])
+    .then(async ([response]) => {
         if (response.status === 401) {
             avisar("Debes iniciar sesión para completar tu compra.");
             window.location.href = "/login";
@@ -375,12 +600,21 @@ function confirmar(metodo) {
             // replace(): el checkout no queda en el historial, así "Atrás" no vuelve a la pantalla de pago
             window.location.replace(data.redirect_url || "/perfil/pedidos");
         } else {
-            avisar(data.mensaje || "Ocurrió un error al procesar el pedido.");
+            mostrarProcesando(false);
+            // 422 de validate() trae "message" y "errors"; los rechazos propios traen "mensaje"
+            const mensaje = data.mensaje || data.message || "Ocurrió un error al procesar el pedido.";
+            Object.entries(data.errors || {}).forEach(([clave, lista]) => {
+                if (CAMPOS_TARJETA[clave]) marcarErrorCampo(CAMPOS_TARJETA[clave], lista[0]);
+            });
+            // Con tarjeta el error se muestra en el banner rojo sobre "Pagar ahora"; en Contraentrega, en el toast
+            if (metodo !== "Tarjeta" || !mostrarErrorPago(mensaje)) avisar(mensaje);
         }
     })
     .catch(error => {
+        mostrarProcesando(false);
         console.error("Error al procesar la compra:", error);
-        avisar("No se pudo conectar con el servidor. Tu pedido NO se registró; inténtalo de nuevo.");
+        const mensaje = "No se pudo conectar con el servidor. Tu pedido NO se registró; inténtalo de nuevo.";
+        if (metodo !== "Tarjeta" || !mostrarErrorPago(mensaje)) avisar(mensaje);
     });
 }
 
