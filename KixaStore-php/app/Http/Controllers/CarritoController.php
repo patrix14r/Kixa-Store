@@ -21,6 +21,9 @@ class CarritoController extends Controller
 
     private const MENSAJE_ADMIN = 'La cuenta Administrador es solo de gestión y no puede realizar compras de cliente.';
 
+    // Tope de pares por talla en un mismo pedido (el carrito JS aplica el mismo límite).
+    public const MAX_POR_TALLA = 10;
+
     public function index()
     {
         return view('cliente.carrito');
@@ -136,6 +139,10 @@ class CarritoController extends Controller
 
                     $tallaRecord = ProductoTalla::where('producto_id', $prod->id)->where('talla', $talla)->lockForUpdate()->first();
                     $yaReservado = $tallaRecord ? ($reservadoPorTalla[$tallaRecord->id] ?? 0) : 0;
+                    // Regla del servidor: máximo 10 pares por talla aunque lleguen repartidos en varias líneas.
+                    if ($yaReservado + $cantidad > self::MAX_POR_TALLA) {
+                        throw new \DomainException("Máximo " . self::MAX_POR_TALLA . " pares de {$prod->nombre} por talla.");
+                    }
                     if (! $tallaRecord || $tallaRecord->stock < $yaReservado + $cantidad) {
                         throw new \DomainException("Stock insuficiente de {$prod->nombre} en talla " . rtrim(rtrim(number_format($talla, 1), '0'), '.') . '.');
                     }
@@ -218,10 +225,13 @@ class CarritoController extends Controller
 
             return $this->rechazar($request, $e->getMessage(), 422);
         } catch (\Throwable $e) {
+            // El detalle técnico va al log (storage/logs); al cliente solo se le muestra un mensaje genérico.
+            report($e);
+
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'exito'   => false,
-                    'mensaje' => 'Error al procesar la compra: ' . $e->getMessage(),
+                    'mensaje' => 'Ocurrió un error al procesar la compra. Inténtalo nuevamente.',
                 ], 500);
             }
 

@@ -118,13 +118,23 @@ class AbastecimientoController extends Controller
     // cancelar (PATCH): solo órdenes pendientes; no toca el stock.
     public function cancelar(OrdenAbastecimiento $orden)
     {
-        if ($orden->estado !== 'Pendiente') {
-            return back()->with('error', 'Solo se pueden cancelar órdenes pendientes.');
-        }
+        // [Sem 09 - Controladores y Middleware]: DB::transaction + lockForUpdate evita cancelar una orden que otro admin está recibiendo.
+        $cancelada = DB::transaction(function () use ($orden) {
+            $orden = OrdenAbastecimiento::lockForUpdate()->findOrFail($orden->id);
 
-        $orden->update(['estado' => 'Cancelado']);
+            if ($orden->estado !== 'Pendiente') {
+                return false;
+            }
 
-        return back()->with('exito', "Orden {$orden->codigo_lote} cancelada.");
+            $orden->update(['estado' => 'Cancelado']);
+
+            return true;
+        });
+
+        return back()->with(
+            $cancelada ? 'exito' : 'error',
+            $cancelada ? "Orden {$orden->codigo_lote} cancelada." : 'Solo se pueden cancelar órdenes pendientes.'
+        );
     }
 
     // Texto de cada opción del <select> de talla, con aviso de agotado o crítico.

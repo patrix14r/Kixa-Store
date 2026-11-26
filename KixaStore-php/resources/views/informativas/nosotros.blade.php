@@ -81,7 +81,7 @@
                     <div id="faq-envios">
                         <h3><i class="fa-solid fa-truck-fast"></i> Envíos y estado del pedido</h3>
                         <x-pregunta-frecuente pregunta="¿Cuánto tarda en llegar mi pedido?" abierta>En Lima Metropolitana entregamos de 24 a 48 horas hábiles. Para provincias el plazo es de 3 a 5 días hábiles según el destino.</x-pregunta-frecuente>
-                        <x-pregunta-frecuente pregunta="¿Cuánto cuesta el envío?">El envío en Lima cuesta S/ 10 y a provincias desde S/ 18. Las compras mayores a S/ 299 tienen envío gratis a todo el Perú.</x-pregunta-frecuente>
+                        <x-pregunta-frecuente pregunta="¿Cuánto cuesta el envío?">El envío es gratis en todas tus compras, a Lima y a provincias. El total que ves en el carrito ya es el monto final, con IGV incluido.</x-pregunta-frecuente>
                         <x-pregunta-frecuente pregunta="¿Cómo sé el estado de mi pedido?">Ingresa a <a href="{{ route('perfil') }}">Mi cuenta</a> para ver el historial y estado de tus pedidos. También te avisamos por correo y WhatsApp cuando tu pedido sale a reparto.</x-pregunta-frecuente>
                     </div>
 
@@ -94,7 +94,7 @@
 
                     <div id="faq-pagos">
                         <h3><i class="fa-regular fa-credit-card"></i> Opciones de pago</h3>
-                        <x-pregunta-frecuente pregunta="¿Qué medios de pago aceptan?">Aceptamos tarjetas de crédito y débito Visa y Mastercard, Yape, Plin y transferencia bancaria.</x-pregunta-frecuente>
+                        <x-pregunta-frecuente pregunta="¿Qué medios de pago aceptan?">Aceptamos tarjetas de crédito y débito Visa y Mastercard, y pago Contraentrega (pagas al recibir tu pedido).</x-pregunta-frecuente>
                         <x-pregunta-frecuente pregunta="¿Es seguro pagar en KixaStore?">Sí. Los pagos se procesan en una conexión cifrada y nunca almacenamos los datos completos de tu tarjeta.</x-pregunta-frecuente>
                         <x-pregunta-frecuente pregunta="¿Emiten boleta o factura?">Emitimos boleta electrónica en todas las compras. Si necesitas factura, indícanos tu RUC al momento del pago.</x-pregunta-frecuente>
                     </div>

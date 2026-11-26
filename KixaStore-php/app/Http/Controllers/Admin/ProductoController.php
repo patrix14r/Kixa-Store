@@ -135,17 +135,25 @@ class ProductoController extends Controller
             'nombre'            => ['required', 'string', 'max:120'],
             'subcategoria'      => ['nullable', 'string', 'max:50'],
             'sku'               => ['nullable', 'string', 'max:30', 'alpha_dash', Rule::unique('productos', 'sku')->ignore($producto)],
-            'precio'            => ['required', 'numeric', 'min:0', 'max:99999999'],
+            // decimal(10,2) en MySQL: el tope 99999.99 evita desbordes y el mínimo impide productos gratis.
+            'precio'            => ['required', 'numeric', 'min:0.01', 'max:99999.99'],
             'descripcion'       => ['nullable', 'string'],
             'imagen_archivo'    => ['nullable', 'image', 'max:2048'],
             'imagen'            => ['nullable', 'string', 'max:255'],
             'galeria_archivos'  => ['nullable', 'array', 'max:6'],
             'galeria_archivos.*' => ['image', 'max:2048'],
             'galeria_quitar'    => ['nullable', 'array'],
-            'tallas'            => ['array'],
-            'tallas.*.talla'    => ['nullable', 'numeric', 'between:15,50'],
-            'tallas.*.stock'    => ['nullable', 'integer', 'min:0'],
-        ], [], [
+            // Al menos una talla con número, sin repetir (distinct) y con stock razonable.
+            'tallas'            => ['bail', 'required', 'array', 'min:1',
+                fn ($campo, $valor, $falla) => collect($valor)->contains(fn ($f) => isset($f['talla']) && $f['talla'] !== '') || $falla('Registra al menos una talla.')],
+            'tallas.*.talla'    => ['nullable', 'numeric', 'between:15,50', 'distinct'],
+            'tallas.*.stock'    => ['nullable', 'integer', 'min:0', 'max:100000'],
+        ], [
+            'tallas.required'         => 'Registra al menos una talla.',
+            'tallas.min'              => 'Registra al menos una talla.',
+            'tallas.*.talla.distinct' => 'La talla :input está repetida.',
+            'tallas.*.stock.max'      => 'El stock por talla no puede superar 100000 pares.',
+        ], [
             'categoria_id' => 'categoría',
             'proveedor_id' => 'proveedor',
             'marca_id' => 'marca',

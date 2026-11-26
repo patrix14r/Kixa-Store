@@ -80,6 +80,13 @@ class MarcaController extends Controller
 
         $datos['slug'] = Str::slug($datos['nombre']);
 
+        // Str::slug puede quedar vacío (nombre "!!!") o demasiado largo: ambos casos romperían la URL /admin/marcas/{slug}.
+        if ($datos['slug'] === '' || mb_strlen($datos['slug']) > 70) {
+            throw ValidationException::withMessages(['nombre' => $datos['slug'] === ''
+                ? 'El nombre debe contener letras o números para generar el slug.'
+                : 'El slug generado no puede superar los 70 caracteres.']);
+        }
+
         // El slug también debe ser único (p. ej. "New-Balance" y "New Balance" darían el mismo).
         if (Marca::where('slug', $datos['slug'])->when($marca, fn ($q) => $q->whereKeyNot($marca->id))->exists()) {
             throw ValidationException::withMessages(['nombre' => 'Ya existe una marca con un nombre equivalente.']);

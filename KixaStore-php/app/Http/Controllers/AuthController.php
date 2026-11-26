@@ -22,6 +22,7 @@ class AuthController extends Controller
         return view('auth.perfil', compact('usuario', 'pedidos', 'seccion', 'pasos'));
     }
 
+    // [Sem 09 - Controladores y Middleware]: único punto para cambiar la clave; exige la contraseña actual (current_password).
     public function actualizarPassword(Request $request)
     {
         /** @var \App\Models\User $usuario */
@@ -52,6 +53,7 @@ class AuthController extends Controller
         return redirect()->route('perfil', 'direcciones')->with('exito', 'Dirección predeterminada guardada.');
     }
 
+    // [Sem 09 - Controladores y Middleware]: PUT /perfil solo cambia datos personales; la clave se cambia únicamente en actualizarPassword().
     public function actualizarPerfil(Request $request)
     {
         /** @var \App\Models\User $usuario */
@@ -60,12 +62,10 @@ class AuthController extends Controller
         $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'email'    => ['required', 'email', 'unique:users,email,' . $usuario->id],
-            'password' => ['nullable', 'string', 'min:8'],
             'dni'      => ['nullable', 'regex:/^[0-9]{8}$/'],
             'telefono' => ['nullable', 'regex:/^[0-9]{9}$/'],
             'avatar'   => ['nullable', 'image', 'max:2048'],
         ], [
-            'password.min' => 'La nueva contraseña debe tener al menos 8 caracteres.',
             'avatar.image' => 'La foto de perfil debe ser una imagen (JPG, PNG, WEBP...).',
             'avatar.max'   => 'La foto de perfil no debe pesar más de 2 MB.',
         ]);
@@ -77,10 +77,6 @@ class AuthController extends Controller
         }
         if ($request->has('telefono')) {
             $usuario->telefono = $request->telefono ?: null;
-        }
-
-        if ($request->filled('password')) {
-            $usuario->password = Hash::make($request->password);
         }
 
         if ($request->hasFile('avatar')) {

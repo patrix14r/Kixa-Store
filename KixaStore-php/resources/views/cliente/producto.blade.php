@@ -8,7 +8,7 @@
             <!-- GALERÍA DE IMÁGENES: al hacer clic en una miniatura producto-dinamico.js le pone la clase "active" -->
             <div class="flex min-w-0 gap-4 max-[650px]:flex-col-reverse">
                 <div id="thumbs" class="flex w-[76px] flex-col gap-3 max-[650px]:w-full max-[650px]:flex-row max-[650px]:overflow-x-auto [&>img]:size-[76px] [&>img]:cursor-pointer [&>img]:rounded-[10px] [&>img]:border [&>img]:border-transparent [&>img]:bg-perla [&>img]:object-contain [&>img]:p-1.5 [&>img]:mix-blend-multiply [&>img]:transition-[border-color] [&>img]:duration-200 [&>img:hover]:border-tinta [&>img.active]:border-tinta max-[650px]:[&>img]:size-16 max-[650px]:[&>img]:flex-[0_0_64px]">
-                    <img src="{{ asset($producto->imagen) }}" class="active" alt="{{ $producto->nombre }}">
+                    <img src="{{ $producto->url_imagen }}" class="active" alt="{{ $producto->nombre }}">
                     {{-- Imágenes secundarias subidas desde el Panel Admin --}}
                     @foreach ($producto->galeria_imagenes ?? [] as $ruta)
                         <img src="{{ asset($ruta) }}" alt="{{ $producto->nombre }}" loading="lazy">
@@ -16,7 +16,7 @@
                 </div>
 
                 <div id="mainImg" class="group relative flex aspect-square max-h-[640px] flex-1 items-center justify-center overflow-hidden rounded-2xl bg-perla p-8 max-[650px]:p-5">
-                    <img id="mainImage" src="{{ asset($producto->imagen) }}" alt="{{ $producto->nombre }}" class="size-full object-contain mix-blend-multiply transition-[scale] duration-400 group-hover:scale-103">
+                    <img id="mainImage" src="{{ $producto->url_imagen }}" alt="{{ $producto->nombre }}" class="size-full object-contain mix-blend-multiply transition-[scale] duration-400 group-hover:scale-103">
                 </div>
             </div>
 
@@ -57,9 +57,9 @@
                                 type="button"
                                 class="size-btn {{ $tallaObj->stock <= 0 ? 'agotado disabled' : '' }} min-h-12 cursor-pointer rounded-lg border border-[#e4e4e7] bg-white p-2.5 text-[15px] font-medium text-tinta transition-colors duration-200 hover:border-tinta [&.selected]:border-tinta [&.selected]:bg-tinta [&.selected]:text-white disabled:cursor-not-allowed disabled:border-[#f1f1f1] disabled:bg-perla disabled:text-[#b4b4b8] disabled:line-through"
                                 {{ $tallaObj->stock <= 0 ? 'disabled' : '' }}
-                                data-talla="{{ number_format($tallaObj->talla, 0) }}"
+                                data-talla="{{ $tallaObj->talla_etiqueta }}"
                                 title="{{ $tallaObj->stock <= 0 ? 'Agotado' : 'Disponible (' . $tallaObj->stock . ' pares)' }}">
-                                {{ number_format($tallaObj->talla, 0) }}
+                                {{ $tallaObj->talla_etiqueta }}
                             </button>
                         @endforeach
                     </div>
@@ -81,11 +81,11 @@
                             class="inline-flex min-h-14 flex-1 cursor-pointer items-center justify-center gap-2.5 rounded-full border-none bg-tinta text-[16px] font-medium text-white transition-colors duration-200 hover:bg-[#333]"
                             id="addBtn"
                             type="button"
-                            data-id="{{ $producto->id }}"
+                            data-id="{{ $producto->sku }}"
                             data-sku="{{ $producto->sku }}"
                             data-nombre="{{ $producto->nombre }}"
                             data-precio="{{ $producto->precio }}"
-                            data-imagen="{{ asset($producto->imagen) }}"
+                            data-imagen="{{ $producto->url_imagen }}"
                             data-marca="{{ $producto->marca }}"
                             data-tipo="{{ $producto->tipo_calzado }} • {{ $producto->categoria->nombre }}">
                             <i class="fa-solid fa-cart-shopping"></i> Agregar al Carrito
@@ -98,11 +98,11 @@
                         id="favBtn"
                         type="button"
                         title="Guardar en favoritos"
-                        data-id="{{ $producto->id }}"
+                        data-id="{{ $producto->sku }}"
                         data-sku="{{ $producto->sku }}"
                         data-nombre="{{ $producto->nombre }}"
                         data-precio="{{ $producto->precio }}"
-                        data-imagen="{{ asset($producto->imagen) }}"
+                        data-imagen="{{ $producto->url_imagen }}"
                         data-marca="{{ $producto->marca }}">
                         <i class="fa-regular fa-heart"></i>
                     </button>
@@ -111,7 +111,7 @@
                 <!-- INFORMACIÓN DE ENVÍO -->
                 <div class="mt-6 flex gap-2.5 border-t border-[#ececec] pt-5 text-[14px] leading-[1.6] text-[#52525b]">
                     <i class="fa-solid fa-truck"></i>
-                    Envío gratis a partir de S/ 200. Entrega en 24-48 horas a todo el Perú.
+                    Envío gratis en todas tus compras. Entrega en 24-48 horas a todo el Perú.
                 </div>
             </aside>
 

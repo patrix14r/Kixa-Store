@@ -58,14 +58,20 @@ class CategoriaController extends Controller
     }
 
     // Reglas compartidas por store y update; el slug se genera con Str::slug() si llega vacío.
+    // [Sem 13 - CRUDs, Query Builder y Paginación]: reglas compartidas por store y update; el slug sale de Str::slug().
     private function validar(Request $request, ?Categoria $categoria = null): array
     {
         $request->merge(['slug' => Str::slug($request->input('slug') ?: $request->input('nombre', ''))]);
 
         $datos = $request->validate([
             'nombre'      => ['required', 'string', 'max:50', Rule::unique('categorias', 'nombre')->ignore($categoria)],
-            'slug'        => ['required', 'string', 'max:60', Rule::unique('categorias', 'slug')->ignore($categoria)],
+            // El slug no puede quedar vacío (p. ej. nombre "!!!"), ni pasar de 70 chars, ni ser "todos" (reservado por /catalogo/todos).
+            'slug'        => ['required', 'string', 'max:70', Rule::notIn(['todos']), Rule::unique('categorias', 'slug')->ignore($categoria)],
             'descripcion' => ['nullable', 'string', 'max:255'],
+        ], [
+            'slug.required' => 'El nombre debe contener letras o números para generar el slug.',
+            'slug.max'      => 'El slug no puede superar los 70 caracteres.',
+            'slug.not_in'   => 'El slug "todos" está reservado para el catálogo completo.',
         ]);
         $datos['activo'] = $request->boolean('activo');
 

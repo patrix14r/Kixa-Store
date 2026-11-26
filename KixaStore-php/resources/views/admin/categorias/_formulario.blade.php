@@ -10,7 +10,7 @@
     <div>
         {{-- Se completa solo al escribir el nombre (resources/js/app.js) --}}
         <label for="slug" class="kx-label">Slug (URL) <span class="font-normal kx-muted">· automático</span></label>
-        <input type="text" id="slug" name="slug" value="{{ old('slug', $categoria->slug) }}" class="kx-input" maxlength="60" placeholder="se-genera-desde-el-nombre" data-slug-auto="nombre">
+        <input type="text" id="slug" name="slug" value="{{ old('slug', $categoria->slug) }}" class="kx-input" maxlength="70" placeholder="se-genera-desde-el-nombre" data-slug-auto="nombre">
         @error('slug') <p class="kx-error">{{ $message }}</p> @enderror
     </div>
     <div class="md:col-span-2">

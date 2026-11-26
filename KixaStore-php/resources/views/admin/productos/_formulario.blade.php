@@ -53,7 +53,7 @@
             </div>
             <div>
                 <label for="precio" class="kx-label">Precio (S/) *</label>
-                <input type="number" id="precio" name="precio" step="0.01" min="0" value="{{ old('precio', $producto->precio) }}" class="kx-input" required>
+                <input type="number" id="precio" name="precio" step="0.01" min="0.01" max="99999.99" value="{{ old('precio', $producto->precio) }}" class="kx-input" required>
                 @error('precio') <p class="kx-error">{{ $message }}</p> @enderror
             </div>
             <div>
@@ -134,16 +134,17 @@
                 @foreach (old('tallas', $tallas) as $i => $fila)
                     <div class="grid grid-cols-[1fr_1fr_auto] gap-2" data-fila-talla>
                         <input type="number" step="0.5" name="tallas[{{ $i }}][talla]" value="{{ $fila['talla'] ?? '' }}" class="kx-input py-2">
-                        <input type="number" min="0" name="tallas[{{ $i }}][stock]" value="{{ $fila['stock'] ?? 0 }}" class="kx-input py-2">
+                        <input type="number" min="0" max="100000" name="tallas[{{ $i }}][stock]" value="{{ $fila['stock'] ?? 0 }}" class="kx-input py-2">
                         <button type="button" class="w-8 text-agotado" data-quitar-talla aria-label="Quitar talla"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 @endforeach
             </div>
+            @error('tallas') <p class="kx-error">{{ $message }}</p> @enderror
             @error('tallas.*') <p class="kx-error">{{ $message }}</p> @enderror
             <template id="plantilla-talla">
                 <div class="grid grid-cols-[1fr_1fr_auto] gap-2" data-fila-talla>
                     <input type="number" step="0.5" name="tallas[__I__][talla]" class="kx-input py-2">
-                    <input type="number" min="0" name="tallas[__I__][stock]" value="0" class="kx-input py-2">
+                    <input type="number" min="0" max="100000" name="tallas[__I__][stock]" value="0" class="kx-input py-2">
                     <button type="button" class="w-8 text-agotado" data-quitar-talla aria-label="Quitar talla"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </template>

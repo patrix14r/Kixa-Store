@@ -245,22 +245,27 @@ class AuthAndCatalogTest extends TestCase
         $goodRegistro->assertRedirect(route('home'));
         $this->assertDatabaseHas('users', ['email' => 'valido@kixa.com']);
 
-        // 3. Actualizar perfil con contraseña menor a 8 caracteres debe fallar
+        // 3. PUT /perfil ya no cambia contraseñas (punto 3 de la auditoría): el campo password se ignora.
         $user = User::where('email', 'valido@kixa.com')->first();
-        $badPerfil = $this->actingAs($user)->put('/perfil', [
+        $this->actingAs($user)->put('/perfil', [
             'name'     => 'Usuario Valido Mod',
             'email'    => 'valido@kixa.com',
-            'password' => 'corta', // 5 caracteres
-        ]);
-        $badPerfil->assertSessionHasErrors(['password']);
+            'password' => 'corta',
+        ])->assertSessionHasNoErrors();
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('password123', $user->fresh()->password));
 
-        // 4. Actualizar perfil con contraseña de 8 o más caracteres debe ser exitoso
-        $goodPerfil = $this->actingAs($user)->put('/perfil', [
-            'name'     => 'Usuario Valido Mod',
-            'email'    => 'valido@kixa.com',
-            'password' => 'nuevaPassword123',
-        ]);
-        $goodPerfil->assertSessionHasNoErrors();
+        // 4. El cambio de clave va por PUT /perfil/password y exige mínimo 8 caracteres.
+        $this->actingAs($user)->put(route('perfil.password'), [
+            'password_actual'       => 'password123',
+            'password'              => 'corta',
+            'password_confirmation' => 'corta',
+        ])->assertSessionHasErrors(['password']);
+
+        $this->actingAs($user)->put(route('perfil.password'), [
+            'password_actual'       => 'password123',
+            'password'              => 'nuevaPassword123',
+            'password_confirmation' => 'nuevaPassword123',
+        ])->assertSessionHasNoErrors();
     }
 
     // ---------- FASE 4: Nosotros, buscador y foto de perfil ----------

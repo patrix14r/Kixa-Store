@@ -4,7 +4,7 @@
         <li class="flex items-center gap-3">
             <div class="kx-miniatura">
                 @if ($item->producto)
-                    <img src="{{ asset($item->producto->imagen) }}" alt="{{ $item->producto->nombre }}" loading="lazy" class="h-full w-full rounded-lg object-cover">
+                    <img src="{{ $item->producto->url_imagen }}" alt="{{ $item->producto->nombre }}" loading="lazy" class="h-full w-full rounded-lg object-cover">
                 @endif
             </div>
             <span class="min-w-0 flex-1">

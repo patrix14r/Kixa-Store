@@ -69,9 +69,10 @@
                     @csrf
                     @method('PATCH')
                     <x-admin.estado-pedido :estado="$pedido->estado" />
-                    <select name="estado" class="kx-input py-2" aria-label="Cambiar estado" onchange="this.form.submit()">
+                    {{-- Solo se habilitan los estados permitidos por PedidoController::TRANSICIONES --}}
+                    <select name="estado" class="kx-input py-2" aria-label="Cambiar estado" onchange="this.form.submit()" @disabled(empty($transiciones[$pedido->estado]))>
                         @foreach ($estados as $opcion)
-                            <option value="{{ $opcion }}" @selected($pedido->estado === $opcion)>{{ $opcion }}</option>
+                            <option value="{{ $opcion }}" @selected($pedido->estado === $opcion) @disabled($pedido->estado !== $opcion && ! in_array($opcion, $transiciones[$pedido->estado] ?? [], true))>{{ $opcion }}</option>
                         @endforeach
                     </select>
                 </form>

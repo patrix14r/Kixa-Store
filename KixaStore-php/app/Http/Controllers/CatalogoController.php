@@ -87,7 +87,7 @@ class CatalogoController extends Controller
         $marca        = $request->query('marca');
         $talla        = $request->query('talla');
         $orden        = array_key_exists($request->query('orden'), self::ORDENES) ? $request->query('orden') : 'destacados';
-        $buscar       = trim((string) $request->query('buscar'));
+        $buscar       = $this->limpiarBusqueda((string) $request->query('buscar'));
 
         $catObj = ($categoria && $categoria !== 'todos') ? Categoria::where('slug', $categoria)->first() : null;
 
@@ -95,6 +95,8 @@ class CatalogoController extends Controller
 
         if ($buscar !== '') {
             foreach (preg_split('/\s+/', $buscar) as $palabra) {
+                // addcslashes escapa % y _ para que el usuario no use comodines de LIKE.
+                $palabra = addcslashes($palabra, '%_\\');
                 $base->where(function ($q) use ($palabra) {
                     $q->where('nombre', 'like', "%{$palabra}%")
                       ->orWhere('marca', 'like', "%{$palabra}%")
@@ -189,7 +191,8 @@ class CatalogoController extends Controller
     public function show($sku = null)
     {
         // Solo productos activos y solo por SKU (nunca por id) para no exponer IDs ni productos ocultos.
-        $consulta = Producto::activos()->with(['categoria', 'proveedor', 'tallas']);
+        // [Sem 12 - Eloquent ORM]: las tallas llegan ordenadas (38, 38.5, 39...) para mostrar bien las medias tallas.
+        $consulta = Producto::activos()->with(['categoria', 'proveedor', 'tallas' => fn ($q) => $q->orderBy('talla')]);
 
         $producto = $sku
             ? $consulta->where('sku', $sku)->firstOrFail()
@@ -245,6 +248,15 @@ class CatalogoController extends Controller
                 'url'      => route('catalogo', array_merge(['categoria' => $categoria], $params)) . self::ANCLA,
             ];
         }, $valores);
+    }
+
+    // [Sem 09 - Controladores y Middleware]: recorta el buscador a 80 caracteres y 6 palabras para evitar consultas abusivas.
+    private function limpiarBusqueda(string $texto): string
+    {
+        $texto    = mb_substr(trim(preg_replace('/\s+/u', ' ', $texto)), 0, 80);
+        $palabras = array_slice(array_filter(explode(' ', $texto), fn ($p) => $p !== ''), 0, 6);
+
+        return implode(' ', $palabras);
     }
 
     private function formatoTalla($talla): string
