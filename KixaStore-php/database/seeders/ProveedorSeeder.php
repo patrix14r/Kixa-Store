@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-// [Sem 11 - Migraciones, Seeders y Roles]: proveedores = distribuidoras mayoristas locales (a quién se le compra), distintas de las Marcas (quién fabrica).
+// [Sem 11 - Migraciones, Seeders y Roles]: proveedores = distribuidoras mayoristas peruanas (a quién se le compra), distintas de las Marcas (quién fabrica); los RUC tienen dígito verificador SUNAT válido.
 class ProveedorSeeder extends Seeder
 {
     public function run(): void
@@ -23,19 +23,19 @@ class ProveedorSeeder extends Seeder
                 'updated_at'      => now(),
             ],
             [
-                'razon_social'    => 'Importadora Andina de Calzado S.A.C.',
-                'ruc'             => '20345678912',
+                'razon_social'    => 'Distribuidora Andina de Calzado S.A.C.',
+                'ruc'             => '20345678914',
                 'contacto_nombre' => 'Lucía Fernández',
                 'telefono'        => '912345678',
-                'correo'          => 'pedidos@importadoraandina.pe',
-                'direccion'       => 'Av. Comandante Espinar 860, Miraflores',
+                'correo'          => 'pedidos@andinacalzado.pe',
+                'direccion'       => 'Av. Nicolás Arriola 2240, La Victoria',
                 'activo'          => true,
                 'created_at'      => now(),
                 'updated_at'      => now(),
             ],
             [
                 'razon_social'    => 'Comercializadora Sport Lima S.A.C.',
-                'ruc'             => '20601122334',
+                'ruc'             => '20601122333',
                 'contacto_nombre' => 'Roberto Vargas',
                 'telefono'        => '998877665',
                 'correo'          => 'logistica@sportlima.pe',
@@ -46,7 +46,7 @@ class ProveedorSeeder extends Seeder
             ],
             [
                 'razon_social'    => 'Calzado Urbano Mayorista S.A.C.',
-                'ruc'             => '20498765432',
+                'ruc'             => '20498765433',
                 'contacto_nombre' => 'Gonzalo Alva',
                 'telefono'        => '976543210',
                 'correo'          => 'contacto@calzadourbano.pe',

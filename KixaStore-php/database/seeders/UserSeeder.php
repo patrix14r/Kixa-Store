@@ -2,35 +2,25 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
-// Usuarios de prueba enlazados a su rol mediante rol_id
+// [Sem 11 - Migraciones, Seeders y Roles]: Usuarios de prueba; el rol se asigna con assignRole() de Spatie (tabla model_has_roles), ya no con una columna rol_id.
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $rolAdmin   = DB::table('roles')->where('nombre', 'admin')->value('id'); // value() nos retorna el id del rol
-        $rolCliente = DB::table('roles')->where('nombre', 'cliente')->value('id');
+        // El cast "hashed" del modelo User encripta la contraseña al guardarla.
+        User::create([
+            'name'     => 'Administrador Kixa',
+            'email'    => 'admin@kixa.com',
+            'password' => 'admin123',
+        ])->assignRole('admin');
 
-        DB::table('users')->insert([
-            [
-                'name'       => 'Administrador Kixa',
-                'email'      => 'admin@kixa.com',
-                'password'   => Hash::make('admin123'),
-                'rol_id'     => $rolAdmin,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name'       => 'Cliente Kixa',
-                'email'      => 'cliente@kixa.com',
-                'password'   => Hash::make('cliente123'),
-                'rol_id'     => $rolCliente, 
-                'created_at' => now(),
-                'updated_at' => now(), //now 
-            ],
-        ]);
+        User::create([
+            'name'     => 'Cliente Kixa',
+            'email'    => 'cliente@kixa.com',
+            'password' => 'cliente123',
+        ])->assignRole('cliente');
     }
 }

@@ -1,4 +1,5 @@
-// Panel admin  
+// Panel admin. Este archivo también se carga en el Modo Cliente (layouts/app.blade.php):
+// cada bloque comprueba primero que su elemento exista (?. o if), así no falla en páginas sin esos elementos.
 
 // Menús desplegables (campanita y perfil): se cierran al hacer clic fuera
 document.querySelectorAll('[data-dropdown]').forEach((caja) => {

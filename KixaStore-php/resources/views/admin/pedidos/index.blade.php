@@ -58,7 +58,7 @@
                 </div>
                 <div>
                     <p class="text-xs kx-muted">Pago</p>
-                    <p class="capitalize">{{ $pedido->metodo_pago }}</p>
+                    <p>{{ ucfirst($pedido->metodo_pago_detalle) }}</p>
                 </div>
                 <div>
                     <p class="text-xs kx-muted">Total</p>

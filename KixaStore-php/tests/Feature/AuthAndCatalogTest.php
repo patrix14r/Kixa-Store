@@ -117,6 +117,38 @@ class AuthAndCatalogTest extends TestCase
         $this->assertEquals($stockInicial - 1, $tallaObj->stock);
     }
 
+    public function test_procesar_suma_lineas_repetidas_de_la_misma_talla_y_no_deja_stock_negativo(): void
+    {
+        $cliente = User::where('email', 'cliente@kixa.com')->first();
+        $producto = \App\Models\Producto::first();
+        $tallaObj = \App\Models\ProductoTalla::where('producto_id', $producto->id)->first();
+        $tallaObj->update(['stock' => 1]);
+
+        $this->actingAs($cliente)->get('/checkout')->assertOk();
+
+        $linea = ['id' => $producto->sku, 'talla' => $tallaObj->talla, 'cantidad' => 1];
+        $this->actingAs($cliente)->postJson('/checkout/procesar', [
+            'token_compra' => session('checkout_token'),
+            'metodo_pago' => 'Contraentrega',
+            'items' => [$linea, $linea],
+        ])->assertStatus(422)->assertJson(['exito' => false]);
+
+        $this->assertSame(1, $tallaObj->fresh()->stock);
+        $this->assertDatabaseMissing('pedidos', ['user_id' => $cliente->id]);
+    }
+
+    public function test_urls_de_pedidos_y_clientes_no_exponen_ids(): void
+    {
+        $cliente = User::where('email', 'cliente@kixa.com')->first();
+        $pedido = \App\Models\Pedido::create([
+            'user_id' => $cliente->id, 'codigo_orden' => 'PED-URL001', 'subtotal' => 100,
+            'igv' => 18, 'total' => 118, 'estado' => 'Pagado', 'direccion_envio' => 'Lima', 'metodo_pago' => 'Contraentrega',
+        ]);
+
+        $this->assertStringEndsWith('/admin/pedidos/PED-URL001/estado', route('admin.pedidos.estado', $pedido));
+        $this->assertStringEndsWith('/admin/clientes/cliente@kixa.com', urldecode(route('admin.clientes.show', $cliente)));
+    }
+
     public function test_flujo_completo_cliente_desde_catalogo_hasta_historial_en_perfil(): void
     {
         // 1. Invitado no puede acceder directo a checkout
@@ -155,7 +187,11 @@ class AuthAndCatalogTest extends TestCase
         $producto = \App\Models\Producto::where('sku', 'PUM-180-PRM')->first();
         $compraResp = $this->postJson('/checkout/procesar', [
             'token_compra' => session('checkout_token'),
-            'metodo_pago' => 'Yape',
+            'metodo_pago' => 'Tarjeta',
+            'tarjeta_numero' => '4242 4242 4242 4242',
+            'tarjeta_titular' => 'Cliente Kixa',
+            'tarjeta_vencimiento' => now()->addYear()->format('m/y'),
+            'tarjeta_cvv' => '123',
             'direccion_envio' => 'Calle Los Pinos 456, San Isidro',
             'items' => [
                 [
@@ -181,7 +217,8 @@ class AuthAndCatalogTest extends TestCase
             'codigo_orden' => $codigo,
             'user_id' => $cliente->id,
             'estado' => 'Pagado',
-            'metodo_pago' => 'Yape',
+            'metodo_pago' => 'Tarjeta',
+            'tarjeta_ultimos4' => '4242',
         ]);
     }
 
@@ -261,7 +298,8 @@ class AuthAndCatalogTest extends TestCase
         $this->assertFileExists(public_path($avatar));
 
         $this->actingAs($cliente->fresh())->get(route('home'))
-            ->assertSee('class="avatar-header"', false)
+            // La miniatura del header se reconoce por su alt (ya no depende de una clase CSS)
+            ->assertSee('alt="Foto de ' . $cliente->name . '"', false)
             ->assertDontSee('PANEL ADMIN');
 
         @unlink(public_path($avatar));
@@ -319,17 +357,17 @@ class AuthAndCatalogTest extends TestCase
         $token = session('checkout_token');
 
         // Cantidad negativa o decimal: 422 y no se crea pedido
-        $this->postJson('/checkout/procesar', ['token_compra' => $token, 'metodo_pago' => 'Yape', 'items' => [array_merge($item, ['cantidad' => -2])]])
+        $this->postJson('/checkout/procesar', ['token_compra' => $token, 'metodo_pago' => 'Contraentrega', 'items' => [array_merge($item, ['cantidad' => -2])]])
             ->assertStatus(422);
-        $this->postJson('/checkout/procesar', ['token_compra' => $token, 'metodo_pago' => 'Yape', 'items' => [array_merge($item, ['cantidad' => 1.5])]])
+        $this->postJson('/checkout/procesar', ['token_compra' => $token, 'metodo_pago' => 'Contraentrega', 'items' => [array_merge($item, ['cantidad' => 1.5])]])
             ->assertStatus(422);
 
         // Primera compra válida
-        $this->postJson('/checkout/procesar', ['token_compra' => $token, 'metodo_pago' => 'Yape', 'items' => [$item]])
+        $this->postJson('/checkout/procesar', ['token_compra' => $token, 'metodo_pago' => 'Contraentrega', 'items' => [$item]])
             ->assertOk()->assertJson(['redirect_url' => route('perfil', 'pedidos')]);
 
         // Reenvío con el mismo token: 409 y sigue habiendo 1 solo pedido
-        $this->postJson('/checkout/procesar', ['token_compra' => $token, 'metodo_pago' => 'Yape', 'items' => [$item]])
+        $this->postJson('/checkout/procesar', ['token_compra' => $token, 'metodo_pago' => 'Contraentrega', 'items' => [$item]])
             ->assertStatus(409);
         $this->assertSame(1, \App\Models\Pedido::where('user_id', $cliente->id)->count());
     }

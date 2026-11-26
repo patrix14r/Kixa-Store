@@ -6,7 +6,6 @@ use App\Models\Marca;
 use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\ProductoTalla;
-use App\Models\Rol;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -17,8 +16,8 @@ class AdminController extends Controller
     public function home(Request $request)
     {
         // Bloque superior: KPI de clientes y pedidos.
-        $rolCliente = Rol::where('nombre', 'cliente')->value('id');
-        $totalClientes = User::where('rol_id', $rolCliente)->count();
+        // [Sem 11 - Migraciones, Seeders y Roles]: el scope role() de Spatie filtra por la tabla model_has_roles.
+        $totalClientes = User::role('cliente')->count();
         $totalPedidos = Pedido::count();
         $pedidosPendientes = Pedido::where('estado', 'Pendiente')->count();
 

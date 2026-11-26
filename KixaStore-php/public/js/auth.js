@@ -25,7 +25,7 @@ document.querySelectorAll("[data-validar-auth]").forEach((form) => {
         let aviso = campo?.querySelector(".auth-error");
         if (campo && !aviso) {
             aviso = document.createElement("small");
-            aviso.className = "auth-error";
+            aviso.className = "auth-error mt-1.5 block text-[12px] text-[#dc2626] empty:hidden";
             campo.appendChild(aviso);
         }
         if (aviso) aviso.textContent = error;

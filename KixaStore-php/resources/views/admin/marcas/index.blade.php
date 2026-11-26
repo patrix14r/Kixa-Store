@@ -39,7 +39,8 @@
                 <tr class="kx-row">
                     <td class="kx-td">
                         @if ($marca->url_logo)
-                            <img src="{{ $marca->url_logo }}" alt="Logo {{ $marca->nombre }}" class="h-10 w-10 rounded-lg bg-white object-contain p-1">
+                            {{-- Contenedor claro uniforme para que logos negros o de colores se vean limpios en el tema oscuro --}}
+                            <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/95 p-1"><img src="{{ $marca->url_logo }}" alt="Logo {{ $marca->nombre }}" class="max-h-full max-w-full object-contain"></span>
                         @else
                             <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-800 font-bold">{{ mb_substr($marca->nombre, 0, 1) }}</span>
                         @endif

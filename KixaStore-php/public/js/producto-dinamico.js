@@ -84,14 +84,15 @@ document.addEventListener("DOMContentLoaded", () => {
         addBtn.addEventListener("click", () => {
             // [CAMBIO: VALIDACION DE TALLA SELECCIONADA ANTES DE AGREGAR AL CARRITO]
             if (!selectedSize) {
-                // Aviso flotante + sacudida suave del bloque de tallas
+                // Aviso flotante + sacudida suave (animate-sacudir del tema) y borde rojo (ring) en el bloque de tallas
                 if (typeof kxToast === "function") kxToast("Selecciona una talla disponible antes de agregar al carrito.", "error");
                 const bloqueTallas = document.getElementById("sizes");
                 if (bloqueTallas) {
-                    bloqueTallas.classList.remove("kx-sacudir");
+                    const alerta = ["ring-2", "ring-agotado/45"];
+                    bloqueTallas.classList.remove("animate-sacudir");
                     void bloqueTallas.offsetWidth;
-                    bloqueTallas.classList.add("kx-sacudir", "kx-tallas-alerta");
-                    setTimeout(() => bloqueTallas.classList.remove("kx-tallas-alerta"), 1600);
+                    bloqueTallas.classList.add("animate-sacudir", ...alerta);
+                    setTimeout(() => bloqueTallas.classList.remove(...alerta), 1600);
                 }
                 return;
             }
@@ -118,7 +119,13 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-            carrito.push(item);
+            // Si ya existe el mismo producto en la misma talla, se suma la cantidad (máx. 10) en vez de crear otra línea
+            const existente = carrito.find((p) => String(p.sku || p.id) === String(pSku || pId) && String(p.talla) === String(selectedSize));
+            if (existente) {
+                existente.cantidad = Math.min(10, (Number(existente.cantidad) || 1) + 1);
+            } else {
+                carrito.push(item);
+            }
             localStorage.setItem("carrito", JSON.stringify(carrito));
 
             // [CAMBIO: ACTUALIZAR BADGE DE CONTADOR DEL CARRITO EN EL HEADER]
@@ -136,6 +143,8 @@ document.addEventListener("DOMContentLoaded", () => {
 function mostrarModalCarrito(item, tipo, carrito) {
     const modal = document.getElementById("modalCarrito");
     if (!modal) return;
+    // Los avisos de error previos (p. ej. "Selecciona una talla") no deben quedar encima del modal
+    if (typeof kxToastLimpiar === "function") kxToastLimpiar("error");
 
     const soles = (n) => `S/ ${Number(n).toFixed(2)}`;
     const unidades = carrito.reduce((t, p) => t + (Number(p.cantidad) || 1), 0);
@@ -163,7 +172,7 @@ function mostrarModalCarrito(item, tipo, carrito) {
 
     modal.hidden = false;
     requestAnimationFrame(() => modal.classList.add("abierto"));
-    modal.querySelector(".kx-modal-btn")?.focus();
+    modal.querySelector("[data-enfocar]")?.focus();
 }
 
 // Al hacer clic en una miniatura se muestra como foto principal

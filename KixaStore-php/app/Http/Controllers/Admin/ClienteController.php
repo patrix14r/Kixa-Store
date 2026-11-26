@@ -10,12 +10,12 @@ use Illuminate\Validation\Rule;
 // [Semana 9-10: Controladores, Request y Componentes] Clientes del admin (solo lectura y edición básica); no gestiona roles ni crea usuarios.
 class ClienteController extends Controller
 {
-    // Lista solo usuarios con rol cliente usando whereHas('rol') y withCount('pedidos').
+    // Lista solo usuarios con rol cliente usando el scope role() de Spatie y withCount('pedidos').
     public function index(Request $request)
     {
         $buscar = trim((string) $request->query('buscar'));
 
-        $clientes = User::whereHas('rol', fn ($r) => $r->where('nombre', 'cliente'))
+        $clientes = User::role('cliente')
             ->withCount('pedidos')
             ->when($buscar, fn ($q) => $q->where(fn ($sub) => $sub
                 ->where('name', 'like', "%{$buscar}%")

@@ -2,6 +2,8 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+/* Los scripts del Modo Cliente arman HTML con clases de Tailwind (carrito, favoritos, toasts) */
+@source '../../public/js/*.js';
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
@@ -11,9 +13,35 @@
     --color-ok: #10b981;
     --color-bajo: #f59e0b;
     --color-agotado: #ef4444;
+
+    /* ===== Modo Cliente (tema claro editorial) ===== */
+    --font-jakarta: 'Plus Jakarta Sans', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --color-tinta: #111111;
+    --color-suave: #707072;
+    --color-perla: #f5f5f7;
+    --color-carbon: #121215;
+    --color-noche: #09090b;
+    --color-exito: #059669;
+    /* Alto del header: top-navbar, pt-navbar, scroll-mt-navbar... */
+    --spacing-navbar: 76px;
+    /* escritorio: desde 769px · max-escritorio: teléfonos (hasta 768px) */
+    --breakpoint-escritorio: 769px;
+
+    /* Sacudida suave del bloque de tallas cuando falta elegir una (producto-dinamico.js) */
+    --animate-sacudir: sacudir 0.45s ease;
+    @keyframes sacudir {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-6px); }
+        40%, 80% { transform: translateX(6px); }
+    }
 }
 
-        
+/* Íconos SVG reutilizables del cliente: bg-(image:--kx-icono-flecha) en selects y bg-(image:--kx-icono-check) en filtros */
+:root {
+    --kx-icono-flecha: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    --kx-icono-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-10'/%3E%3C/svg%3E");
+}
+
 @layer components {
     .kx-card {
         @apply rounded-2xl border border-zinc-800/80 bg-[#121215] text-zinc-100;
@@ -88,5 +116,115 @@
     }
     .kx-tab-activa {
         @apply bg-indigo-600 text-white shadow-sm;
+    }
+}
+
+/* ==========================================================================
+   MODO CLIENTE: estados que cambia JavaScript.
+   El resto del cliente usa utilidades de Tailwind directamente en las vistas Blade.
+   ========================================================================== */
+@layer components {
+    /* ---- Carrusel 3D del home: public/js/movimiento.js asigna active / prev-slide / next-slide / far-left / far-right ---- */
+    .kx-carrusel .slide {
+        @apply pointer-events-none absolute top-1/2 left-1/2 z-1 h-[285px] w-[47%] opacity-0;
+        transform: translate(-50%, -50%) scale(0.65);
+        transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.7s ease, filter 0.7s ease;
+    }
+    .kx-carrusel .slide img {
+        @apply block size-full rounded-[7px] border-3 border-white/85 object-cover shadow-[0_15px_35px_rgba(0,0,0,0.55)];
+        transition: 0.7s;
+    }
+    .kx-carrusel .slide.active {
+        @apply pointer-events-auto z-10 opacity-100;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    .kx-carrusel .slide.active img {
+        @apply border-white shadow-[0_20px_45px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.25)];
+    }
+    .kx-carrusel .slide.prev-slide,
+    .kx-carrusel .slide.next-slide {
+        @apply z-5 opacity-90;
+    }
+    .kx-carrusel .slide.prev-slide { transform: translate(calc(-50% - 300px), -50%) scale(0.78); }
+    .kx-carrusel .slide.next-slide { transform: translate(calc(-50% + 300px), -50%) scale(0.78); }
+    .kx-carrusel .slide.prev-slide img,
+    .kx-carrusel .slide.next-slide img {
+        @apply border-white/75 shadow-[0_12px_30px_rgba(0,0,0,0.5)];
+    }
+    .kx-carrusel .slide.far-left,
+    .kx-carrusel .slide.far-right {
+        @apply z-2 opacity-35;
+    }
+    .kx-carrusel .slide.far-left { transform: translate(calc(-50% - 540px), -50%) scale(0.62); }
+    .kx-carrusel .slide.far-right { transform: translate(calc(-50% + 540px), -50%) scale(0.62); }
+
+    @media (width <= 1000px) {
+        .kx-carrusel .slide.prev-slide { transform: translate(calc(-50% - 230px), -50%) scale(0.72); }
+        .kx-carrusel .slide.next-slide { transform: translate(calc(-50% + 230px), -50%) scale(0.72); }
+    }
+    @media (width <= 750px) {
+        .kx-carrusel .slide { @apply h-[250px] w-[65%]; }
+        .kx-carrusel .slide.prev-slide { transform: translate(calc(-50% - 150px), -50%) scale(0.7); }
+        .kx-carrusel .slide.next-slide { transform: translate(calc(-50% + 150px), -50%) scale(0.7); }
+        .kx-carrusel .slide.far-left,
+        .kx-carrusel .slide.far-right { @apply opacity-0; }
+    }
+    @media (width <= 500px) {
+        .kx-carrusel .slide { @apply h-[210px] w-[72%]; }
+        .kx-carrusel .slide.prev-slide { transform: translate(calc(-50% - 100px), -50%) scale(0.65); }
+        .kx-carrusel .slide.next-slide { transform: translate(calc(-50% + 100px), -50%) scale(0.65); }
+    }
+
+    /* ---- Catálogo: public/js/catalogo-filtros.js agrega .filtros-ocultos (escritorio) o .drawer-abierto (móvil) ---- */
+    .kx-catalogo-cuerpo {
+        @apply grid grid-cols-[240px_1fr] items-start gap-8;
+        transition: grid-template-columns 0.3s ease;
+    }
+    .kx-catalogo-cuerpo.filtros-ocultos {
+        @apply grid-cols-[0_1fr] gap-0;
+    }
+    .kx-filtros {
+        @apply sticky top-[calc(var(--spacing-navbar)_+_72px)] max-h-[calc(100vh_-_var(--spacing-navbar)_-_90px)] overflow-y-auto pr-3;
+        scrollbar-width: thin;
+        transition: opacity 0.2s ease;
+    }
+    .kx-catalogo-cuerpo.filtros-ocultos .kx-filtros {
+        @apply invisible opacity-0;
+    }
+    .kx-filtros-fondo {
+        @apply hidden;
+    }
+    .kx-grid {
+        @apply grid grid-cols-[repeat(3,1fr)] gap-x-4 gap-y-8 *:min-w-0;
+    }
+    .kx-catalogo-cuerpo.filtros-ocultos .kx-grid {
+        @apply grid-cols-[repeat(4,1fr)];
+    }
+
+    @media (width <= 1100px) {
+        .kx-grid,
+        .kx-catalogo-cuerpo.filtros-ocultos .kx-grid {
+            @apply grid-cols-2;
+        }
+    }
+    /* En móvil los filtros son un panel lateral (drawer) que entra desde la derecha */
+    @media (width <= 900px) {
+        .kx-catalogo-cuerpo,
+        .kx-catalogo-cuerpo.filtros-ocultos {
+            @apply grid-cols-[minmax(0,1fr)] gap-0;
+        }
+        .kx-filtros {
+            @apply invisible fixed inset-y-0 right-0 z-1000 max-h-none w-[min(340px,88vw)] translate-x-full bg-white px-6 pt-5 pb-8 shadow-[-8px_0_30px_rgba(0,0,0,0.2)];
+            transition: translate 0.3s ease, visibility 0.3s ease;
+        }
+        .kx-catalogo-cuerpo.drawer-abierto .kx-filtros {
+            @apply visible translate-x-0 opacity-100;
+        }
+        .kx-filtros-fondo {
+            @apply fixed inset-0 z-999 block bg-black/45;
+        }
+    }
+    @media (width <= 768px) {
+        .kx-grid { @apply gap-x-3 gap-y-6; }
     }
 }

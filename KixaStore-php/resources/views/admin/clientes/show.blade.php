@@ -25,7 +25,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <p class="font-semibold">{{ $pedido->codigo_orden }}</p>
-                    <p class="text-xs kx-muted">{{ $pedido->created_at?->format('d/m/Y H:i') }} · {{ ucfirst($pedido->metodo_pago) }}</p>
+                    <p class="text-xs kx-muted">{{ $pedido->created_at?->format('d/m/Y H:i') }} · {{ ucfirst($pedido->metodo_pago_detalle) }}</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <x-admin.estado-pedido :estado="$pedido->estado" />

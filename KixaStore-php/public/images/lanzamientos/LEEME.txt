@@ -1,9 +1,0 @@
-Imágenes de la sección "NUEVOS LANZAMIENTOS" del Home.
-
-Guarda aquí 3 fotos con estos nombres exactos (puede ser .jpg, .jpeg, .png o .webp):
-  lanzamiento-1.jpg  -> tarjeta izquierda
-  lanzamiento-2.jpg  -> tarjeta del centro
-  lanzamiento-3.jpg  -> tarjeta derecha
-
-Recomendado: formato vertical/cuadrado (mínimo 900 x 1100 px), menos de 500 KB cada una.
-Si una imagen no existe, la tarjeta usa la foto del producto destacado del catálogo.
