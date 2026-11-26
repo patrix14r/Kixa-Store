@@ -17,3 +17,17 @@ npm install
 cp .env.example .env
 php artisan key:generate
 ```
+
+1. Configura tu conexión a MySQL en `.env` (`DB_DATABASE=tienda_kixa`).
+2. Ejecuta las migraciones, seeders y compila los estilos:
+
+```bash
+php artisan migrate:fresh --seed
+npm run build
+php artisan serve
+```
+
+## Credenciales de prueba
+
+- **Administrador:** `admin@kixa.com` / `admin123`
+- **Cliente:** `cliente@kixa.com` / `cliente123`

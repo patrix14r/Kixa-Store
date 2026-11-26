@@ -12,3 +12,6 @@ Desktop.ini
 /KixaStore-php/vendor/
 /KixaStore-php/.env
 /KixaStore-php/storage/*.key
+CLAUDE.md
+AGENTS.md
+GUIA_PROYECTO.md
