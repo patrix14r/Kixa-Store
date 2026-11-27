@@ -4,7 +4,7 @@
 @section('fondo', 'bg-[#090a0b] text-white')
 
 @section('contenido')
-    {{-- Fondo (black.jpg), cristal y bordes rounded-lg de los inputs se editan en components/auth-cristal.blade.php;
+    {{-- Fondo (fondo2.jpg), cristal y bordes rounded-lg de los inputs se editan en components/auth-cristal.blade.php;
          kx-auth-input (resources/css/app.css) evita el fondo blanco del autocompletado del navegador. --}}
     {{-- [Sem 08 - Rutas y Vistas Blade]: Registro de Fortify (POST /register) con la misma tarjeta cristal del Login, algo más ancha por la fila Teléfono/DNI --}}
     <x-auth-cristal ancho="max-w-[480px]" titulo="Crea tu cuenta en Kixa" subtitulo="Completa tus datos para registrarte">

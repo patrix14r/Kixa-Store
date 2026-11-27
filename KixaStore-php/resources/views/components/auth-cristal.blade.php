@@ -1,9 +1,9 @@
-{{-- [Sem 08 - Rutas y Vistas Blade]: Componente <x-auth-cristal>: fondo black.jpg a pantalla completa + tarjeta "liquid glass" que comparten Login y Registro.
+{{-- [Sem 08 - Rutas y Vistas Blade]: Componente <x-auth-cristal>: fondo fondo2.jpg a pantalla completa + tarjeta "liquid glass" que comparten Login y Registro.
      Los estilos de labels e inputs viven aquí (variantes [&_.auth-campo_input]) para que los dos formularios no repitan la misma cadena de clases.
      $ancho: max-w-[420px] (login, tarjeta vertical) o max-w-[480px] (registro, por la fila Teléfono/DNI). --}}
 @props(['titulo', 'subtitulo', 'ancho' => 'max-w-[420px]'])
 
-{{-- CAMBIAR FONDO: edita la ruta 'images/ui/backgrounds/black.jpg' de --fondo (asset() arma la URL); el degradado encima es el overlay oscuro.
+{{-- CAMBIAR FONDO: edita la ruta 'images/ui/backgrounds/fondo2.jpg' de --fondo (guarda tu foto en public/images/ui/backgrounds/) (asset() arma la URL); el degradado encima es el overlay oscuro.
      El header transparente se monta encima (-mb-navbar en layouts/app.blade.php), por eso el padding superior suma el alto del navbar. --}}
 <section style="--fondo: url('{{ asset('images/ui/backgrounds/fondo2.jpg') }}')"
          class="relative flex min-h-[calc(100vh_-_34px)] items-center justify-center bg-[#09090b] bg-[linear-gradient(180deg,rgba(9,9,11,0.25)_0%,rgba(9,9,11,0.7)_100%),var(--fondo)] bg-cover bg-center bg-no-repeat px-4 pt-[calc(var(--spacing-navbar)_+_56px)] pb-14 max-escritorio:min-h-screen max-escritorio:pt-[92px] max-escritorio:pb-8">

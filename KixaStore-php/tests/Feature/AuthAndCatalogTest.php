@@ -479,7 +479,7 @@ class AuthAndCatalogTest extends TestCase
     public function test_login_y_registro_usan_la_tarjeta_cristal_sin_rojo_y_conservan_sus_campos(): void
     {
         $this->get(route('login', ['redirect' => 'checkout']))->assertOk()
-            ->assertSee('images/ui/backgrounds/black.jpg', false)
+            ->assertSee('images/ui/backgrounds/fondo2.jpg', false)
             ->assertSee('bg-zinc-950/45 backdrop-blur-md border border-white/20', false)
             ->assertSee('[&_.auth-campo_input]:rounded-lg')
             ->assertSee('max-w-[420px]', false)
