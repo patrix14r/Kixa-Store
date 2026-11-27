@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Pedido;
 use App\Models\ProductoTalla;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -43,5 +44,9 @@ class AppServiceProvider extends ServiceProvider
                 'total'    => ($agotadas > 0 ? 1 : 0) + ($criticas > 0 ? 1 : 0) + $ultimosPedidos->count(),
             ]);
         });
+
+        if (str_contains(request()->getHost(), 'trycloudflare.com')) {
+            URL::forceScheme('https');
+        }
     }
 }
