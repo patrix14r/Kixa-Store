@@ -49,6 +49,8 @@
 
         <main class="max-w-full min-w-0 px-[5vw] pt-14 pb-[72px] max-[860px]:px-4 max-[860px]:pt-8 max-[860px]:pb-14 max-escritorio:px-4 max-escritorio:pt-6 max-escritorio:pb-12">
             {{-- Avisos de éxito/error llegan al toast flotante del layout --}}
+            {{-- max-w-4xl centrado: las tarjetas de cuenta e historial no se estiran en pantallas anchas --}}
+            <div class="mx-auto w-full max-w-4xl [&>h1]:mb-8 [&>section]:mb-6 [&>article]:mb-6">
 
             {{-- ============ 1) INFORMACIÓN DE LA CUENTA ============ --}}
             @if ($seccion === 'cuenta')
@@ -149,7 +151,14 @@
                                 <h2>Orden {{ $pedido->codigo_orden }}</h2>
                                 <p class="mt-1 text-[13px] text-suave max-escritorio:[overflow-wrap:anywhere]">{{ $pedido->created_at->format('d/m/Y') }} · {{ $pedido->metodo_pago_detalle }} · Estado: {{ $pedido->estado }}</p>
                             </div>
-                            <strong class="text-[18px] font-semibold whitespace-nowrap">S/ {{ number_format($pedido->total, 2) }}</strong>
+                            {{-- Total + boleta PDF (GET /pedidos/{codigo_orden}/boleta, solo el dueño o un admin): "Ver boleta" abre la vista previa en otra pestaña y "Descargar" agrega ?descargar=1 --}}
+                            <div class="flex flex-col items-end gap-2 max-escritorio:items-start">
+                                <strong class="text-[18px] font-semibold whitespace-nowrap">S/ {{ number_format($pedido->total, 2) }}</strong>
+                                <div class="flex items-center gap-1.5 [&>a]:inline-flex [&>a]:items-center [&>a]:gap-1.5 [&>a]:rounded-md [&>a]:border [&>a]:border-[#cacacb] [&>a]:px-3 [&>a]:py-1.5 [&>a]:text-[12px] [&>a]:font-bold [&>a]:tracking-[0.04em] [&>a]:text-tinta [&>a]:transition-colors [&>a]:duration-200 [&>a:hover]:border-tinta [&>a:hover]:bg-perla">
+                                    <a href="{{ route('pedidos.boleta', $pedido) }}" target="_blank" rel="noopener"><i class="fa-regular fa-eye"></i> Ver boleta</a>
+                                    <a href="{{ route('pedidos.boleta', ['pedido' => $pedido, 'descargar' => 1]) }}" title="Descargar boleta {{ $pedido->codigo_orden }} en PDF"><i class="fa-solid fa-download"></i> Descargar</a>
+                                </div>
+                            </div>
                         </div>
 
                         {{-- Accessor paso_seguimiento traduce el estado a la barra de progreso --}}
@@ -178,7 +187,7 @@
                                     </div>
                                     <div>
                                         <strong>{{ $linea->producto?->nombre ?? 'Producto no disponible' }}</strong>
-                                        <span>Talla {{ rtrim(rtrim(number_format((float) $linea->talla, 1), '0'), '.') }} · Cantidad {{ $linea->cantidad }}</span>
+                                        <span>Talla {{ $linea->talla_etiqueta }} · Cantidad {{ $linea->cantidad }}</span>
                                     </div>
                                     <span class="font-medium text-tinta!">S/ {{ number_format($linea->subtotal, 2) }}</span>
                                 </li>
@@ -214,6 +223,7 @@
                     </form>
                 </section>
             @endif
+            </div>
         </main>
     </div>
 @endsection

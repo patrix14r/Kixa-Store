@@ -16,6 +16,9 @@ class ProductoTalla extends Model
     // Umbral de stock crítico (2 o menos) que comparten dashboard, productos y abastecimiento.
     public const STOCK_CRITICO = 2;
 
+    // Marketing de escasez en la tienda: de 1 a 3 pares se muestra "¡Últimas X unidades disponibles!".
+    public const ULTIMAS_UNIDADES = 3;
+
     protected $fillable = ['producto_id', 'talla', 'stock'];
 
     // casts() deja la talla con un decimal (39.5) y el stock como entero.

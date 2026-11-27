@@ -17,35 +17,14 @@
     {{-- Cliente y Admin comparten el mismo Tailwind CSS v4 compilado por Vite (resources/css/app.css) --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    {{-- Carrito y favoritos se guardan por cuenta: al cambiar de usuario se intercambian --}}
+    {{-- [SEPARADO DEL LAYOUT]: Datos mínimos de sesión para public/js/sesion-storage.js (la lógica vive fuera de Blade). --}}
     <script>
-      (() => {
-        try {
-          const actual = @json(auth()->id() ? 'u' . auth()->id() : 'invitado');
-          const previo = localStorage.getItem('kixa_usuario');
-          const claves = ['carrito', 'favoritos'];
-          const guardar = (quien) => claves.forEach(k => localStorage.setItem(`kixa:${quien}:${k}`, localStorage.getItem(k) || '[]'));
-
-          if (previo && previo !== actual) {
-            guardar(previo);
-            claves.forEach(k => {
-              const propio = JSON.parse(localStorage.getItem(`kixa:${actual}:${k}`) || '[]');
-              const deInvitado = previo === 'invitado' ? JSON.parse(localStorage.getItem(k) || '[]') : [];
-              // Al iniciar sesión, lo que agregó como invitado se suma a su cuenta
-              localStorage.setItem(k, JSON.stringify(propio.length ? propio : deInvitado));
-            });
-            // Lo del invitado ya pasó a la cuenta: se vacía su copia para que no reaparezca al salir
-            if (previo === 'invitado') localStorage.setItem('kixa:invitado:carrito', '[]');
-          }
-          // Tras una compra confirmada el servidor marca carrito_vaciado y se borra todo rastro
-          if (@json((bool) session('carrito_vaciado'))) {
-            Object.keys(localStorage).filter(c => c === 'carrito' || /^kixa:.+:carrito$/.test(c)).forEach(c => localStorage.setItem(c, '[]'));
-          }
-          localStorage.setItem('kixa_usuario', actual);
-          window.addEventListener('pagehide', () => guardar(actual));
-        } catch (e) { /* almacenamiento bloqueado: la tienda sigue funcionando sin memoria */ }
-      })();
+      window.KX_SESION = @json([
+        'actual' => auth()->id() ? 'u' . auth()->id() : 'invitado',
+        'carritoVaciado' => (bool) session('carrito_vaciado'),
+      ]);
     </script>
+    <script src="{{ asset('js/sesion-storage.js') }}"></script>
 </head>
 {{-- @yield('fondo') permite que una vista cambie el fondo del body (el catálogo y el login usan un fondo oscuro detrás del banner) --}}
 <body class="flex min-h-screen flex-col overflow-x-clip font-jakarta leading-[normal] tracking-[-0.005em] antialiased [&.menu-movil-activo]:overflow-hidden @yield('fondo', 'bg-white text-tinta')">
@@ -67,7 +46,12 @@
           <a href="{{ route('login') }}">Iniciar sesión</a>
         @endguest
         @auth
-          <a href="{{ route('perfil') }}" title="Mi perfil"><i class="fa-solid fa-user"></i> {{ Auth::user()->name }}</a>
+          {{-- [Sem 09 - Controladores y Middleware]: esAdmin() (Spatie) muestra el acceso directo al panel solo al administrador. --}}
+          @if (Auth::user()->esAdmin())
+            <a href="{{ route('admin.home') }}" title="Ir al panel de administración"><i class="fa-solid fa-gauge-high"></i> Panel Admin</a>
+            <span class="text-[10px] text-[#3f3f46]" aria-hidden="true">|</span>
+          @endif
+          <a href="{{ route('perfil') }}" title="Mi perfil"><i class="fa-solid fa-user"></i> {{ Auth::user()->nombre_corto }}</a>
         @endauth
       </div>
     </div>
@@ -158,26 +142,31 @@
 
     {{-- Toast único: public/js/toast.js pinta aquí los flash y errores de validación (esquina superior derecha) --}}
     <div id="kx-toasts" class="pointer-events-none fixed top-[calc(var(--spacing-navbar)_+_16px)] right-5 z-3000 flex w-[min(380px,calc(100vw_-_32px))] flex-col gap-2.5 max-escritorio:top-[120px] max-escritorio:right-4" aria-live="polite"></div>
-    <script>
-      window.KX_FLASH = @json(['exito' => session('exito'), 'error' => session('error'), 'errores' => $errors->all()]);
-    </script>
 
     <main class="flex-1">
         {{-- Aquí se inserta el @section('contenido') de la página hija. --}}
         @yield('contenido')
     </main>
 
-    {{-- Footer con rutas nombradas y anclas (#ubicanos, #preguntas-frecuentes) --}}
-    <footer class="shrink-0 border-t border-white/6 bg-carbon px-[5%] pt-16 pb-6 text-white">
-      <div class="m-auto grid max-w-[1200px] grid-cols-[1.4fr_repeat(4,1fr)] gap-10 max-[1000px]:grid-cols-[repeat(2,1fr)] max-[520px]:grid-cols-[1fr] max-[520px]:gap-7">
+    {{-- [Sem 08 - Rutas y Vistas Blade]: footer del Modo Cliente en 5 columnas. Guía rápida de ajuste:
+         · Ancho: max-w-[1220px] mx-auto (punto intermedio, ni apretado ni pegado a los bordes); px-6 es el margen lateral interno.
+         · Alto vertical: pt-12 pb-8 en escritorio y max-escritorio:pt-8 max-escritorio:pb-6 en móvil.
+         · Columnas: grid-cols-[1.4fr_repeat(3,1fr)_auto] (5 en escritorio), max-[1000px]:grid-cols-2 (tablet) y max-[520px]:grid-cols-1 (móvil).
+         · Si editas clases con corchetes [...] corre `npm run build` para que Tailwind las genere. --}}
+    <footer class="shrink-0 border-t border-white/6 bg-carbon text-white">
+      <div class="max-w-[1220px] mx-auto px-6 pt-12 pb-8 max-escritorio:px-4 max-escritorio:pt-8 max-escritorio:pb-6">
+      {{-- auto en la última columna deja "Síguenos" pegado al borde derecho del contenedor --}}
+      <div class="grid grid-cols-[1.4fr_repeat(3,1fr)_auto] gap-8 max-[1000px]:grid-cols-2 max-[520px]:grid-cols-1 max-[520px]:gap-6">
+        {{-- Columna 1: logo, marca y descripción (en tablet ocupa toda la fila) --}}
         <div class="max-[1000px]:col-span-full">
           <a href="{{ route('home') }}" class="inline-flex items-center gap-2.5 text-[13.5px] text-[#a1a1aa] transition-colors duration-200 hover:text-white">
             <img src="{{ asset('images/ui/web.jpg') }}" alt="Logo de KixaStore" class="block size-[42px] object-contain [filter:url(#kx-logo-blanco)]">
             <span class="text-[22px] font-bold tracking-[-0.03em] text-white">KixaStore</span>
           </a>
-          <p class="mt-4 max-w-[250px] text-[13px] leading-[1.7] text-[#a1a1aa]">Zapatillas originales para hombre, mujer, niños y deporte. Envíos a todo el Perú.</p>
+          <p class="mt-4 max-w-[260px] text-[13px] leading-[1.7] text-[#a1a1aa]">Zapatillas originales para hombre, mujer, niños y deporte. Envíos a todo el Perú.</p>
         </div>
 
+        {{-- Columna 2: Buscar tienda (lleva al mapa de Tecsup en /nosotros#ubicanos) --}}
         <div>
           <h3 class="mb-[18px] text-[12px] font-bold tracking-[0.14em] text-white uppercase">Buscar tienda</h3>
           <ul>
@@ -190,9 +179,9 @@
           </ul>
         </div>
 
+        {{-- Columna 3: Obtener ayuda; "Estado del pedido" va al perfil con sesión y el resto a las Preguntas Frecuentes --}}
         <div>
           <h3 class="mb-[18px] text-[12px] font-bold tracking-[0.14em] text-white uppercase">Obtener ayuda</h3>
-          {{-- Todos llevan a las Preguntas Frecuentes de "Acerca de" --}}
           <ul class="[&_li]:my-2.5 [&_a]:text-[13.5px] [&_a]:text-[#a1a1aa] [&_a]:transition-colors [&_a]:duration-200 [&_a:hover]:text-white">
             <li><a href="{{ auth()->check() ? route('perfil', 'pedidos') : route('nosotros') . '#preguntas-frecuentes' }}">Estado del pedido</a></li>
             <li><a href="{{ route('nosotros') }}#preguntas-frecuentes">Envío y entrega</a></li>
@@ -202,6 +191,7 @@
           </ul>
         </div>
 
+        {{-- Columna 4: Acerca de la tienda --}}
         <div>
           <h3 class="mb-[18px] text-[12px] font-bold tracking-[0.14em] text-white uppercase">Acerca de la tienda</h3>
           <ul>
@@ -209,9 +199,9 @@
           </ul>
         </div>
 
+        {{-- Columna 5: Síguenos; botones redondos que se elevan y toman el color oficial de cada red al pasar el cursor --}}
         <div>
           <h3 class="mb-[18px] text-[12px] font-bold tracking-[0.14em] text-white uppercase">Síguenos</h3>
-          {{-- Redes sociales con el color oficial de cada marca al pasar el cursor --}}
           <div class="flex gap-3 [&>a]:inline-flex [&>a]:size-[42px] [&>a]:items-center [&>a]:justify-center [&>a]:rounded-full [&>a]:border [&>a]:border-white/10 [&>a]:bg-white/4 [&>a]:text-[18px] [&>a]:text-white [&>a]:transition-all [&>a]:duration-300 [&>a:hover]:-translate-y-[3px]">
             <a href="https://www.facebook.com/people/Zapatillas-Kixa/pfbid0246fZ4YBwM2GBdeEQf8FfUFJUdLqgaXgWAMwz5UrPMX37SW7AabDdAATinm152jZCl/" target="_blank" rel="noopener" aria-label="Facebook de KixaStore"
                class="hover:border-[rgba(24,119,242,0.55)] hover:bg-[rgba(24,119,242,0.12)] hover:text-[#1877F2] hover:shadow-[0_8px_24px_-6px_rgba(24,119,242,0.55)]">
@@ -229,102 +219,28 @@
         </div>
       </div>
 
-      <div class="mx-auto mt-12 flex max-w-[1200px] flex-wrap justify-between gap-2 border-t border-white/8 pt-5 text-[12px] text-[#71717a] max-[520px]:justify-center max-[520px]:text-center">
-        <x-metodos-pago oscuro class="mb-3 w-full gap-y-2 border-b border-white/8 pb-4 max-[520px]:justify-center [&>span:first-child]:w-auto" />
-        <p>© 2026 - KixaStore. Todos los derechos reservados.</p>
-        <p>Sede Central: Av. Cascanueces 2221, Santa Anita, Lima</p>
+      {{-- Franja inferior: métodos de pago a la izquierda (al nivel de "KixaStore"; centrados en móvil) y créditos centrados debajo --}}
+      <div class="border-t border-white/10 mt-10 pt-5 flex flex-col gap-4 text-[12px] text-[#71717a]">
+        <x-metodos-pago oscuro class="w-full justify-start gap-y-2 max-[520px]:justify-center [&>span:first-child]:w-auto" />
+        <div class="w-full space-y-1 text-center">
+          <p>© 2026 — KixaStore. Todos los derechos reservados.</p>
+          <p>Proyecto académico — Desarrollo de Aplicaciones en Internet (Tecsup)</p>
+        </div>
+      </div>
       </div>
     </footer>
 
-    <script src="{{ asset('js/toast.js') }}"></script>
-    <script src="{{ asset('js/movimiento.js') }}"></script>
-    <script src="{{ asset('js/menu-movil.js') }}"></script>
+    {{-- [ORDEN CORRECTO DE SCRIPTS]:
+         1. Puente mínimo con mensajes flash de Laravel -> lo lee public/js/toast.js
+         2. Scripts globales en archivos separados (toast, menú móvil y UI global en public/js/tienda-ui.js)
+         3. movimiento.js se movió a resources/views/cliente/home.blade.php (@push('scripts')) porque solo se usa en el Home
+         4. @stack('scripts') al final para los scripts propios de cada página --}}
     <script>
-      function actualizarBadgesHeader() {
-        try {
-          const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-          const favs = JSON.parse(localStorage.getItem('favoritos')) || [];
-
-          const cartBadge = document.getElementById('cart-count');
-          if (cartBadge) {
-            if (carrito.length > 0) {
-              cartBadge.textContent = carrito.length;
-              cartBadge.style.display = 'flex';
-            } else {
-              cartBadge.style.display = 'none';
-            }
-          }
-
-          const favBadge = document.getElementById('fav-count');
-          if (favBadge) {
-            if (favs.length > 0) {
-              favBadge.textContent = favs.length;
-              favBadge.style.display = 'flex';
-            } else {
-              favBadge.style.display = 'none';
-            }
-          }
-        } catch (e) {
-          console.error("Error sincronizando badges:", e);
-        }
-      }
-
-      // Header de vidrio del home: al bajar más de 40px adopta el carbón casi opaco
-      (() => {
-        const navbar = document.getElementById('navbar-principal');
-        if (!navbar || !navbar.classList.contains('navbar--glass')) return;
-        const alScroll = () => navbar.classList.toggle('navbar--scroll', window.scrollY > 40);
-        alScroll();
-        window.addEventListener('scroll', alScroll, { passive: true });
-      })();
-
-      document.addEventListener('DOMContentLoaded', () => {
-        actualizarBadgesHeader();
-
-        const corazonLleno = '<i class="fa-solid fa-heart text-[#ed001b]"></i>';
-        const favs = JSON.parse(localStorage.getItem('favoritos')) || [];
-        document.querySelectorAll('.btn-fav-card').forEach(btn => {
-          const id = btn.dataset.id;
-          const sku = btn.dataset.sku;
-          if (favs.some(f => f.id == id || f.sku == sku)) {
-            btn.innerHTML = corazonLleno;
-          }
-
-          btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            let currentFavs = JSON.parse(localStorage.getItem('favoritos')) || [];
-            const pId = btn.dataset.id;
-            const pSku = btn.dataset.sku || pId;
-            const pNombre = btn.dataset.nombre || 'Zapatilla Kixa';
-            const pMarca = btn.dataset.marca || 'KIXA';
-            const pPrecio = parseFloat(btn.dataset.precio) || 0;
-            const pImagen = btn.dataset.imagen || '';
-
-            const idx = currentFavs.findIndex(f => f.id == pId || f.sku == pSku);
-            if (idx >= 0) {
-              currentFavs.splice(idx, 1);
-              btn.innerHTML = '<i class="fa-regular fa-heart"></i>';
-            } else {
-              currentFavs.push({
-                id: pId,
-                sku: pSku,
-                nombre: pNombre,
-                marca: pMarca,
-                precio: pPrecio,
-                imagen: pImagen
-              });
-              btn.innerHTML = corazonLleno;
-            }
-
-            localStorage.setItem('favoritos', JSON.stringify(currentFavs));
-            actualizarBadgesHeader();
-          });
-        });
-      });
-      window.addEventListener('storage', actualizarBadgesHeader);
+      window.KX_FLASH = @json(['exito' => session('exito'), 'error' => session('error'), 'errores' => $errors->all()]);
     </script>
+    <script src="{{ asset('js/toast.js') }}"></script>
+    <script src="{{ asset('js/menu-movil.js') }}"></script>
+    <script src="{{ asset('js/tienda-ui.js') }}"></script>
     {{-- @stack('scripts') recibe el JavaScript de cada página con @push('scripts'). --}}
     @stack('scripts')
 </body>

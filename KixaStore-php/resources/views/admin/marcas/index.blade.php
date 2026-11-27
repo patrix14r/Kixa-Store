@@ -14,7 +14,7 @@
 
 {{-- Buscador GET: el controlador lee ?buscar= con $request->query() y filtra por nombre. --}}
 <form method="GET" action="{{ route('admin.marcas.index') }}" class="mt-6 flex gap-3">
-    <input type="search" name="buscar" value="{{ $buscar }}" class="kx-input max-w-sm" placeholder="Buscar marca por nombre">
+    <input type="search" name="buscar" value="{{ $buscar }}" class="kx-input max-w-sm" placeholder="Buscar marca por nombre" maxlength="50">
     <button type="submit" class="kx-btn-ghost"><i class="fa-solid fa-magnifying-glass"></i>Buscar</button>
     @if ($buscar !== '')
         <a href="{{ route('admin.marcas.index') }}" class="kx-btn-ghost">Limpiar</a>

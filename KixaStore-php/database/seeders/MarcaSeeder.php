@@ -21,6 +21,10 @@ class MarcaSeeder extends Seeder
             'Adidas' => 'images/brands/adidas-logo.png',
             'Puma'   => 'images/brands/puma-logo.png',
             'Umbro'  => 'images/brands/umbro-logo.png',
+            'Lacoste' => 'images/brands/lacoste-logo.png',
+            'DC Shoes' => 'images/brands/dcshoes-logo.webp',
+            'Vans' => 'images/brands/vans-logo.png',
+            'New Balance' => 'images/brands/new-balance-logo.png',
         ];
 
         foreach ($marcas as $nombre) {

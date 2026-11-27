@@ -13,7 +13,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // [CAMBIO: SELECCION INTERACTIVA DE TALLAS RENDERIZADAS POR BLADE]
     let selectedSize = null;
+    let selectedStock = 0;
     const sizeButtons = document.querySelectorAll(".size-btn");
+    const avisoEscasez = document.getElementById("aviso-escasez");
+    const ultimasUnidades = Number(document.getElementById("sizes")?.dataset.ultimasUnidades) || 3;
+
+    // Marketing de escasez: con 1 a 3 pares en la talla elegida aparece "¡Últimas X unidades disponibles!"
+    const pintarEscasez = (stock) => {
+        if (!avisoEscasez) return;
+        const mostrar = stock >= 1 && stock <= ultimasUnidades;
+        avisoEscasez.hidden = !mostrar;
+        if (mostrar) {
+            avisoEscasez.querySelector("span").textContent = stock === 1 ? "¡Última unidad disponible!" : `¡Últimas ${stock} unidades disponibles!`;
+        }
+    };
 
     sizeButtons.forEach(btn => {
         btn.addEventListener("click", () => {
@@ -25,6 +38,8 @@ document.addEventListener("DOMContentLoaded", () => {
             sizeButtons.forEach(b => b.classList.remove("selected"));
             btn.classList.add("selected");
             selectedSize = btn.dataset.talla || btn.innerText.trim();
+            selectedStock = Number(btn.dataset.stock) || 0;
+            pintarEscasez(selectedStock);
         });
     });
 
@@ -119,10 +134,15 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-            // Si ya existe el mismo producto en la misma talla, se suma la cantidad (máx. 10) en vez de crear otra línea
+            // Si ya existe el mismo producto en la misma talla, se suma la cantidad (máx. 10 y nunca más que el stock real) en vez de crear otra línea
+            const tope = Math.min(10, selectedStock || 10);
             const existente = carrito.find((p) => String(p.sku || p.id) === String(pSku || pId) && String(p.talla) === String(selectedSize));
+            if (existente && (Number(existente.cantidad) || 1) >= tope) {
+                if (typeof kxToast === "function") kxToast(`Ya tienes en tu carrito todas las unidades disponibles de la talla ${selectedSize}.`, "info");
+                return;
+            }
             if (existente) {
-                existente.cantidad = Math.min(10, (Number(existente.cantidad) || 1) + 1);
+                existente.cantidad = Math.min(tope, (Number(existente.cantidad) || 1) + 1);
             } else {
                 carrito.push(item);
             }

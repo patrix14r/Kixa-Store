@@ -3,7 +3,8 @@
 {{-- Cada filtro llega desde CatalogoController como ['url', 'etiqueta', 'activo']; tipo="talla" los muestra como cuadritos --}}
 @props(['titulo', 'filtros', 'abierto' => false, 'contador' => false, 'tipo' => 'check', 'vacio' => 'Sin opciones disponibles'])
 
-<details class="group border-b border-[#e5e5e5]" @if ($abierto) open @endif>
+{{-- data-filtro: catalogo-filtros.js recuerda qué acordeones estaban abiertos al recargar la grilla por fetch --}}
+<details class="group border-b border-[#e5e5e5]" data-filtro="{{ $titulo }}" @if ($abierto) open @endif>
     {{-- La flecha es un pseudo-elemento after: que gira cuando el acordeón está abierto (group-open) --}}
     <summary class="relative cursor-pointer list-none py-4 pr-6 text-[15px] font-medium [&::-webkit-details-marker]:hidden after:absolute after:top-1/2 after:right-1 after:size-[9.75px] after:-translate-y-[70%] after:rotate-45 after:border-r-[1.75px] after:border-b-[1.75px] after:border-tinta after:transition-[translate,rotate] after:duration-250 after:content-[''] group-open:after:-translate-y-[30%] group-open:after:-rotate-135">
         {{ $titulo }} @if ($contador)<em class="text-suave not-italic">(1)</em>@endif

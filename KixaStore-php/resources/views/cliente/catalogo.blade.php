@@ -36,10 +36,14 @@
         </div>
     </section>
 
-    {{-- Barra superior (título + contador, ocultar filtros, ordenar) y sidebar de acordeones --}}
-    <section class="scroll-mt-navbar bg-white px-[5%] pt-8 pb-[72px] text-tinta" id="zona-catalogo">
-        <div class="sticky top-navbar z-20 -mx-[5%] mb-2 flex flex-wrap items-center justify-between gap-4 bg-white/94 px-[5%] py-4 backdrop-blur-[12px] max-escritorio:static">
-            <h1 class="text-[24px] font-semibold tracking-[-0.02em] max-escritorio:text-[20px]">{{ $titulo }}</h1>
+    {{-- Barra superior (título + contador, ocultar filtros, ordenar) y sidebar de acordeones.
+         catalogo-filtros.js reemplaza el contenido de esta sección con el @fragment que devuelve CatalogoController (fetch), sin recargar header ni banner;
+         mientras carga, aria-busy="true" atenúa la grilla. --}}
+    <section class="scroll-mt-navbar bg-white px-[5%] pt-8 pb-[72px] text-tinta [&_.kx-grid]:transition-opacity [&_.kx-grid]:duration-200 aria-busy:[&_.kx-grid]:opacity-45" id="zona-catalogo" aria-live="polite">
+        @fragment('zona-catalogo')
+        {{-- data-titulo-pagina: catalogo-filtros.js actualiza la pestaña del navegador tras cada filtro --}}
+        <div class="sticky top-navbar z-20 -mx-[5%] mb-2 flex flex-wrap items-center justify-between gap-4 bg-white/94 px-[5%] py-4 backdrop-blur-[12px] max-escritorio:static" data-titulo-pagina="{{ $titulo }} | KixaStore">
+            <h1 class="text-[24px] font-semibold tracking-[-0.02em] max-escritorio:text-[20px]">{{ $titulo }} <span class="font-normal text-suave">({{ $productos->total() }})</span></h1>
 
             <div class="flex items-center gap-7 max-escritorio:w-full max-escritorio:justify-between max-escritorio:gap-3">
                 {{-- Visible solo con marca, disciplina, talla o búsqueda activa --}}
@@ -51,15 +55,15 @@
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
                 </button>
 
-                {{-- El orden viaja por GET (?orden=) conservando los demás filtros --}}
-                <form method="GET" action="{{ route('catalogo', ['categoria' => $categoria]) }}#zona-catalogo" class="flex items-center gap-1.5 text-[15px] font-medium">
+                {{-- El orden viaja por GET (?orden=) conservando los demás filtros; con JavaScript se aplica por fetch (data-form-orden) --}}
+                <form method="GET" action="{{ route('catalogo', ['categoria' => $categoria]) }}#zona-catalogo" class="flex items-center gap-1.5 text-[15px] font-medium" data-form-orden>
                     @foreach ($parametrosOrden as $clave => $valor)
                         @if (is_scalar($valor))
                             <input type="hidden" name="{{ $clave }}" value="{{ $valor }}">
                         @endif
                     @endforeach
                     <label for="orden" class="whitespace-nowrap">Ordenar por:</label>
-                    <select id="orden" name="orden" onchange="this.form.submit()" class="cursor-pointer appearance-none border-none bg-transparent bg-(image:--kx-icono-flecha) bg-[position:right_center] bg-no-repeat py-1 pr-[22px] pl-0.5 text-[15px] font-normal text-suave outline-none">
+                    <select id="orden" name="orden" class="cursor-pointer appearance-none border-none bg-transparent bg-(image:--kx-icono-flecha) bg-[position:right_center] bg-no-repeat py-1 pr-[22px] pl-0.5 text-[15px] font-normal text-suave outline-none">
                         @foreach ($ordenes as $valor => $etiqueta)
                             <option value="{{ $valor }}" @selected($orden === $valor)>{{ $etiqueta }}</option>
                         @endforeach
@@ -98,18 +102,24 @@
                 @endif
             </aside>
 
-            <div class="kx-grid">
-                @forelse ($productos as $prod)
-                    <x-tarjeta-producto :producto="$prod" />
-                @empty
-                    <div class="col-span-full px-5 py-16 text-center text-suave">
-                        <h3 class="mb-1.5 text-[18px] font-semibold text-tinta">No encontramos zapatillas con esos filtros</h3>
-                        <p>Prueba con otra talla o marca, o limpia los filtros.</p>
-                        <a href="{{ route('catalogo', ['categoria' => $categoria]) }}" class="mt-3.5 inline-block rounded-full bg-tinta px-[22px] py-2.5 text-[14px] text-white">Ver todo</a>
-                    </div>
-                @endforelse
+            <div class="min-w-0">
+                <div class="kx-grid">
+                    @forelse ($productos as $prod)
+                        <x-tarjeta-producto :producto="$prod" />
+                    @empty
+                        <div class="col-span-full px-5 py-16 text-center text-suave">
+                            <h3 class="mb-1.5 text-[18px] font-semibold text-tinta">No encontramos zapatillas con esos filtros</h3>
+                            <p>Prueba con otra talla o marca, o limpia los filtros.</p>
+                            <a href="{{ route('catalogo', ['categoria' => $categoria]) }}" class="mt-3.5 inline-block rounded-full bg-tinta px-[22px] py-2.5 text-[14px] text-white">Ver todo</a>
+                        </div>
+                    @endforelse
+                </div>
+
+                {{-- [Sem 13 - CRUDs, Query Builder y Paginación]: links() con una vista propia del Modo Cliente (cliente/partials/paginacion) --}}
+                {{ $productos->onEachSide(1)->links('cliente.partials.paginacion') }}
             </div>
         </div>
+        @endfragment
     </section>
 @endsection
 

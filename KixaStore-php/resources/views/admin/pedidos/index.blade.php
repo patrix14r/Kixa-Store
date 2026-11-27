@@ -81,10 +81,17 @@
             <div class="mt-5 border-t border-zinc-800/80 pt-5">
                 <x-admin.seguimiento-pedido :pedido="$pedido" />
             </div>
-            <details class="mt-4 border-t border-zinc-800/80 pt-3">
-                <summary class="cursor-pointer rounded text-sm kx-muted outline-none hover:text-white focus:outline-none focus-visible:text-white">{{ $pedido->items->sum('cantidad') }} zapatillas · {{ $pedido->direccion_envio }}</summary>
-                <div class="mt-3">@include('admin.pedidos._items')</div>
-            </details>
+            {{-- Detalle plegable + boleta PDF (BoletaController; la URL usa codigo_orden, nunca el ID): vista previa en otra pestaña o descarga con ?descargar=1 --}}
+            <div class="mt-4 flex flex-wrap items-start justify-between gap-3 border-t border-zinc-800/80 pt-3">
+                <details class="min-w-0 flex-1">
+                    <summary class="cursor-pointer rounded text-sm kx-muted outline-none hover:text-white focus:outline-none focus-visible:text-white">{{ $pedido->items->sum('cantidad') }} {{ $pedido->items->sum('cantidad') === 1 ? 'zapatilla' : 'zapatillas' }} · {{ $pedido->direccion_envio }}</summary>
+                    <div class="mt-3">@include('admin.pedidos._items')</div>
+                </details>
+                <div class="flex shrink-0 items-center gap-2">
+                    <a href="{{ route('pedidos.boleta', $pedido) }}" target="_blank" rel="noopener" class="kx-btn-ghost px-3 py-1.5 text-sm"><i class="fa-regular fa-eye"></i>Ver boleta</a>
+                    <a href="{{ route('pedidos.boleta', ['pedido' => $pedido, 'descargar' => 1]) }}" class="kx-btn-ghost px-3 py-1.5 text-sm" title="Descargar boleta {{ $pedido->codigo_orden }} en PDF"><i class="fa-solid fa-download"></i>Descargar</a>
+                </div>
+            </div>
         </article>
     @empty
         <div class="kx-card px-6 py-12 text-center kx-muted">No hay pedidos con esos filtros.</div>

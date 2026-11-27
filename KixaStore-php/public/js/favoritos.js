@@ -65,11 +65,17 @@
             zona.innerHTML = datos.tallas.map((t) => `<button type="button" class="kx-fav-talla h-[42px] min-w-[46px] cursor-pointer rounded-md border border-[#e5e5e5] bg-white px-2.5 text-[14px] text-tinta hover:border-tinta hover:bg-tinta hover:text-white" data-talla="${esc(t)}">${esc(t)}</button>`).join("");
             zona.querySelectorAll(".kx-fav-talla").forEach((b) => b.addEventListener("click", () => {
                 const carrito = leer("carrito");
-                carrito.push({
-                    id: datos.sku, sku: datos.sku, nombre: datos.nombre, precio: datos.precio,
-                    imagen: fav.imagen, marca: fav.marca, tipo: datos.tipo,
-                    talla: b.dataset.talla, tallas: datos.tallas, cantidad: 1,
-                });
+                // Igual que producto-dinamico.js: mismo SKU + talla suma cantidad (máx. 10) en vez de crear otra línea
+                const existente = carrito.find((p) => String(p.sku || p.id) === String(datos.sku) && String(p.talla) === String(b.dataset.talla));
+                if (existente) {
+                    existente.cantidad = Math.min(10, (Number(existente.cantidad) || 1) + 1);
+                } else {
+                    carrito.push({
+                        id: datos.sku, sku: datos.sku, nombre: datos.nombre, precio: datos.precio,
+                        imagen: fav.imagen, marca: fav.marca, tipo: datos.tipo,
+                        talla: b.dataset.talla, tallas: datos.tallas, cantidad: 1,
+                    });
+                }
                 localStorage.setItem("carrito", JSON.stringify(carrito));
                 refrescarBadges();
                 zona.hidden = true;

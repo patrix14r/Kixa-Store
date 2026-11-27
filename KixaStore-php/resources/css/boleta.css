@@ -1,0 +1,38 @@
+/* Estilos de los PDF: boleta (comprobantes/boleta.blade.php) y Guía de Abastecimiento (comprobantes/orden-abastecimiento.blade.php).
+   dompdf no entiende Tailwind ni Vite: lee este CSS plano desde el disco con <link>. */
+
+@page { margin: 32px 40px; }
+
+body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #111; }
+
+.cabecera { width: 100%; border-collapse: collapse; }
+.cabecera td { vertical-align: top; }
+.col-logo { width: 66px; }
+.col-recuadro { width: 210px; }
+.logo { width: 56px; height: 56px; }
+.empresa-nombre { font-size: 20px; font-weight: bold; margin: 0; }
+.empresa-dato { margin: 2px 0; color: #707072; }
+
+.recuadro { border: 1.5px solid #111; border-radius: 6px; padding: 10px 14px; text-align: center; }
+.recuadro-titulo { font-size: 13px; font-weight: bold; margin: 0 0 4px; letter-spacing: 1px; }
+.recuadro-codigo { font-size: 14px; font-weight: bold; margin: 0; }
+
+.seccion { margin-top: 22px; }
+.seccion-titulo { font-size: 10px; font-weight: bold; color: #707072; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px; }
+
+.datos { width: 100%; border-collapse: collapse; background: #f5f5f7; }
+.datos td { padding: 6px 10px; }
+.datos .etiqueta { width: 22%; color: #707072; }
+
+.productos { width: 100%; border-collapse: collapse; }
+.productos th { background: #111; color: #fff; font-size: 10px; text-transform: uppercase; padding: 7px 8px; text-align: left; }
+.productos td { padding: 7px 8px; border-bottom: 1px solid #e5e5e5; }
+.productos .num { text-align: right; }
+.productos .centro { text-align: center; }
+
+.totales { width: 45%; margin-left: 55%; margin-top: 14px; border-collapse: collapse; }
+.totales td { padding: 5px 8px; }
+.totales .num { text-align: right; }
+.totales .total td { border-top: 1.5px solid #111; font-size: 13px; font-weight: bold; padding-top: 8px; }
+
+.pie { margin-top: 36px; text-align: center; color: #707072; font-size: 9.5px; }

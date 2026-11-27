@@ -35,32 +35,183 @@ function totalCarrito() {
     return carrito.reduce((t, p) => t + (Number(p.precio) || 0) * (Number(p.cantidad) || 1), 0);
 }
 
+// --------------------------------------------------------------------------
+// Regla de envío (la misma de Pedido::calcularEnvio): llega en data-regla-envio desde CarritoController
+// primera_compra es true/false con sesión y null para un invitado
+// --------------------------------------------------------------------------
+const reglaEnvio = (() => {
+    const base = { costo: 15, gratis_desde: 200, primera_compra: null };
+    try {
+        return { ...base, ...JSON.parse(document.querySelector("[data-regla-envio]")?.dataset.reglaEnvio || "{}") };
+    } catch (e) {
+        return base;
+    }
+})();
+
+// [Sem 08 - Rutas y Vistas Blade]: envío gratis en la primera compra o desde S/ 200; si no, S/ 15 (espejo visual de Pedido::calcularEnvio, el servidor recalcula al pagar).
+function costoEnvio(montoProductos) {
+    return reglaEnvio.primera_compra === true || montoProductos >= Number(reglaEnvio.gratis_desde) ? 0 : Number(reglaEnvio.costo);
+}
+
 function pintarTotales() {
-    const total = totalCarrito();
+    const productos = totalCarrito();
+    const envio = carrito.length ? costoEnvio(productos) : 0;
+    // Los precios ya incluyen IGV: el 18 % se separa del total (productos + envío), igual que en el servidor
+    const total = productos + envio;
     const igv = total * 0.18 / 1.18;
-    if (subtotalBox) subtotalBox.textContent = soles(total);
+    if (subtotalBox) subtotalBox.textContent = soles(productos);
     if (totalBox) totalBox.textContent = soles(total);
+    const envioBox = document.getElementById("envio");
+    if (envioBox) envioBox.textContent = envio === 0 ? "Gratis" : soles(envio);
     const igvBox = document.getElementById("igv");
     if (igvBox) igvBox.textContent = soles(igv);
 
-    const barra = document.getElementById("envio-progreso");
-    const envio = document.getElementById("envio-gratis");
-    if (envio) envio.hidden = carrito.length === 0;
-    if (barra) barra.style.width = carrito.length ? "100%" : "0";
+    pintarBarraEnvio(productos);
 
     const btn = document.getElementById("btn-comprar");
-    if (btn) btn.classList.toggle("deshabilitado", carrito.length === 0);
+    if (btn) btn.classList.toggle("deshabilitado", carrito.length === 0 || hayTallasAgotadas());
 }
 
+// Barra de progreso: llena en la primera compra o al llegar al mínimo; si no, muestra cuánto falta
+function pintarBarraEnvio(productos) {
+    const caja = document.getElementById("envio-gratis");
+    const texto = document.getElementById("envio-texto");
+    const barra = document.getElementById("envio-progreso");
+    if (caja) caja.hidden = carrito.length === 0;
+
+    const minimo = Number(reglaEnvio.gratis_desde);
+    let mensaje = "¡Te ganaste el envío gratis!";
+    let avance = 100;
+    if (reglaEnvio.primera_compra === true) {
+        mensaje = "¡Es tu primera compra: el envío es gratis!";
+    } else if (productos < minimo) {
+        mensaje = `Te faltan ${soles(minimo - productos)} para el envío gratis.`;
+        if (reglaEnvio.primera_compra === null) mensaje += " ¿Es tu primera compra? Inicia sesión y el envío es gratis.";
+        avance = (productos / minimo) * 100;
+    }
+
+    if (texto) texto.textContent = mensaje;
+    if (barra) barra.style.width = `${Math.min(100, avance)}%`;
+}
+
+// --------------------------------------------------------------------------
+// Stock real en vivo: POST /carrito/validar devuelve precio, tallas y stock de MySQL
+// --------------------------------------------------------------------------
+// { SKU: { "40": 3, "40.5": 0 } }: vive solo en memoria (no en localStorage) para que nunca quede desactualizado
+const stockPorSku = {};
+let maxPorTalla = 10;
+let umbralEscasez = 3; // lo reemplaza ProductoTalla::ULTIMAS_UNIDADES al consultar el servidor
+
+const claveDe = (p) => String(p.sku || p.id);
+// Stock de la talla elegida: número real, 0 si la talla ya no existe, o null si aún no se consultó al servidor
+const stockDe = (p) => {
+    const tallas = stockPorSku[claveDe(p)];
+    return tallas ? (tallas[String(p.talla)] ?? 0) : null;
+};
+const topeCantidad = (p) => (stockDe(p) === null ? maxPorTalla : Math.min(maxPorTalla, stockDe(p)));
+const hayTallasAgotadas = () => carrito.some((p) => stockDe(p) === 0);
+
+async function sincronizarStock() {
+    if (!contenedor || carrito.length === 0) return;
+
+    let datos;
+    try {
+        const respuesta = await fetch("/carrito/validar", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content || "",
+            },
+            body: JSON.stringify({ items: carrito.map((p) => ({ id: claveDe(p) })) }),
+        });
+        if (!respuesta.ok) return;
+        datos = await respuesta.json();
+    } catch (e) {
+        return; // Sin conexión: el servidor vuelve a validar stock y precios al pagar
+    }
+
+    maxPorTalla = Number(datos.max_por_talla) || 10;
+    umbralEscasez = Number(datos.ultimas_unidades) || umbralEscasez;
+    const avisos = [];
+
+    // Producto desactivado o eliminado: se quita del carrito
+    carrito = carrito.filter((p) => {
+        if (datos.productos?.[claveDe(p)]?.disponible) return true;
+        avisos.push(`${p.nombre} ya no está disponible y se quitó de tu carrito.`);
+        return false;
+    });
+
+    carrito.forEach((p) => {
+        const info = datos.productos[claveDe(p)];
+        stockPorSku[claveDe(p)] = Object.fromEntries(info.tallas.map((t) => [String(t.talla), Number(t.stock)]));
+        // Arreglo (no Object.keys) para conservar el orden 38, 38.5, 39...
+        p.tallas = info.tallas.map((t) => String(t.talla));
+
+        if (Number(info.precio) !== Number(p.precio)) {
+            p.precio = Number(info.precio);
+            avisos.push(`El precio de ${info.nombre} se actualizó a ${soles(info.precio)}.`);
+        }
+
+        if (stockDe(p) === 0) {
+            avisos.push(`La talla ${p.talla} de ${p.nombre} se agotó: elige otra talla.`);
+        } else if (p.cantidad > topeCantidad(p)) {
+            p.cantidad = topeCantidad(p);
+            avisos.push(`${p.nombre} (talla ${p.talla}) bajó de stock: ajustamos la cantidad a ${p.cantidad}.`);
+        }
+    });
+
+    guardarCarrito();
+    mostrarCarrito();
+    renderFavoritos("favoritos-carrito", 4);
+    avisos.slice(0, 3).forEach((mensaje) => avisar(mensaje, "info"));
+}
+
+// Tallas sin stock aparecen deshabilitadas (se ven, pero no se pueden elegir)
 function opcionesTalla(p) {
-    const tallas = Array.isArray(p.tallas) && p.tallas.length ? p.tallas : [p.talla];
-    return tallas.map((t) => `<option value="${escapar(t)}" ${String(t) === String(p.talla) ? "selected" : ""}>${escapar(t)}</option>`).join("");
+    const tallas = Array.isArray(p.tallas) && p.tallas.length ? [...p.tallas] : [String(p.talla)];
+    if (!tallas.includes(String(p.talla))) tallas.unshift(String(p.talla));
+    const stock = stockPorSku[claveDe(p)];
+
+    return tallas.map((t) => {
+        const agotada = stock ? (stock[String(t)] ?? 0) <= 0 : false;
+        const elegida = String(t) === String(p.talla);
+        return `<option value="${escapar(t)}" ${elegida ? "selected" : ""} ${agotada ? "disabled" : ""}>${escapar(t)}${agotada ? " · Agotada" : ""}</option>`;
+    }).join("");
 }
 
+// La cantidad llega hasta el stock real de la talla (máx. 10 por talla)
 function opcionesCantidad(p) {
     const actual = Number(p.cantidad) || 1;
-    return Array.from({ length: 10 }, (_, i) => i + 1)
+    const tope = Math.max(1, topeCantidad(p), stockDe(p) === 0 ? actual : 1);
+    return Array.from({ length: tope }, (_, i) => i + 1)
         .map((n) => `<option value="${n}" ${n === actual ? "selected" : ""}>${n}</option>`).join("");
+}
+
+// Aviso bajo la línea: talla agotada (bloquea el pago) o pocas unidades
+function avisoStock(p) {
+    const stock = stockDe(p);
+    if (stock === 0) {
+        return `<p class="mt-2.5 text-[13px] font-medium text-agotado">Talla agotada: elige otra talla para continuar.</p>`;
+    }
+    if (stock !== null && stock <= umbralEscasez) {
+        return `<p class="mt-2.5 text-[13px] font-medium text-[#b45309]">¡Solo ${stock === 1 ? "queda 1 unidad" : `quedan ${stock} unidades`} en esta talla!</p>`;
+    }
+    return "";
+}
+
+const leerFavoritos = () => JSON.parse(localStorage.getItem("favoritos")) || [];
+const esFavorito = (p) => leerFavoritos().some((f) => String(f.sku || f.id) === claveDe(p));
+
+const RUTA_CORAZON = "M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z";
+
+// Corazón de la línea: guarda en favoritos SIN quitar el producto del carrito; relleno = ya está en favoritos
+function botonFavorito(p, i) {
+    const lleno = esFavorito(p);
+    const texto = lleno ? "Quitar de favoritos" : "Guardar en favoritos";
+    return `<button type="button" onclick="alternarFavorito(${i})" title="${texto}" aria-label="${texto}" aria-pressed="${lleno}">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="${lleno ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="${RUTA_CORAZON}"/></svg>
+    </button>`;
 }
 
 function mostrarCarrito() {
@@ -97,13 +248,12 @@ function mostrarCarrito() {
                         <select onchange="cambiarTalla(${i}, this.value)" aria-label="Talla de ${escapar(p.nombre)}">${opcionesTalla(p)}</select>
                     </label>
                     <label>Cantidad
-                        <select onchange="cambiarCantidad(${i}, this.value)" aria-label="Cantidad de ${escapar(p.nombre)}">${opcionesCantidad(p)}</select>
+                        <select onchange="cambiarCantidad(${i}, this.value)" aria-label="Cantidad de ${escapar(p.nombre)}" ${stockDe(p) === 0 ? "disabled" : ""}>${opcionesCantidad(p)}</select>
                     </label>
                 </div>
+                ${avisoStock(p)}
                 <div class="mt-3 flex gap-1.5 [&>button]:inline-flex [&>button]:size-10 [&>button]:cursor-pointer [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border-none [&>button]:bg-transparent [&>button]:text-tinta [&>button]:transition-colors [&>button]:duration-200 [&>button:hover]:bg-perla">
-                    <button type="button" onclick="moverAFavoritos(${i})" title="Mover a Favoritos" aria-label="Mover a Favoritos">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>
-                    </button>
+                    ${botonFavorito(p, i)}
                     <button type="button" onclick="eliminar(${i})" title="Eliminar" aria-label="Eliminar del carrito">
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
                     </button>
@@ -127,12 +277,15 @@ function cambiarTalla(i, talla) {
         return;
     }
     carrito[i].talla = talla;
+    // Si la nueva talla tiene menos stock, la cantidad baja al máximo disponible
+    if (topeCantidad(carrito[i]) > 0) carrito[i].cantidad = Math.min(carrito[i].cantidad, topeCantidad(carrito[i]));
     guardarCarrito();
+    mostrarCarrito();
 }
 
 function cambiarCantidad(i, cantidad) {
     if (!carrito[i]) return;
-    carrito[i].cantidad = cantidadValida(cantidad);
+    carrito[i].cantidad = Math.min(cantidadValida(cantidad), Math.max(1, topeCantidad(carrito[i])));
     guardarCarrito();
     mostrarCarrito();
 }
@@ -143,15 +296,22 @@ function eliminar(i) {
     mostrarCarrito();
 }
 
-function moverAFavoritos(i) {
+// Guarda (o quita) el producto de Favoritos sin sacarlo del carrito, para que el carrito no se vacíe de golpe
+function alternarFavorito(i) {
     const p = carrito[i];
     if (!p) return;
-    const favs = JSON.parse(localStorage.getItem("favoritos")) || [];
-    if (!favs.some((f) => f.sku == p.sku || f.id == p.id)) {
+    const favs = leerFavoritos();
+    const indice = favs.findIndex((f) => String(f.sku || f.id) === claveDe(p));
+    if (indice >= 0) {
+        favs.splice(indice, 1);
+        avisar(`${p.nombre} se quitó de tus favoritos.`, "info");
+    } else {
         favs.push({ id: p.id, sku: p.sku, nombre: p.nombre, marca: p.marca, precio: p.precio, imagen: p.imagen, tipo: p.tipo });
-        localStorage.setItem("favoritos", JSON.stringify(favs));
+        avisar(`${p.nombre} se guardó en favoritos y sigue en tu carrito.`, "ok");
     }
-    eliminar(i);
+    localStorage.setItem("favoritos", JSON.stringify(favs));
+    if (typeof actualizarBadgesHeader === "function") actualizarBadgesHeader();
+    mostrarCarrito();
     renderFavoritos("favoritos-carrito", 4);
 }
 
@@ -189,6 +349,7 @@ function quitarFavorito(i, idContenedor, limite) {
     localStorage.setItem("favoritos", JSON.stringify(favs));
     if (typeof actualizarBadgesHeader === "function") actualizarBadgesHeader();
     renderFavoritos(idContenedor, limite);
+    mostrarCarrito(); // el corazón de la línea del carrito vuelve a quedar vacío
 }
 
 // --------------------------------------------------------------------------
@@ -576,6 +737,7 @@ function confirmar(metodo) {
     .then(async ([response]) => {
         if (response.status === 401) {
             avisar("Debes iniciar sesión para completar tu compra.");
+            permitirSalida();
             window.location.href = "/login";
             return;
         }
@@ -583,6 +745,7 @@ function confirmar(metodo) {
         // Compra ya procesada (409): se limpia el carrito y se va al historial
         if (response.status === 409) {
             vaciarCarritoCompleto();
+            permitirSalida();
             window.location.href = data.redirect_url || "/perfil/pedidos";
             return;
         }
@@ -598,6 +761,7 @@ function confirmar(metodo) {
 
             // [CAMBIO: REDIRECCION DIRECTA A PERFIL CON EL HISTORIAL DE COMPRAS ACTUALIZADO]
             // replace(): el checkout no queda en el historial, así "Atrás" no vuelve a la pantalla de pago
+            permitirSalida();
             window.location.replace(data.redirect_url || "/perfil/pedidos");
         } else {
             mostrarProcesando(false);
@@ -643,6 +807,58 @@ function cerrarAlerta() {
     cerrarModal();
 }
 
+// --------------------------------------------------------------------------
+// Confirmación al salir del checkout sin haber pagado
+// --------------------------------------------------------------------------
+let salidaPermitida = false;
+const permitirSalida = () => { salidaPermitida = true; };
+
+function activarConfirmacionSalida() {
+    const dialogo = document.getElementById("confirmarSalida");
+    if (!dialogo || !document.getElementById("tokenCompra")) return;
+    let destino = null;
+
+    const abrir = (url) => {
+        destino = url;
+        dialogo.hidden = false;
+        requestAnimationFrame(() => dialogo.classList.add("abierto"));
+        dialogo.querySelector("button[data-seguir-pagando]")?.focus();
+    };
+    const cerrar = () => {
+        dialogo.classList.remove("abierto");
+        setTimeout(() => { dialogo.hidden = true; }, 200);
+        destino = null;
+    };
+
+    // Enlaces de la página (header, footer, "Volver al carrito"): se muestra el diálogo propio antes de salir
+    document.addEventListener("click", (e) => {
+        const enlace = e.target.closest("a[href]");
+        if (!enlace || salidaPermitida || e.defaultPrevented) return;
+        // Abrir en otra pestaña (Ctrl/Cmd + clic o target="_blank") no abandona el pago
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || enlace.target === "_blank") return;
+        const url = new URL(enlace.href, location.href);
+        if (url.pathname === location.pathname && url.hash) return;
+        e.preventDefault();
+        abrir(url.href);
+    });
+
+    dialogo.querySelector("[data-salir]")?.addEventListener("click", () => {
+        permitirSalida();
+        window.location.href = destino || "/carrito";
+    });
+    dialogo.querySelectorAll("[data-seguir-pagando]").forEach((el) => el.addEventListener("click", cerrar));
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !dialogo.hidden) cerrar();
+    });
+
+    // Cerrar la pestaña, recargar, "Atrás" o usar el buscador: el navegador muestra su propio aviso
+    window.addEventListener("beforeunload", (e) => {
+        if (salidaPermitida || carrito.length === 0) return;
+        e.preventDefault();
+        e.returnValue = "";
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     // Checkout sin productos (p. ej. tras comprar y pulsar "Atrás") vuelve al carrito
     if (document.getElementById("tokenCompra") && carrito.length === 0) {
@@ -654,10 +870,15 @@ document.addEventListener("DOMContentLoaded", () => {
     pintarTotales();
     renderFavoritos("favoritos-carrito", 4);
     renderFavoritos("favoritos-contenido");
+    sincronizarStock();
+    activarConfirmacionSalida();
 });
 
 
 // Si el navegador restaura la página desde su caché (botón Atrás), se recarga para revalidar con el servidor
 window.addEventListener("pageshow", (e) => {
-    if (e.persisted && document.getElementById("tokenCompra")) window.location.reload();
+    if (e.persisted && document.getElementById("tokenCompra")) {
+        permitirSalida();
+        window.location.reload();
+    }
 });

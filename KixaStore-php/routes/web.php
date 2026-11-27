@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ProductoController;
 use App\Http\Controllers\Admin\ProveedorController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BoletaController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\HomeController;
@@ -40,11 +41,16 @@ Route::middleware('auth')->group(function () {
     Route::put('/perfil', [AuthController::class, 'actualizarPerfil'])->name('perfil.update');
     Route::put('/perfil/password', [AuthController::class, 'actualizarPassword'])->name('perfil.password');
     Route::put('/perfil/direccion', [AuthController::class, 'actualizarDireccion'])->name('perfil.direccion');
+
+    // [Sem 09 - Controladores y Middleware]: boleta PDF; BoletaController valida que sea el dueño del pedido o un admin (si no, 403).
+    Route::get('/pedidos/{pedido}/boleta', BoletaController::class)->name('pedidos.boleta');
 });
 
 // Proceso de compra.
 // [Semana 9-10: Controladores, Request y Componentes] El carrito vive en el navegador y procesar() recibe el Request y valida todo en el servidor.
 Route::get('/carrito', [CarritoController::class, 'index'])->name('carrito');
+// [Sem 09 - Controladores y Middleware]: stock y precio reales del carrito (JSON); throttle limita a 60 consultas por minuto.
+Route::post('/carrito/validar', [CarritoController::class, 'validar'])->middleware('throttle:60,1')->name('carrito.validar');
 Route::view('/favoritos', 'cliente.favoritos')->name('favoritos');
 Route::get('/checkout', [CarritoController::class, 'checkout'])->name('checkout');
 Route::post('/checkout/procesar', [CarritoController::class, 'procesar'])->middleware('auth')->name('checkout.procesar');
@@ -95,4 +101,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('abastecimiento', [AbastecimientoController::class, 'store'])->name('abastecimiento.store');
     Route::patch('abastecimiento/{orden}/recibir', [AbastecimientoController::class, 'recibir'])->name('abastecimiento.recibir');
     Route::patch('abastecimiento/{orden}/cancelar', [AbastecimientoController::class, 'cancelar'])->name('abastecimiento.cancelar');
+});
+
+// [Sem 09 - Controladores y Middleware]: Guía de Abastecimiento / Orden de Compra en PDF (GET /admin/abastecimiento/LOT-0001/guia).
+// Va en su propio grupo con 'admin:403': como es un archivo y no una pantalla, a un cliente se le responde 403 en vez de redirigirlo al home.
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin:403'])->group(function () {
+    Route::get('abastecimiento/{orden}/guia', [AbastecimientoController::class, 'guia'])->name('abastecimiento.guia');
 });

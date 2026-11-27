@@ -26,7 +26,42 @@ class CarritoController extends Controller
 
     public function index()
     {
-        return view('cliente.carrito');
+        $reglaEnvio = $this->reglaEnvio();
+
+        return view('cliente.carrito', compact('reglaEnvio'));
+    }
+
+    // [Sem 09 - Controladores y Middleware]: POST /carrito/validar recibe el carrito del localStorage y responde con el precio,
+    // las tallas y el stock reales de MySQL; carrito.js lo usa para bloquear tallas agotadas y limitar la cantidad.
+    public function validar(Request $request)
+    {
+        $datos = $request->validate([
+            'items'      => ['present', 'array', 'max:30'],
+            'items.*.id' => ['required', 'alpha_dash:ascii', 'max:40'],
+        ]);
+
+        $skus = collect($datos['items'])->pluck('id')->map(fn ($sku) => (string) $sku)->unique()->values();
+
+        // [Sem 12 - Eloquent ORM]: una sola consulta con whereIn + with('tallas') para todos los productos del carrito (evita N+1).
+        $productos = Producto::activos()
+            ->whereIn('sku', $skus)
+            ->with(['tallas' => fn ($q) => $q->orderBy('talla')])
+            ->get()
+            ->keyBy('sku');
+
+        return response()->json([
+            'max_por_talla'    => self::MAX_POR_TALLA,
+            'ultimas_unidades' => ProductoTalla::ULTIMAS_UNIDADES,
+            // Un producto inactivo o inexistente vuelve con disponible = false para que el carrito lo quite.
+            'productos' => $skus->mapWithKeys(fn ($sku) => [$sku => $productos->has($sku) ? [
+                'disponible' => true,
+                'nombre'     => $productos[$sku]->nombre,
+                'precio'     => (float) $productos[$sku]->precio,
+                'tallas'     => $productos[$sku]->tallas
+                    ->map(fn ($t) => ['talla' => $t->talla_etiqueta, 'stock' => $t->stock])
+                    ->values(),
+            ] : ['disponible' => false]]),
+        ]);
     }
 
     // Exige sesión (guest() recuerda la URL), bloquea al admin y genera un token de un solo uso contra envíos dobles.
@@ -41,12 +76,13 @@ class CarritoController extends Controller
         }
 
         $usuario = Auth::user();
+        $reglaEnvio = $this->reglaEnvio();
 
         $tokenCompra = (string) Str::uuid();
         session(['checkout_token' => $tokenCompra]);
 
         return response()
-            ->view('cliente.checkout', compact('usuario', 'tokenCompra'))
+            ->view('cliente.checkout', compact('usuario', 'tokenCompra', 'reglaEnvio'))
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache')
             ->header('Expires', '0');
@@ -166,7 +202,12 @@ class CarritoController extends Controller
                     throw new \DomainException('No se puede generar un pedido en cero.');
                 }
 
-                $total = round($subtotal, 2);
+                // [Sem 12 - Eloquent ORM]: regla de envío gratis: Pedido::calcularEnvio da S/ 0 en la primera compra o si los productos suman >= S/ 200; si no, S/ 15.
+                $montoProductos = round($subtotal, 2);
+                $envio = Pedido::calcularEnvio($montoProductos, Auth::user()->esPrimeraCompra());
+
+                // Los precios ya incluyen IGV: del total (productos + envío) se separa el 18 % y la Op. Gravada.
+                $total = round($montoProductos + $envio, 2);
                 $igv = round($total * 0.18 / 1.18, 2);
                 $subtotal = round($total - $igv, 2);
 
@@ -180,6 +221,7 @@ class CarritoController extends Controller
                     'codigo_orden'    => $codigoOrden,
                     'subtotal'        => $subtotal,
                     'igv'             => $igv,
+                    'costo_envio'     => $envio,
                     'total'           => $total,
                     'estado'          => $esTarjeta ? 'Pagado' : 'Pendiente',
                     'direccion_envio' => $request->input('direccion_envio') ?: 'Entrega estándar / Tienda Kixa',
@@ -213,6 +255,7 @@ class CarritoController extends Controller
                     'exito'        => true,
                     'mensaje'      => '¡Pedido ' . $pedido->codigo_orden . ' registrado con éxito!',
                     'codigo_orden' => $pedido->codigo_orden,
+                    'envio'        => number_format($pedido->costo_envio, 2),
                     'total'        => number_format($pedido->total, 2),
                     'redirect_url' => route('perfil', 'pedidos'),
                 ]);
@@ -269,6 +312,17 @@ class CarritoController extends Controller
         }
 
         return Carbon::create(2000 + (int) $partes[2], (int) $partes[1], 1)->endOfMonth()->isFuture();
+    }
+
+    // Datos de la regla de envío para carrito.js (data-* en el resumen): costo, mínimo para envío gratis y si es la primera compra.
+    // Para un invitado primera_compra queda en null: aún no se sabe quién es.
+    private function reglaEnvio(): array
+    {
+        return [
+            'costo'          => Pedido::COSTO_ENVIO,
+            'gratis_desde'   => Pedido::ENVIO_GRATIS_DESDE,
+            'primera_compra' => Auth::check() ? Auth::user()->esPrimeraCompra() : null,
+        ];
     }
 
     private function rechazar(Request $request, string $mensaje, int $codigo)

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -37,6 +38,12 @@ class DetallePedido extends Model
             'precio_unitario' => 'decimal:2',
             'subtotal'        => 'decimal:2',
         ];
+    }
+
+    // Accessor: $linea->talla_etiqueta muestra 40 o 40.5 (igual que ProductoTalla) en el perfil y en la boleta PDF.
+    protected function tallaEtiqueta(): Attribute
+    {
+        return Attribute::get(fn () => rtrim(rtrim(number_format((float) $this->talla, 1), '0'), '.'));
     }
 
     // Relación BelongsTo: la línea pertenece a un pedido (FK pedido_id con cascadeOnDelete).

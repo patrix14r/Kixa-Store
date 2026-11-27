@@ -50,19 +50,25 @@
                         <span class="text-[13px] font-normal text-suave">Tallas Perú / US</span>
                     </label>
 
-                    {{-- .size-btn y .selected los usa producto-dinamico.js; las tallas sin stock llegan con disabled y se ven tachadas --}}
-                    <div class="mt-3 grid grid-cols-4 gap-2 rounded-[10px] p-0.5 transition-shadow duration-300 max-[650px]:grid-cols-3" id="sizes">
+                    {{-- .size-btn y .selected los usa producto-dinamico.js; las tallas sin stock llegan con disabled y se ven tachadas.
+                         data-stock alimenta el aviso de escasez y data-ultimas-unidades es su umbral (ProductoTalla::ULTIMAS_UNIDADES) --}}
+                    <div class="mt-3 grid grid-cols-4 gap-2 rounded-[10px] p-0.5 transition-shadow duration-300 max-[650px]:grid-cols-3" id="sizes" data-ultimas-unidades="{{ $ultimasUnidades }}">
                         @foreach ($producto->tallas as $tallaObj)
                             <button
                                 type="button"
                                 class="size-btn {{ $tallaObj->stock <= 0 ? 'agotado disabled' : '' }} min-h-12 cursor-pointer rounded-lg border border-[#e4e4e7] bg-white p-2.5 text-[15px] font-medium text-tinta transition-colors duration-200 hover:border-tinta [&.selected]:border-tinta [&.selected]:bg-tinta [&.selected]:text-white disabled:cursor-not-allowed disabled:border-[#f1f1f1] disabled:bg-perla disabled:text-[#b4b4b8] disabled:line-through"
                                 {{ $tallaObj->stock <= 0 ? 'disabled' : '' }}
                                 data-talla="{{ $tallaObj->talla_etiqueta }}"
+                                data-stock="{{ $tallaObj->stock }}"
                                 title="{{ $tallaObj->stock <= 0 ? 'Agotado' : 'Disponible (' . $tallaObj->stock . ' pares)' }}">
                                 {{ $tallaObj->talla_etiqueta }}
                             </button>
                         @endforeach
                     </div>
+                    {{-- Etiqueta discreta de escasez: producto-dinamico.js la muestra al elegir una talla con 1 a 3 pares --}}
+                    <p id="aviso-escasez" class="mt-3 flex w-fit items-center gap-2 rounded-full bg-[#fff7ed] px-3 py-1.5 text-[13px] font-semibold text-[#b45309]" role="status" hidden>
+                        <i class="fa-solid fa-fire-flame-curved"></i><span></span>
+                    </p>
                     {{-- Abre el modal #modalGuiaTallas (public/js/guia-tallas.js) --}}
                     <button type="button" class="mt-3 cursor-pointer border-0 bg-transparent p-0 text-[14px] font-semibold text-tinta underline" id="abrirGuiaTallas" aria-haspopup="dialog" aria-controls="modalGuiaTallas">
                         <i class="fa-solid fa-ruler mr-1.5"></i> Guía de tallas
@@ -111,7 +117,7 @@
                 <!-- INFORMACIÓN DE ENVÍO -->
                 <div class="mt-6 flex gap-2.5 border-t border-[#ececec] pt-5 text-[14px] leading-[1.6] text-[#52525b]">
                     <i class="fa-solid fa-truck"></i>
-                    Envío gratis en todas tus compras. Entrega en 24-48 horas a todo el Perú.
+                    {{ $reglaEnvio }} Entrega en 24-48 horas a todo el Perú.
                 </div>
             </aside>
 

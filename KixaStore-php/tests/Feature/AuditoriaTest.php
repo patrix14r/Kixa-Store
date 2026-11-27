@@ -261,6 +261,10 @@ class AuditoriaTest extends TestCase
             ->assertDontSee('Yape')
             ->assertDontSee('Plin')
             ->assertDontSee('transferencia bancaria')
-            ->assertSee('El envío es gratis en todas tus compras');
+            // Regla real de envío: gratis en la primera compra o desde S/ 200; si no, S/ 15.
+            ->assertSee('El envío es gratis en tu primera compra')
+            ->assertSee('S/ 200.00')
+            ->assertSee('S/ 15.00')
+            ->assertDontSee('El envío es gratis en todas tus compras');
     }
 }

@@ -74,7 +74,8 @@ class MarcaController extends Controller
     private function validar(Request $request, ?Marca $marca = null): array
     {
         $datos = $request->validate([
-            'nombre'       => ['required', 'string', 'max:60', Rule::unique('marcas', 'nombre')->ignore($marca)],
+            // max:50 igual que productos.marca (string 50): el nombre se copia ahí y MySQL no debe rechazarlo por longitud.
+            'nombre'       => ['required', 'string', 'max:50', Rule::unique('marcas', 'nombre')->ignore($marca)],
             'logo_archivo' => ['nullable', 'image', 'max:2048'],
         ], [], ['logo_archivo' => 'logo']);
 

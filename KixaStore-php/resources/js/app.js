@@ -56,6 +56,7 @@ document.getElementById('imagen-input')?.addEventListener('change', (e) => {
     if (nombre) nombre.textContent = archivo ? archivo.name : 'Ningún archivo seleccionado';
     if (archivo && vista) {
         vista.src = URL.createObjectURL(archivo);
+        vista.hidden = false; // en "crear marca" la <img> arranca oculta con el atributo hidden
         document.getElementById('vista-imagen-caja')?.classList.remove('hidden');
     }
 });
@@ -130,17 +131,136 @@ modalVista?.addEventListener('click', (e) => {
     }
 });
 
-// Abastecimiento: selects encadenados Producto -> Talla.
-// data-tallas trae { SKU: [{ id, texto }] } desde el controlador; al cambiar el producto se reconstruyen las opciones de talla.
-const selectProducto = document.querySelector('[data-producto-abastecimiento]');
-const selectTalla = document.getElementById('producto_talla_id');
-if (selectProducto && selectTalla?.dataset.tallas) {
-    const tallasPorProducto = JSON.parse(selectTalla.dataset.tallas);
-    selectProducto.addEventListener('change', () => {
-        const tallas = tallasPorProducto[selectProducto.value] || [];
+// Abastecimiento: lote con varias filas (Producto -> Talla + cantidad + costo) y resumen en vivo de inversión y ganancia estimada.
+// data-catalogo trae { SKU: { precio, tallas: [{ id, texto }] } } desde AbastecimientoController@create.
+// [Sem 09 - Controladores y Middleware]: flujo Entrada -> Proceso -> Salida: este JS solo ayuda en la ENTRADA (armar el lote);
+// el PROCESO (suma atómica del stock con DB::transaction + lockForUpdate) y la SALIDA (Guía PDF con dompdf) ocurren en el servidor.
+const formLote = document.querySelector('[data-form-lote]');
+if (formLote) {
+    const catalogo = JSON.parse(formLote.dataset.catalogo || '{}');
+    const filasLote = document.getElementById('lote-filas');
+    const plantillaLote = document.getElementById('plantilla-fila-lote');
+    const soles = (n) => 'S/ ' + Number(n).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // Selects encadenados: al cambiar el producto de una fila se reconstruyen solo SUS opciones de talla
+    const llenarTallas = (fila) => {
+        const sku = fila.querySelector('[data-producto-abastecimiento]').value;
+        const selectTalla = fila.querySelector('[data-talla-abastecimiento]');
+        const tallas = catalogo[sku]?.tallas || [];
         selectTalla.innerHTML = '';
-        selectTalla.add(new Option(selectProducto.value ? (tallas.length ? 'Selecciona una talla' : 'Este producto no tiene tallas') : 'Primero elige un producto', ''));
+        selectTalla.add(new Option(sku ? (tallas.length ? 'Selecciona una talla' : 'Este producto no tiene tallas') : 'Primero elige un producto', ''));
         tallas.forEach((t) => selectTalla.add(new Option(t.texto, t.id)));
         selectTalla.disabled = tallas.length === 0;
+    };
+
+    // Subtotal = cantidad × costo; ganancia = (precio de venta − costo) × cantidad; los totales suman todas las filas
+    const recalcularLote = () => {
+        let unidades = 0;
+        let inversion = 0;
+        let ganancia = 0;
+        const filas = filasLote.querySelectorAll('[data-fila-lote]');
+
+        filas.forEach((fila) => {
+            const precio = catalogo[fila.querySelector('[data-producto-abastecimiento]').value]?.precio ?? null;
+            const cantidad = Math.max(0, parseInt(fila.querySelector('[data-cantidad]').value, 10) || 0);
+            const costo = Math.max(0, parseFloat(fila.querySelector('[data-costo]').value) || 0);
+            const gananciaFila = precio === null ? 0 : (precio - costo) * cantidad;
+
+            fila.querySelector('[data-precio-venta]').textContent = precio === null ? '—' : soles(precio);
+            fila.querySelector('[data-subtotal]').textContent = soles(cantidad * costo);
+            const celda = fila.querySelector('[data-ganancia]');
+            celda.textContent = soles(gananciaFila);
+            celda.classList.toggle('text-emerald-400', gananciaFila > 0);
+            celda.classList.toggle('text-amber-400', gananciaFila < 0);
+            // Con una sola fila no se puede quitar (el lote necesita al menos una talla)
+            fila.querySelector('[data-quitar-fila]').disabled = filas.length === 1;
+
+            unidades += cantidad;
+            inversion += cantidad * costo;
+            ganancia += gananciaFila;
+        });
+
+        document.querySelector('[data-total-unidades]').textContent = unidades;
+        document.querySelector('[data-total-inversion]').textContent = soles(inversion);
+        const total = document.querySelector('[data-total-ganancia]');
+        total.textContent = soles(ganancia);
+        total.classList.toggle('text-emerald-400', ganancia > 0);
+        total.classList.toggle('text-amber-400', ganancia < 0);
+    };
+
+    // Tallas (producto_talla_id) ya elegidas en las demás filas del lote
+    const tallasUsadas = (excepto) => [...filasLote.querySelectorAll('[data-fila-lote]')]
+        .filter((fila) => fila !== excepto)
+        .map((fila) => fila.querySelector('[data-talla-abastecimiento]').value)
+        .filter(Boolean);
+
+    // Evita tallas duplicadas en el mismo lote: marca las filas repetidas y muestra el aviso (el servidor lo vuelve a validar con distinct)
+    const marcarDuplicados = () => {
+        let hayDuplicados = false;
+        filasLote.querySelectorAll('[data-fila-lote]').forEach((fila) => {
+            const select = fila.querySelector('[data-talla-abastecimiento]');
+            const repetida = select.value !== '' && tallasUsadas(fila).includes(select.value);
+            fila.querySelector('[data-aviso-duplicado]').classList.toggle('hidden', !repetida);
+            select.classList.toggle('border-agotado', repetida);
+            hayDuplicados ||= repetida;
+        });
+        return hayDuplicados;
+    };
+
+    // "+ Agregar otra talla": copia la <template> con un índice único (Date.now()) en lugar de __I__.
+    // Si la última fila ya tiene producto, la nueva fila lo repite y preselecciona la siguiente talla libre del lote.
+    document.querySelector('[data-agregar-fila]')?.addEventListener('click', () => {
+        const anterior = filasLote.lastElementChild;
+        filasLote.insertAdjacentHTML('beforeend', plantillaLote.innerHTML.replaceAll('__I__', Date.now()));
+        const nueva = filasLote.lastElementChild;
+        const sku = anterior?.querySelector('[data-producto-abastecimiento]').value;
+
+        if (sku && catalogo[sku]) {
+            nueva.querySelector('[data-producto-abastecimiento]').value = sku;
+            llenarTallas(nueva);
+            // Siguiente talla después de la elegida en la fila anterior que no esté usada; si no hay, la primera libre
+            const tallas = catalogo[sku].tallas.map((t) => String(t.id));
+            const usadas = tallasUsadas(nueva);
+            const desde = tallas.indexOf(anterior.querySelector('[data-talla-abastecimiento]').value) + 1;
+            const libre = [...tallas.slice(desde), ...tallas.slice(0, desde)].find((id) => !usadas.includes(id));
+            if (libre) nueva.querySelector('[data-talla-abastecimiento]').value = libre;
+            nueva.querySelector('[data-cantidad]').focus();
+        } else {
+            nueva.querySelector('select')?.focus();
+        }
+        marcarDuplicados();
+        recalcularLote();
     });
+
+    filasLote.addEventListener('change', (e) => {
+        if (e.target.matches('[data-producto-abastecimiento]')) llenarTallas(e.target.closest('[data-fila-lote]'));
+        marcarDuplicados();
+        recalcularLote();
+    });
+
+    // Si quedan tallas repetidas no se envía el formulario y se enfoca la primera fila con problema
+    formLote.addEventListener('submit', (e) => {
+        if (marcarDuplicados()) {
+            e.preventDefault();
+            filasLote.querySelector('[data-aviso-duplicado]:not(.hidden)')?.closest('[data-fila-lote]')
+                .querySelector('[data-talla-abastecimiento]').focus();
+        }
+    });
+    filasLote.addEventListener('input', recalcularLote);
+    filasLote.addEventListener('click', (e) => {
+        const boton = e.target.closest('[data-quitar-fila]');
+        if (boton && filasLote.querySelectorAll('[data-fila-lote]').length > 1) {
+            boton.closest('[data-fila-lote]').remove();
+            marcarDuplicados();
+            recalcularLote();
+        }
+    });
+    recalcularLote();
 }
+
+// Formularios con data-confirmar (p. ej. "Confirmar recepción" de un lote): piden confirmación antes de enviarse
+document.querySelectorAll('form[data-confirmar]').forEach((form) => {
+    form.addEventListener('submit', (e) => {
+        if (!window.confirm(form.dataset.confirmar)) e.preventDefault();
+    });
+});

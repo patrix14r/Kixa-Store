@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
         // View Composer que entrega menú y notificaciones al layout admin sin lógica en Blade
         View::composer('layouts.admin', function ($vista) {
             $vista->with('menuPrincipal', [
-                ['texto' => 'Resumen', 'ruta' => route('admin.home'), 'icono' => 'fa-solid fa-house', 'activo' => request()->routeIs('admin.home')],
+                ['texto' => 'Principal', 'ruta' => route('admin.home'), 'icono' => 'fa-solid fa-house', 'activo' => request()->routeIs('admin.home')],
                 ['texto' => 'Categorías', 'ruta' => route('admin.categorias.index'), 'icono' => 'fa-solid fa-tags', 'activo' => request()->routeIs('admin.categorias.*')],
                 ['texto' => 'Productos', 'ruta' => route('admin.productos.index'), 'icono' => 'svg-paquete', 'activo' => request()->routeIs('admin.productos.*')],
                 ['texto' => 'Proveedores', 'ruta' => route('admin.proveedores.index'), 'icono' => 'fa-solid fa-truck', 'activo' => request()->routeIs('admin.proveedores.*')],

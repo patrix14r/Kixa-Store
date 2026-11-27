@@ -162,7 +162,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="kx-td">{{ $pedido->usuario->name }}</td>
+                            <td class="kx-td">{{ $pedido->usuario?->name ?? 'Cliente' }}</td>
                             <td class="kx-td whitespace-nowrap">S/ {{ number_format($pedido->total, 2) }}</td>
                             <td class="kx-td"><x-admin.estado-pedido :estado="$pedido->estado" /></td>
                         </tr>

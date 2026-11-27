@@ -6,7 +6,9 @@ Aplicación web de venta de zapatillas desarrollada en **Laravel 13**, **MySQL**
 
 - **Tienda pública:** Catálogo con filtros dinámicos, detalle de producto por talla, favoritos, carrito de compras y checkout transaccional con descuento real de stock.
 - **Autenticación y roles:** Gestión de sesiones con Laravel Fortify y control de acceso por roles (`admin` y `cliente`) con Spatie Laravel Permission.
-- **Panel administrativo (`/admin`):** Dashboard con métricas, CRUDs de Categorías, Marcas, Proveedores y Productos, gestión de pedidos y módulo de Abastecimiento.
+- **Boleta PDF:** cada pedido genera su comprobante en PDF con `barryvdh/laravel-dompdf` (vista previa en el navegador o descarga; solo el cliente dueño o un administrador).
+- **Envío:** gratis en la primera compra o desde S/ 200 en productos; si no, S/ 15. El carrito consulta el stock real en vivo.
+- **Panel administrativo (`/admin`):** Dashboard con métricas, CRUDs de Categorías, Marcas, Proveedores y Productos, gestión de pedidos y módulo de Abastecimiento por lotes (varias tallas por lote, inversión y ganancia estimada).
 
 ## Instalación local
 

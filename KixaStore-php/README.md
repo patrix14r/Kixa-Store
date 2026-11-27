@@ -5,13 +5,14 @@
 |---|---|
 | `HomeController` | Home: consulta los productos con `destacado = true` (scopes `activos()->destacados()`) para la sección **Lo Destacado**. |
 | `AuthController` | Solo el perfil del cliente. Login, registro y logout los maneja Laravel Fortify (`FortifyServiceProvider`, `CreateNewUser`, `LoginResponse`). |
-| `CatalogoController` | Catálogo estilo Nike: título con contador, sidebar de filtros (categoría, marca, disciplina y talla obtenidos de los productos reales), orden por `?orden=` (destacados, precio, lo más nuevo) y ficha de producto con recomendados. Oculta productos de categorías inactivas. |
-| `CarritoController` | Carrito, checkout y `procesar()`: crea el `Pedido` y sus detalles en una transacción y descuenta stock (suma las líneas repetidas de una misma talla antes de comparar con el stock). **Simulador de pago:** Tarjeta (valida Luhn, vencimiento `MM/AA` y CVV; guarda solo los últimos 4 dígitos → pedido `Pagado`) o Contraentrega (pedido `Pendiente`). **Bloquea las compras del rol admin.** |
+| `CatalogoController` | Catálogo estilo Nike: título con contador, sidebar de filtros (categoría, marca, disciplina y talla obtenidos de los productos reales), orden por `?orden=` (destacados, precio, lo más nuevo), **paginación de 12** y ficha de producto con recomendados. Si la petición llega por `fetch` (`X-Requested-With`) devuelve solo el `@fragment('zona-catalogo')`, así los filtros no recargan header ni banner. Oculta productos de categorías inactivas. |
+| `CarritoController` | Carrito, checkout y `procesar()`: crea el `Pedido` y sus detalles en una transacción y descuenta stock (suma las líneas repetidas de una misma talla antes de comparar con el stock). **Envío:** gratis en la primera compra o desde S/ 200 en productos, si no S/ 15 (`Pedido::calcularEnvio`, guardado en `costo_envio`). `validar()` (`POST /carrito/validar`) devuelve stock, precio y tallas reales del carrito del `localStorage`. **Simulador de pago:** Tarjeta (valida Luhn, vencimiento `MM/AA` y CVV; guarda solo los últimos 4 dígitos → pedido `Pagado`) o Contraentrega (pedido `Pendiente`). **Bloquea las compras del rol admin.** |
+| `BoletaController` | Invocable (`GET /pedidos/{codigo_orden}/boleta`, middleware `auth`): genera la **boleta PDF** con `barryvdh/laravel-dompdf` (vista `comprobantes/boleta`, CSS plano en `resources/css/boleta.css`). Por defecto la abre en el navegador (`stream()`, vista previa) y con `?descargar=1` la descarga (`download()`) como `Boleta-PED-XXXX.pdf`. Solo el cliente dueño o un admin; cualquier otro recibe 403. |
 | `AdminController` | Dashboard: KPIs de clientes (`User::role('cliente')` de Spatie) y pedidos, barras de productos por marca, arco de disponibilidad de stock, ingresos de 7/30 días, 5 alertas críticas y pedidos recientes. |
 | `Admin\CategoriaController` | **Mantenimiento 1**: listar, crear, editar y activar/desactivar categorías (no se borran por la FK `restrictOnDelete`). El slug se arma solo desde el nombre (JS en vivo y `Str::slug` en el servidor). |
 | `Admin\ProveedorController` | **Mantenimiento 3**: listado con buscador (razón social/RUC), paginación y `withCount('productos')`; crear/editar validando RUC de 11 dígitos único y teléfono de 9; activar/desactivar (sin borrar). La URL usa el RUC. |
 | `Admin\MarcaController` | **Mantenimiento 4**: marcas (fabricantes) con buscador, `withCount('productos')`, paginación, logo opcional en `public/images/brands/` y activar/desactivar (sin borrar). La URL usa el slug; al renombrar sincroniza el texto `marca` de sus productos. |
-| `Admin\AbastecimientoController` | Órdenes de reposición: lote automático `LOT-0001`, proveedor activo, selects encadenados Producto → Talla (con stock actual), costo total calculado; `recibir` (en `DB::transaction`) suma el stock y `cancelar` la anula. Muestra el resumen de stock crítico (<= 2). |
+| `Admin\AbastecimientoController` | Lotes de reposición: código automático `LOT-0001`, proveedor activo **obligatorio**, varias filas por lote (producto activo → talla, cantidad y costo) con inversión total y ganancia estimada (precio de venta − costo); `recibir` ("Confirmar recepción", `DB::transaction` + `lockForUpdate`) suma el stock de **todas** las tallas y `cancelar` la anula; `guia` genera la Guía / Orden de Compra en PDF (dompdf, `stream` o `?descargar=1`). Muestra el resumen de stock crítico (<= 2). |
 | `Admin\ProductoController` | **Mantenimiento 2**: listado con buscador y filtros, crear/editar con `<select>` de categoría, proveedor y marca (sincroniza el texto `marca` para el catálogo), subida de imagen, galería de imágenes secundarias (JSON `galeria_imagenes`), stock por talla, SKU automático (`MARCA-MODELO-XXX`) si llega vacío, filtro por estado y vista rápida en modal. |
 | `Admin\ClienteController` | Solo usuarios con rol cliente (`User::role('cliente')`): listado, historial de pedidos (`show`) y edición de nombre, correo, DNI y celular. No toca roles (Regla 4.2). |
 | `Admin\PedidoController` | **Proceso 2 - Despacho**: lista los pedidos con cliente, fecha, pago, total y zapatillas; el admin cambia el estado (Pendiente → Entregado / Cancelado) y el cliente lo ve en su historial. |
@@ -20,15 +21,15 @@
 ## Modelos
 | Modelo | Relaciones / detalles |
 |---|---|
-| `User` | Trait `HasRoles` de **Spatie Laravel Permission** (roles en las tablas `roles` + `model_has_roles`, Regla 4.2); `esAdmin()` = `hasRole('admin')`; `nombreRol()`; `hasMany(Pedido)`; ruta por `email` en el panel de clientes. |
+| `User` | Trait `HasRoles` de **Spatie Laravel Permission** (roles en las tablas `roles` + `model_has_roles`, Regla 4.2); `esAdmin()` = `hasRole('admin')`; `nombreRol()`; `esPrimeraCompra()` (sin pedidos no cancelados → envío gratis); accessor `nombre_corto` (primer nombre + primer apellido, barra superior); `hasMany(Pedido)`; ruta por `email` en el panel de clientes. |
 | `Categoria` | `hasMany(Producto)`; scope `activas`; URLs por `slug`. |
 | `Marca` | `hasMany(Producto)`; URLs por `slug`; scope `activos`; accessor `url_logo`. |
 | `Producto` | `belongsTo(Categoria)`, `belongsTo(Proveedor)`, `belongsTo(Marca)` (`marca()`), `hasMany(ProductoTalla)`; accessors `modelo` (nombre sin la marca repetida) y `tipo_calzado` ("Zapatillas urbanas", "Chimpunes de fútbol"…); URLs por `sku`. |
-| `ProductoTalla` | `belongsTo(Producto)`; stock por talla; `STOCK_CRITICO = 2`. |
+| `ProductoTalla` | `belongsTo(Producto)`; stock por talla; `STOCK_CRITICO = 2` y `ULTIMAS_UNIDADES = 3` (aviso "¡Últimas X unidades disponibles!"). |
 | `Proveedor` | `hasMany(Producto)`; URLs por `ruc`; scope `activos`. |
-| `OrdenAbastecimiento` | `belongsTo` Proveedor, ProductoTalla (`talla()`) y User; URLs por `codigo_lote`. |
-| `Pedido` / `DetallePedido` | Pedido del cliente (`belongsTo(User)`, `hasMany(DetallePedido)`) y sus líneas; ruta por `codigo_orden`; `tarjeta_ultimos4` y accessor `metodo_pago_detalle` ("Tarjeta •••• 4242"). |
-| `OrdenAbastecimiento` | Reposición de stock desde proveedores. |
+| `OrdenAbastecimiento` | Encabezado del lote: `belongsTo` Proveedor y User, `hasMany(DetalleAbastecimiento)` (`detalles()`); accessors `unidades` y `ganancia_estimada`; URLs por `codigo_lote`. |
+| `DetalleAbastecimiento` | Fila del lote (tabla `detalles_abastecimiento`): `belongsTo` OrdenAbastecimiento y ProductoTalla (`talla()`); cantidad, costo unitario, subtotal y accessor `ganancia_estimada`. |
+| `Pedido` / `DetallePedido` | Pedido del cliente (`belongsTo(User)`, `hasMany(DetallePedido)`) y sus líneas; ruta por `codigo_orden`; `costo_envio`, constantes `COSTO_ENVIO`/`ENVIO_GRATIS_DESDE` y `calcularEnvio()`; `tarjeta_ultimos4` y accessor `metodo_pago_detalle` ("Tarjeta •••• 4242"); `DetallePedido` tiene el accessor `talla_etiqueta` (40 / 40.5). |
 
 ## Páginas informativas (Modo Cliente)
 | Vista / Ruta | Qué hace |
@@ -45,6 +46,7 @@
 | `PUT /perfil/direccion` | `perfil.direccion` | Guarda la dirección predeterminada (pre-llena el checkout). |
 | `GET /producto/{sku}/tallas` | `producto.tallas` | JSON con tallas en stock para "Seleccionar talla" en Favoritos. |
 | `GET /checkout` / `POST /checkout/procesar` | `checkout` / `checkout.procesar` | Token de un solo uso + cabeceras anti-caché: el botón "Atrás" o un doble clic no duplican pedidos; cantidades enteras de 1 a 10 y stock validado. |
+| `POST /carrito/validar` | `carrito.validar` | JSON con stock, precio y tallas reales de cada SKU del carrito (`throttle:60,1`); `carrito.js` deshabilita tallas agotadas y limita la cantidad. |
 
 ## Panel Administrador
 

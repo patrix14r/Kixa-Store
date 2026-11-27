@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Categoria;
+use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\ProductoTalla;
 use Illuminate\Http\Request;
@@ -80,7 +81,10 @@ class CatalogoController extends Controller
         'nuevo'       => 'Lo más nuevo',
     ];
 
+    private const POR_PAGINA = 12;
+
     // Filtra el catálogo con Eloquent: recibe la categoría por la ruta y el resto por query string con $request->query().
+    // Si la petición llega por fetch (X-Requested-With: XMLHttpRequest) solo devuelve el fragmento de la grilla, sin layout ni banner.
     public function index(Request $request, $categoria = 'todos')
     {
         $subcategoria = $request->query('sub');
@@ -89,7 +93,10 @@ class CatalogoController extends Controller
         $orden        = array_key_exists($request->query('orden'), self::ORDENES) ? $request->query('orden') : 'destacados';
         $buscar       = $this->limpiarBusqueda((string) $request->query('buscar'));
 
-        $catObj = ($categoria && $categoria !== 'todos') ? Categoria::where('slug', $categoria)->first() : null;
+        // [Sem 12 - Eloquent ORM]: firstOrFail() responde 404 si la categoría no existe o está inactiva (antes mostraba todo el catálogo).
+        $catObj = ($categoria && $categoria !== 'todos')
+            ? Categoria::activas()->where('slug', $categoria)->firstOrFail()
+            : null;
 
         $base = Producto::activos()->whereHas('categoria', fn ($c) => $c->where('activo', true));
 
@@ -135,7 +142,8 @@ class CatalogoController extends Controller
             default       => $query->orderByDesc('destacado')->orderBy('nombre'),
         };
 
-        $productos = $query->get();
+        // [Sem 13 - CRUDs, Query Builder y Paginación]: 12 por página; withQueryString() conserva los filtros y fragment() el ancla #zona-catalogo.
+        $productos = $query->paginate(self::POR_PAGINA)->withQueryString()->fragment(ltrim(self::ANCLA, '#'));
 
         $bannerActual = self::BANNERS[strtolower($categoria ?? 'todos')] ?? self::BANNERS['hombre'];
 
@@ -148,7 +156,7 @@ class CatalogoController extends Controller
         $filtrosCategoria = Categoria::where('activo', true)->orderBy('id')->get()->map(fn ($c) => [
             'etiqueta' => $c->nombre,
             'activo'   => $catObj?->id === $c->id && $buscar === '',
-            'url'      => route('catalogo', array_merge(['categoria' => $c->slug], $request->except(['buscar', 'marca', 'sub', 'talla']))) . self::ANCLA,
+            'url'      => route('catalogo', array_merge(['categoria' => $c->slug], $request->except(['buscar', 'marca', 'sub', 'talla', 'page']))) . self::ANCLA,
         ])->prepend([
             'etiqueta' => 'Todos',
             'activo'   => ! $catObj && $buscar === '',
@@ -160,16 +168,23 @@ class CatalogoController extends Controller
         $filtrosTalla = $this->filtros($request, $categoria, 'talla', $tallasDisponibles);
 
         $ordenes          = self::ORDENES;
-        $parametrosOrden  = $request->except('orden');
+        // Al cambiar el orden o un filtro se vuelve a la página 1 (sin ?page).
+        $parametrosOrden  = $request->except(['orden', 'page']);
 
         $hayFiltros       = (bool) ($marca || $subcategoria || $talla || $buscar !== '');
         $urlLimpiar       = route('catalogo', ['categoria' => $categoria] + $request->only('orden')) . self::ANCLA;
 
-        return view('cliente.catalogo', compact(
+        $vista = view('cliente.catalogo', compact(
             'productos', 'categoria', 'subcategoria', 'marca', 'talla', 'buscar', 'orden', 'titulo',
             'bannerActual', 'filtrosCategoria', 'filtrosMarca', 'filtrosSub', 'filtrosTalla',
             'ordenes', 'parametrosOrden', 'hayFiltros', 'urlLimpiar', 'mostrarCategoria'
         ));
+
+        // [Sem 09 - Controladores y Middleware]: $request->ajax() detecta la cabecera X-Requested-With que envía catalogo-filtros.js;
+        // fragment() renderiza solo el bloque @fragment('zona-catalogo') para reemplazarlo sin recargar header ni banner.
+        // Vary avisa al navegador que la misma URL tiene dos respuestas (página completa o fragmento) y no debe mezclarlas en caché.
+        return response($request->ajax() ? $vista->fragment('zona-catalogo') : $vista)
+            ->header('Vary', 'X-Requested-With');
     }
 
     // Devuelve JSON con las tallas que tienen stock (lo consume favoritos.js).
@@ -227,14 +242,18 @@ class CatalogoController extends Controller
             ['us' => 12, 'eu' => 45, 'cm' => 30],
         ];
 
-        return view('cliente.producto', compact('producto', 'recomendados', 'guiaTallas'));
+        // Marketing de escasez (1 a 3 pares) y regla de envío: salen de los modelos para no repetir números en la vista.
+        $ultimasUnidades = ProductoTalla::ULTIMAS_UNIDADES;
+        $reglaEnvio = Pedido::textoReglaEnvio();
+
+        return view('cliente.producto', compact('producto', 'recomendados', 'guiaTallas', 'ultimasUnidades', 'reglaEnvio'));
     }
 
     private function filtros(Request $request, ?string $categoria, string $parametro, array $valores, ?callable $etiqueta = null): array
     {
         return array_map(function ($valor) use ($request, $categoria, $parametro, $etiqueta) {
             $activo = (string) $request->query($parametro) === (string) $valor;
-            $params = $request->query();
+            $params = $request->except('page');
 
             if ($activo) {
                 unset($params[$parametro]);

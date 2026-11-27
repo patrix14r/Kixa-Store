@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -35,10 +36,27 @@ class User extends Authenticatable
         return $this->hasMany(Pedido::class, 'user_id');
     }
 
+    // [Sem 12 - Eloquent ORM]: primera compra = no tiene pedidos previos que no estén cancelados (activa el envío gratis).
+    public function esPrimeraCompra(): bool
+    {
+        return $this->pedidos()->where('estado', '!=', 'Cancelado')->doesntExist();
+    }
+
     // [Sem 08 - Rutas y Vistas Blade]: El panel de clientes usa el correo (único) en la URL (/admin/clientes/ana@correo.com) en vez del ID autoincremental.
     public function getRouteKeyName(): string
     {
         return 'email';
+    }
+
+    // [Sem 12 - Eloquent ORM]: Accessor $usuario->nombre_corto para la barra superior: primer nombre + primer apellido.
+    // Con 4 o más palabras ("Ana María López García") el apellido es la 3.ª; con menos, la 2.ª ("Juan Pérez").
+    protected function nombreCorto(): Attribute
+    {
+        return Attribute::get(function () {
+            $partes = preg_split('/\s+/', trim((string) $this->name), -1, PREG_SPLIT_NO_EMPTY);
+
+            return trim(($partes[0] ?? '') . ' ' . ($partes[count($partes) >= 4 ? 2 : 1] ?? ''));
+        });
     }
 
     public function urlAvatar(): ?string

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'codigo_orden',
     'subtotal',
     'igv',
+    'costo_envio',
     'total',
     'estado',
     'direccion_envio',
@@ -29,6 +30,7 @@ class Pedido extends Model
         'codigo_orden',
         'subtotal',
         'igv',
+        'costo_envio',
         'total',
         'estado',
         'direccion_envio',
@@ -36,14 +38,32 @@ class Pedido extends Model
         'tarjeta_ultimos4',
     ];
 
-    // casts() mantiene subtotal, igv y total con 2 decimales.
+    // Regla única de envío: gratis en la primera compra o desde S/ 200 en productos; si no, S/ 15.00.
+    public const COSTO_ENVIO = 15.00;
+    public const ENVIO_GRATIS_DESDE = 200.00;
+
+    // casts() mantiene subtotal, igv, envío y total con 2 decimales.
     protected function casts(): array
     {
         return [
-            'subtotal' => 'decimal:2',
-            'igv'      => 'decimal:2',
-            'total'    => 'decimal:2',
+            'subtotal'    => 'decimal:2',
+            'igv'         => 'decimal:2',
+            'costo_envio' => 'decimal:2',
+            'total'       => 'decimal:2',
         ];
+    }
+
+    // [Sem 12 - Eloquent ORM]: la misma regla la usan CarritoController@procesar, /carrito, /checkout (carrito.js) y el FAQ de Nosotros.
+    public static function calcularEnvio(float $montoProductos, bool $primeraCompra): float
+    {
+        return ($primeraCompra || $montoProductos >= self::ENVIO_GRATIS_DESDE) ? 0.0 : self::COSTO_ENVIO;
+    }
+
+    // Texto de la regla para el FAQ y la ficha de producto (sale de las constantes, así nunca se desincroniza).
+    public static function textoReglaEnvio(): string
+    {
+        return 'El envío es gratis en tu primera compra o cuando tus productos suman S/ ' . number_format(self::ENVIO_GRATIS_DESDE, 2)
+            . ' o más; en los demás casos cuesta S/ ' . number_format(self::COSTO_ENVIO, 2) . '.';
     }
 
     // [Sem 08 - Rutas y Vistas Blade]: La URL del admin usa el código de orden (/admin/pedidos/PED-AB12CD/estado) en vez del ID autoincremental.

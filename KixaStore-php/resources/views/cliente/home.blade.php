@@ -57,28 +57,32 @@
     </section>
 
 
-    {{-- Carrusel horizontal estilo Nike con productos destacado = true (HomeController) --}}
-    <section class="bg-[linear-gradient(180deg,#f5f5f7_0%,#ffffff_55%,#f5f5f7_100%)] pt-16 pb-[72px] pl-[5%] max-escritorio:pt-11 max-escritorio:pb-[52px] max-escritorio:pl-4" id="lo-destacado">
-        <div class="mb-6 flex items-center justify-between pr-[5%] max-escritorio:pr-4">
-            <h2 class="text-[24px] font-semibold tracking-[-0.02em] text-tinta">Lo Destacado</h2>
+    {{-- Carrusel "Lo Destacado" con productos destacado = true (HomeController): 4 tarjetas en escritorio, 3 en tablet y 1 en teléfono.
+         public/js/carrusel-destacados.js maneja flechas, indicadores y el avance automático cada 4 s (se pausa con el mouse encima). --}}
+    <section class="bg-[linear-gradient(180deg,#f5f5f7_0%,#ffffff_55%,#f5f5f7_100%)] px-[5%] pt-16 pb-[72px] max-escritorio:px-4 max-escritorio:pt-11 max-escritorio:pb-[52px]" id="lo-destacado" aria-roledescription="carrusel" aria-labelledby="titulo-destacado">
+        <div class="mb-6 flex items-center justify-between">
+            <h2 id="titulo-destacado" class="text-[24px] font-semibold tracking-[-0.02em] text-tinta">Lo Destacado</h2>
             <div class="flex gap-2.5 [&>button]:inline-flex [&>button]:size-11 [&>button]:cursor-pointer [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border-none [&>button]:bg-[#e5e5e5] [&>button]:text-tinta [&>button]:transition-[background-color,opacity] [&>button]:duration-200 [&>button:not(:disabled):hover]:bg-[#cacacb] [&>button:disabled]:cursor-default [&>button:disabled]:opacity-40">
-                <button type="button" id="destacado-prev" aria-label="Ver anteriores">
+                <button type="button" id="destacado-prev" aria-label="Ver destacados anteriores" aria-controls="destacado-pista">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
                 </button>
-                <button type="button" id="destacado-next" aria-label="Ver siguientes">
+                <button type="button" id="destacado-next" aria-label="Ver siguientes destacados" aria-controls="destacado-pista">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
                 </button>
             </div>
         </div>
 
-        {{-- Pista con scroll horizontal: 4 tarjetas por "página" en escritorio, 3 en tablet y 72% de ancho en teléfono --}}
-        <div id="destacado-pista" class="grid snap-x snap-mandatory auto-cols-[calc((100%_-_5vw_-_48px)_/_4)] grid-flow-col gap-4 overflow-x-auto pr-[5%] [scrollbar-width:none] *:min-w-0 *:snap-start [&::-webkit-scrollbar]:hidden max-[1100px]:auto-cols-[calc((100%_-_5vw_-_32px)_/_3)] max-escritorio:auto-cols-[72%] max-escritorio:pr-4">
+        {{-- Pista con scroll-snap: "relative" la vuelve el punto de referencia de offsetLeft; py-2/-my-2 deja espacio para que la tarjeta suba al pasar el mouse sin recortarse --}}
+        <div id="destacado-pista" class="relative -my-2 grid snap-x snap-mandatory auto-cols-[calc((100%_-_48px)_/_4)] grid-flow-col gap-4 overflow-x-auto py-2 [scrollbar-width:none] *:min-w-0 *:snap-start [&::-webkit-scrollbar]:hidden max-[1100px]:auto-cols-[calc((100%_-_32px)_/_3)] max-escritorio:auto-cols-[72%]">
             @forelse ($destacados as $producto)
                 <x-tarjeta-producto :producto="$producto" />
             @empty
                 <p class="col-span-full px-5 py-16 text-center text-suave">Pronto tendremos nuevos destacados.</p>
             @endforelse
         </div>
+
+        {{-- Indicadores: el JS crea un punto por grupo de tarjetas; el activo lleva aria-current="true" y se alarga --}}
+        <div id="destacado-puntos" class="mt-8 flex items-center justify-center gap-2" aria-label="Indicadores del carrusel"></div>
     </section>
 
     <!-- =====================================================
@@ -108,25 +112,7 @@
 @endsection
 
 @push('scripts')
-    {{-- Flechas que desplazan la pista una "página" de tarjetas --}}
-    <script>
-        (() => {
-            const pista = document.getElementById('destacado-pista');
-            const prev = document.getElementById('destacado-prev');
-            const next = document.getElementById('destacado-next');
-            if (!pista || !prev || !next) return;
-
-            const actualizar = () => {
-                prev.disabled = pista.scrollLeft <= 4;
-                next.disabled = pista.scrollLeft + pista.clientWidth >= pista.scrollWidth - 4;
-            };
-            const mover = (dir) => pista.scrollBy({ left: dir * pista.clientWidth * 0.9, behavior: 'smooth' });
-
-            prev.addEventListener('click', () => mover(-1));
-            next.addEventListener('click', () => mover(1));
-            pista.addEventListener('scroll', actualizar, { passive: true });
-            window.addEventListener('resize', actualizar);
-            actualizar();
-        })();
-    </script>
+    {{-- [MOVIDO DESDE LAYOUTS]: movimiento.js controla el carrusel 3D que solo existe en el Home --}}
+    <script src="{{ asset('js/movimiento.js') }}"></script>
+    <script src="{{ asset('js/carrusel-destacados.js') }}"></script>
 @endpush

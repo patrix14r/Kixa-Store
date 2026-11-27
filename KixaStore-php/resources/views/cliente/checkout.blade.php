@@ -72,12 +72,14 @@
                 </div>
             </section>
 
-            <aside class="sticky top-[calc(var(--spacing-navbar)_+_24px)] max-[960px]:static">
+            {{-- Misma regla de envío que el carrito y CarritoController@procesar (data-regla-envio la lee carrito.js) --}}
+            <aside class="sticky top-[calc(var(--spacing-navbar)_+_24px)] max-[960px]:static" data-regla-envio='@json($reglaEnvio)'>
                 <h2 class="mb-4 text-[24px] font-semibold tracking-[-0.02em]">Resumen</h2>
                 <div class="flex justify-between py-2 text-[15px]"><span>Precio con IGV</span><span id="subtotal">S/ 0.00</span></div>
-                <div class="flex justify-between py-2 text-[15px]"><span>Envío</span><span>Gratis</span></div>
+                <div class="flex justify-between py-2 text-[15px]"><span>Envío</span><span id="envio">Gratis</span></div>
                 <div class="flex justify-between py-2 text-[15px]"><span>IGV (18%)</span><span id="igv">S/ 0.00</span></div>
                 <div class="mt-3 flex justify-between border-y border-[#e5e5e5] py-4 text-[15px] font-semibold"><span>Total de la orden</span><strong id="total">S/ 0.00</strong></div>
+                <p id="envio-texto" class="mt-3 text-[13px] text-suave"></p>
                 <a href="{{ route('carrito') }}" class="mt-[18px] block text-center text-[14px] text-tinta underline underline-offset-4">Volver al carrito</a>
                 <x-metodos-pago class="mt-6 border-t border-[#e5e5e5] pt-4" />
             </aside>
@@ -90,6 +92,20 @@
         <span class="size-12 animate-spin rounded-full border-4 border-[#e5e5e5] border-t-tinta"></span>
         <p class="mt-2 text-[17px] font-semibold text-tinta">Procesando pago...</p>
         <p id="procesandoDetalle" class="text-[14px] text-suave">Validando tu tarjeta de forma segura</p>
+    </div>
+
+    {{-- Diálogo "¿Deseas salir del pago?": carrito.js (activarConfirmacionSalida) lo abre al pulsar un enlace antes de pagar; la clase "abierto" anima fondo y panel --}}
+    <div id="confirmarSalida" class="group fixed inset-0 z-2500 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="confirmarSalidaTitulo" hidden>
+        <div class="absolute inset-0 bg-[rgba(10,10,14,0.35)] opacity-0 backdrop-blur-[10px] transition-opacity duration-200 group-[.abierto]:opacity-100" data-seguir-pagando></div>
+        <div class="relative w-[min(420px,100%)] translate-y-2 rounded-2xl bg-white p-7 text-center text-tinta opacity-0 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.45)] transition-[opacity,translate] duration-200 group-[.abierto]:translate-y-0 group-[.abierto]:opacity-100">
+            <span class="mx-auto mb-4 inline-flex size-12 items-center justify-center rounded-full bg-perla text-[18px]"><i class="fa-solid fa-bag-shopping"></i></span>
+            <h2 id="confirmarSalidaTitulo" class="text-[18px] font-semibold">¿Deseas salir del pago?</h2>
+            <p class="mt-2 text-[14px] leading-[1.6] text-suave">Tus productos seguirán guardados en el carrito.</p>
+            <div class="mt-6 flex flex-col gap-2.5">
+                <button type="button" data-seguir-pagando class="flex w-full cursor-pointer items-center justify-center rounded-full border-none bg-tinta p-[15px] text-[15px] font-medium text-white transition-colors duration-200 hover:bg-[#333]">Seguir con el pago</button>
+                <button type="button" data-salir class="flex w-full cursor-pointer items-center justify-center rounded-full border border-[#cacacb] bg-white p-[15px] text-[15px] font-medium text-tinta transition-colors duration-200 hover:border-tinta hover:bg-perla">Salir del pago</button>
+            </div>
+        </div>
     </div>
 
     {{-- Confirmación de respaldo: carrito.js cambia style.display a "flex" para mostrarla --}}

@@ -18,7 +18,8 @@
                 <div id="carrito"></div>
             </section>
 
-            <aside class="sticky top-[calc(var(--spacing-navbar)_+_24px)] max-[960px]:static" aria-labelledby="titulo-resumen">
+            {{-- data-regla-envio: costo, mínimo y primera compra (CarritoController::reglaEnvio); carrito.js aplica la misma regla de Pedido::calcularEnvio --}}
+            <aside class="sticky top-[calc(var(--spacing-navbar)_+_24px)] max-[960px]:static" aria-labelledby="titulo-resumen" data-regla-envio='@json($reglaEnvio)'>
                 <h2 id="titulo-resumen" class="mb-4 text-[24px] font-semibold tracking-[-0.02em]">Resumen</h2>
 
                 <div class="flex justify-between py-2 text-[15px]">
@@ -27,7 +28,7 @@
                 </div>
                 <div class="flex justify-between py-2 text-[15px]">
                     <span>Envío</span>
-                    <span>Gratis</span>
+                    <span id="envio">Gratis</span>
                 </div>
                 <div class="flex justify-between py-2 text-[15px]">
                     <span>IGV (18%)</span>
@@ -39,9 +40,11 @@
                     <strong id="total">S/ 0.00</strong>
                 </div>
 
+                {{-- Barra de envío gratis: carrito.js escribe cuánto falta para llegar al mínimo (o la llena en la primera compra) --}}
                 <div class="mt-5 mb-7 text-[13px]" id="envio-gratis">
                     <p id="envio-texto">¡Te ganaste el envío gratis!</p>
                     <div class="mt-2 h-2 overflow-hidden rounded-full bg-[#e5e5e5]"><span id="envio-progreso" class="block h-full w-0 rounded-[inherit] bg-exito transition-[width] duration-600"></span></div>
+                    <p class="mt-2 text-[12px] text-suave">Envío gratis en tu primera compra o desde S/ {{ number_format($reglaEnvio['gratis_desde'], 2) }}; si no, S/ {{ number_format($reglaEnvio['costo'], 2) }}.</p>
                 </div>
 
                 @guest

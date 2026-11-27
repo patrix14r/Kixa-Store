@@ -248,7 +248,8 @@ class AdminCrudTest extends TestCase
         $respuesta->assertOk()
             ->assertSee('data-producto-abastecimiento', false)
             ->assertDontSee('<option value="' . $otraTalla->id . '"', false);
-        $this->assertCount($producto->tallas->count(), $respuesta->viewData('tallasIniciales'));
+        // La primera fila del lote llega con el producto elegido y solo sus tallas.
+        $this->assertCount($producto->tallas->count(), $respuesta->viewData('filas')[0]['tallas']);
 
         // Sin producto elegido, el select de tallas sale deshabilitado y vacío.
         $this->actingAs($this->admin)->get(route('admin.abastecimiento.create'))
@@ -493,13 +494,12 @@ class AdminCrudTest extends TestCase
 
     // ---------- Proceso secundario: Abastecimiento ----------
 
-    private function datosOrden(ProductoTalla $talla, array $extra = []): array
+    // Lote de una sola fila; $fila cambia cantidad o costo y $extra los datos del encabezado (proveedor).
+    private function datosOrden(ProductoTalla $talla, array $fila = [], array $extra = []): array
     {
         return array_merge([
             'proveedor_id' => Proveedor::activos()->first()->id,
-            'producto_talla_id' => $talla->id,
-            'cantidad_solicitada' => 10,
-            'costo_unitario' => 55.50,
+            'items' => [array_merge(['producto_talla_id' => $talla->id, 'cantidad' => 10, 'costo_unitario' => 55.50], $fila)],
         ], $extra);
     }
 
@@ -510,7 +510,7 @@ class AdminCrudTest extends TestCase
         $this->actingAs($this->admin)->get(route('admin.abastecimiento.create'))->assertOk()->assertSee('LOT-0001');
         $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla))
             ->assertRedirect(route('admin.abastecimiento.index'));
-        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla, ['cantidad_solicitada' => 2, 'costo_unitario' => 10]));
+        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla, ['cantidad' => 2, 'costo_unitario' => 10]));
 
         $this->assertDatabaseHas('ordenes_abastecimiento', [
             'codigo_lote' => 'LOT-0001', 'estado' => 'Pendiente', 'costo_total' => 555.00, 'user_id' => $this->admin->id,
@@ -527,10 +527,10 @@ class AdminCrudTest extends TestCase
         $inactivo = Proveedor::first();
         $inactivo->update(['activo' => false]);
 
-        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla, ['proveedor_id' => $inactivo->id]))
-            ->assertStatus(422);
-        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla, ['cantidad_solicitada' => 0]))
-            ->assertSessionHasErrors('cantidad_solicitada');
+        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla, [], ['proveedor_id' => $inactivo->id]))
+            ->assertSessionHasErrors('proveedor_id');
+        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla, ['cantidad' => 0]))
+            ->assertSessionHasErrors('items.0.cantidad');
         $this->assertDatabaseCount('ordenes_abastecimiento', 0);
     }
 
@@ -539,7 +539,7 @@ class AdminCrudTest extends TestCase
         $talla = ProductoTalla::first();
         $stockInicial = $talla->stock;
 
-        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla, ['cantidad_solicitada' => 15]));
+        $this->actingAs($this->admin)->post(route('admin.abastecimiento.store'), $this->datosOrden($talla, ['cantidad' => 15]));
         $orden = OrdenAbastecimiento::where('codigo_lote', 'LOT-0001')->first();
 
         $this->actingAs($this->admin)->patch(route('admin.abastecimiento.recibir', $orden))->assertRedirect();
