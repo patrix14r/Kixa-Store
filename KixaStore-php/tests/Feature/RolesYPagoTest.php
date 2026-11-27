@@ -50,13 +50,35 @@ class RolesYPagoTest extends TestCase
     {
         User::factory()->count(2)->create(); // la factory asigna el rol cliente
 
-        $this->assertSame(3, User::role('cliente')->count());
-        $this->assertSame(1, User::role('admin')->count());
+        // 3 clientes del seeder (cliente, junior, victor) + 2 de la factory; los 2 admins no cuentan como clientes.
+        $this->assertSame(5, User::role('cliente')->count());
+        $this->assertSame(2, User::role('admin')->count());
 
         $this->actingAs($this->admin)->get(route('admin.home'))
             ->assertOk()
-            ->assertViewHas('totalClientes', 3)
+            ->assertViewHas('totalClientes', 5)
             ->assertSee('admin'); // nombre del rol en el sidebar (getRoleNames)
+    }
+
+    public function test_seeder_crea_dos_admins_y_clientes_de_demostracion_que_pueden_ingresar(): void
+    {
+        $this->assertEqualsCanonicalizing(
+            ['admin@kixa.com', 'chambergo@kixa.com'],
+            User::role('admin')->pluck('email')->all()
+        );
+        $this->assertEqualsCanonicalizing(
+            ['cliente@kixa.com', 'junior@kixa.com', 'victor@kixa.com'],
+            User::role('cliente')->pluck('email')->all()
+        );
+
+        // El segundo admin entra al panel con su clave del seeder (aunque escriba el correo con mayúscula: Fortify lo pasa a minúsculas).
+        $this->post('/login', ['email' => 'Chambergo@kixa.com', 'password' => 'admin123']);
+        $this->assertAuthenticatedAs(User::where('email', 'chambergo@kixa.com')->first());
+        $this->get(route('admin.home'))->assertOk();
+
+        // El seeder es idempotente: volver a correrlo no duplica usuarios.
+        $this->seed(\Database\Seeders\UserSeeder::class);
+        $this->assertSame(5, User::count());
     }
 
     public function test_registro_con_fortify_asigna_rol_cliente(): void

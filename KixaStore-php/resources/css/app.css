@@ -120,6 +120,21 @@
 }
 
 /* ==========================================================================
+   LOGIN Y REGISTRO: autocompletado del navegador en la tarjeta cristal.
+   Chrome/Safari pintan los campos autocompletados de blanco/amarillo; el box-shadow interno los vuelve a oscurecer,
+   el texto queda blanco y la transición larga evita que el fondo claro "parpadee". Se aplica con class="kx-auth-input".
+   ========================================================================== */
+.kx-auth-input:-webkit-autofill,
+.kx-auth-input:-webkit-autofill:hover,
+.kx-auth-input:-webkit-autofill:focus,
+.kx-auth-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #18181b inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    caret-color: #ffffff;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ==========================================================================
    MODO CLIENTE: estados que cambia JavaScript.
    El resto del cliente usa utilidades de Tailwind directamente en las vistas Blade.
    ========================================================================== */

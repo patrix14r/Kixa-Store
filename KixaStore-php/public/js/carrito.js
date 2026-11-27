@@ -872,6 +872,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderFavoritos("favoritos-contenido");
     sincronizarStock();
     activarConfirmacionSalida();
+    // Checkout: abre el simulador de Tarjeta por defecto (antes era un <script> suelto en checkout.blade.php)
+    mostrarTarjeta();
 });
 
 

@@ -5,6 +5,7 @@
 //   1. Contadores del header (#cart-count y #fav-count) -> actualizarBadgesHeader()
 //   2. Efecto vidrio al hacer scroll en el navbar del home (#navbar-principal)
 //   3. Botones de corazón en tarjetas (.btn-fav-card) -> kxPintarFavoritos()
+//   4. Campos con data-solo-digitos (DNI y teléfono en registro, perfil y checkout): borran todo lo que no sea número
 // ==========================================================================
 
 // Actualiza los globos rojos de favoritos y carrito en el header (también lo llaman carrito.js, favoritos.js y producto-dinamico.js)
@@ -98,3 +99,8 @@ document.addEventListener('click', (e) => {
 
 // Mantiene sincronizados los contadores si el cliente abre varias pestañas
 window.addEventListener('storage', actualizarBadgesHeader);
+
+// Campos con data-solo-digitos: un solo listener delegado reemplaza los oninput repetidos en registro, perfil y checkout
+document.addEventListener('input', (e) => {
+  if (e.target.matches?.('[data-solo-digitos]')) e.target.value = e.target.value.replace(/\D/g, '');
+});

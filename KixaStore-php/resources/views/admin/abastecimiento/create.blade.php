@@ -36,8 +36,17 @@
             <h2 class="text-lg font-bold">Tallas del lote</h2>
             <p class="text-xs kx-muted">Ganancia estimada = (precio de venta actual − costo unitario) × cantidad.</p>
         </div>
-        {{-- app.js copia el producto de la última fila y preselecciona la siguiente talla libre (sin repetir tallas del lote) --}}
-        <button type="button" class="kx-btn-ghost" data-agregar-fila><i class="fa-solid fa-plus"></i>Agregar otra talla</button>
+        <div class="flex flex-wrap items-center gap-3">
+            {{-- Filtro rápido: app.js oculta en vivo las opciones de producto que no coinciden (nunca la ya elegida en cada fila) --}}
+            <label class="relative">
+                <span class="sr-only">Filtrar productos</span>
+                <i class="fa-solid fa-magnifying-glass pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-xs text-zinc-500"></i>
+                <input type="search" class="kx-input w-72 pl-9 max-sm:w-full" placeholder="Filtrar por marca, modelo o SKU..." autocomplete="off" data-filtro-productos>
+            </label>
+            {{-- "+ Agregar fila": se pueden mezclar distintos modelos y tallas en el mismo lote; app.js copia el producto de la última fila
+                 y preselecciona su siguiente talla libre (sin repetir tallas del lote) --}}
+            <button type="button" class="kx-btn-ghost" data-agregar-fila><i class="fa-solid fa-plus"></i>Agregar fila</button>
+        </div>
     </div>
     @error('items') <p class="kx-error mt-2">{{ $message }}</p> @enderror
 

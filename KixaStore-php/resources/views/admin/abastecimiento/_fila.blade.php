@@ -1,5 +1,5 @@
 {{-- Fila del lote (se repite por talla): Producto (value = SKU) -> Talla (value = id interno de producto_tallas, nunca visible) + cantidad y costo.
-     En la <template> el índice llega como __I__ y app.js lo reemplaza al pulsar "+ Agregar otra talla". --}}
+     En la <template> el índice llega como __I__ y app.js lo reemplaza al pulsar "+ Agregar fila". --}}
 <tr class="kx-row align-top" data-fila-lote>
     <td class="kx-td min-w-[280px]">
         <select name="items[{{ $indice }}][producto]" class="kx-input" required data-producto-abastecimiento aria-label="Producto">

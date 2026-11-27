@@ -61,7 +61,9 @@
         'sticky top-0 z-100 grid h-navbar shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-8 border-b border-white/5 px-[5%] text-white transition-[background,box-shadow] duration-350',
         'max-[1000px]:gap-5 max-[1000px]:px-[3%] max-escritorio:flex max-escritorio:h-[60px] max-escritorio:flex-nowrap max-escritorio:justify-start max-escritorio:gap-2 max-escritorio:px-3',
         'navbar--glass bg-[rgba(10,10,14,0.55)] backdrop-blur-[20px] escritorio:-mb-navbar max-escritorio:bg-carbon [&.navbar--scroll]:bg-[rgba(12,12,15,0.96)] [&.navbar--scroll]:backdrop-blur-none' => request()->routeIs('home'),
-        'bg-[rgba(12,12,15,0.96)]' => ! request()->routeIs('home'),
+        // [Sem 08 - Rutas y Vistas Blade]: en login y registro el header es cristal y se monta sobre black.jpg (-mb-navbar; -mb-[60px] en móvil)
+        'bg-black/30 backdrop-blur-md border-b border-white/10 escritorio:-mb-navbar max-escritorio:-mb-[60px]' => request()->routeIs('login', 'register'),
+        'bg-[rgba(12,12,15,0.96)]' => ! request()->routeIs('home', 'login', 'register'),
     ])>
       <button type="button" id="btn-menu-movil" class="hidden size-10 cursor-pointer items-center justify-center rounded-xl border border-white/14 bg-white/6 text-white max-escritorio:inline-flex" aria-label="Abrir menú" aria-controls="menu-movil" aria-expanded="false">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
@@ -223,8 +225,9 @@
       <div class="border-t border-white/10 mt-10 pt-5 flex flex-col gap-4 text-[12px] text-[#71717a]">
         <x-metodos-pago oscuro class="w-full justify-start gap-y-2 max-[520px]:justify-center [&>span:first-child]:w-auto" />
         <div class="w-full space-y-1 text-center">
-          <p>© 2026 — KixaStore. Todos los derechos reservados.</p>
           <p>Proyecto académico — Desarrollo de Aplicaciones en Internet (Tecsup)</p>
+          <p>© 2026 — KixaStore.</p>
+          
         </div>
       </div>
       </div>

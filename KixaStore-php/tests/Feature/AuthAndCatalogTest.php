@@ -473,4 +473,44 @@ class AuthAndCatalogTest extends TestCase
 
         $this->actingAs($admin)->get(route('admin.clientes.show', $cliente))->assertOk()->assertSee('KX-TEST-01');
     }
+
+    // ---------- Login y Registro "liquid glass" ----------
+
+    public function test_login_y_registro_usan_la_tarjeta_cristal_sin_rojo_y_conservan_sus_campos(): void
+    {
+        $this->get(route('login', ['redirect' => 'checkout']))->assertOk()
+            ->assertSee('images/ui/backgrounds/black.jpg', false)
+            ->assertSee('bg-zinc-950/45 backdrop-blur-md border border-white/20', false)
+            ->assertSee('[&_.auth-campo_input]:rounded-lg')
+            ->assertSee('max-w-[420px]', false)
+            ->assertSee('Bienvenido a Kixa')
+            ->assertSee('Inicia sesión para continuar')
+            ->assertSee('name="remember"', false)
+            ->assertSee('Recuérdame')
+            ->assertDontSee('¿Olvidaste tu contraseña?')
+            ->assertSee('kx-auth-input', false)
+            ->assertSee('bg-black/30 backdrop-blur-md border-b border-white/10', false)
+            ->assertSee('id="loginEmail" name="email"', false)
+            ->assertSee('name="redirect" value="checkout"', false)
+            ->assertDontSee('text-kixa', false)
+            ->assertDontSee('portada-auth.jpg', false);
+
+        $this->get(route('register'))->assertOk()
+            ->assertSee('max-w-[480px]', false)
+            ->assertSeeInOrder(['Nombre completo', 'Correo electrónico', 'Teléfono', 'DNI', 'Contraseña', 'Confirmar contraseña', 'Crear cuenta', 'Inicia sesión'])
+            ->assertSee('id="registerPhone" name="phone"', false)
+            ->assertSee('data-solo-digitos', false)
+            ->assertSee('kx-auth-input', false)
+            ->assertSee('bg-black/30 backdrop-blur-md border-b border-white/10', false)
+            ->assertDontSee('oninput=', false)
+            ->assertDontSee('text-kixa', false);
+    }
+
+    public function test_recuerdame_mantiene_la_sesion_con_cookie_remember(): void
+    {
+        $respuesta = $this->post('/login', ['email' => 'cliente@kixa.com', 'password' => 'cliente123', 'remember' => '1']);
+
+        $this->assertAuthenticated();
+        $this->assertTrue(collect($respuesta->headers->getCookies())->contains(fn ($c) => str_starts_with($c->getName(), 'remember_web_')));
+    }
 }

@@ -48,17 +48,22 @@ contenedorTallas?.addEventListener('click', (e) => {
     if (boton) boton.closest('[data-fila-talla]').remove();
 });
 
-// [FASE 3.5]: Selector de imagen 100% en español: muestra el nombre del archivo y la vista previa
+// Selector de imagen 100% en español (productos, marcas y perfil del admin): muestra el nombre del archivo y la vista previa.
+// Con data-auto-enviar (foto del perfil admin) además oculta la inicial y guarda la foto al instante.
 document.getElementById('imagen-input')?.addEventListener('change', (e) => {
     const archivo = e.target.files[0];
     const nombre = document.getElementById('imagen-nombre');
     const vista = document.getElementById('vista-imagen');
-    if (nombre) nombre.textContent = archivo ? archivo.name : 'Ningún archivo seleccionado';
+    const autoEnviar = e.target.hasAttribute('data-auto-enviar');
+    if (nombre) nombre.textContent = archivo ? (autoEnviar ? `Subiendo: ${archivo.name}...` : archivo.name) : 'Ningún archivo seleccionado';
     if (archivo && vista) {
         vista.src = URL.createObjectURL(archivo);
         vista.hidden = false; // en "crear marca" la <img> arranca oculta con el atributo hidden
+        vista.classList.remove('hidden'); // en el perfil admin arranca oculta con la clase hidden
         document.getElementById('vista-imagen-caja')?.classList.remove('hidden');
+        document.getElementById('avatar-inicial')?.classList.add('hidden');
     }
+    if (archivo && autoEnviar) e.target.form?.requestSubmit();
 });
 
 // El aviso flotante se oculta a los 4 segundos o con la X
@@ -71,9 +76,11 @@ document.querySelectorAll('[data-toast]').forEach((toast) => {
     setTimeout(cerrar, 4000);
 });
 
+// Quita tildes y mayúsculas ("Niño" -> "nino"); la usan el slug automático y el filtro rápido de Abastecimiento
+const normalizar = (texto) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
 // El slug de la categoría se arma en vivo desde el nombre
-const aSlug = (texto) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+const aSlug = (texto) => normalizar(texto).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 const campoSlug = document.querySelector('[data-slug-auto]');
 if (campoSlug) {
     const origen = document.getElementById(campoSlug.dataset.slugAuto);
@@ -188,6 +195,24 @@ if (formLote) {
         total.classList.toggle('text-amber-400', ganancia < 0);
     };
 
+    // Filtro rápido "Filtrar por marca, modelo o SKU...": oculta las opciones que no coinciden en todos los selects de producto.
+    // La opción ya elegida en cada fila y la opción vacía nunca se ocultan, así no se pierde lo seleccionado.
+    // normalizar() (arriba) quita tildes y mayúsculas para que "nino" encuentre "Niño".
+    const filtroProductos = document.querySelector('[data-filtro-productos]');
+    const aplicarFiltro = () => {
+        const termino = normalizar(filtroProductos?.value.trim() || '');
+        filasLote.querySelectorAll('[data-producto-abastecimiento]').forEach((select) => {
+            [...select.options].forEach((opcion) => {
+                const oculta = termino !== '' && opcion.value !== '' && !opcion.selected && !normalizar(opcion.text).includes(termino);
+                opcion.hidden = oculta;
+                opcion.disabled = oculta; // Safari no oculta <option hidden>: al menos queda deshabilitada
+            });
+        });
+    };
+    filtroProductos?.addEventListener('input', aplicarFiltro);
+    // Enter dentro del filtro no debe enviar el lote
+    filtroProductos?.addEventListener('keydown', (e) => e.key === 'Enter' && e.preventDefault());
+
     // Tallas (producto_talla_id) ya elegidas en las demás filas del lote
     const tallasUsadas = (excepto) => [...filasLote.querySelectorAll('[data-fila-lote]')]
         .filter((fila) => fila !== excepto)
@@ -207,7 +232,7 @@ if (formLote) {
         return hayDuplicados;
     };
 
-    // "+ Agregar otra talla": copia la <template> con un índice único (Date.now()) en lugar de __I__.
+    // "+ Agregar fila": copia la <template> con un índice único (Date.now()) en lugar de __I__.
     // Si la última fila ya tiene producto, la nueva fila lo repite y preselecciona la siguiente talla libre del lote.
     document.querySelector('[data-agregar-fila]')?.addEventListener('click', () => {
         const anterior = filasLote.lastElementChild;
@@ -228,12 +253,16 @@ if (formLote) {
         } else {
             nueva.querySelector('select')?.focus();
         }
+        aplicarFiltro();
         marcarDuplicados();
         recalcularLote();
     });
 
     filasLote.addEventListener('change', (e) => {
-        if (e.target.matches('[data-producto-abastecimiento]')) llenarTallas(e.target.closest('[data-fila-lote]'));
+        if (e.target.matches('[data-producto-abastecimiento]')) {
+            llenarTallas(e.target.closest('[data-fila-lote]'));
+            aplicarFiltro(); // la opción recién elegida queda fija y la anterior vuelve a filtrarse
+        }
         marcarDuplicados();
         recalcularLote();
     });

@@ -18,7 +18,7 @@
                 <span id="avatar-inicial" class="flex h-20 w-20 items-center justify-center rounded-full bg-indigo-600 text-2xl font-bold text-white {{ $usuario->urlAvatar() ? 'hidden' : '' }}">{{ strtoupper(substr($usuario->name, 0, 1)) }}</span>
             </div>
             <div>
-                <input type="file" id="imagen-input" name="avatar" accept="image/*" class="hidden">
+                <input type="file" id="imagen-input" name="avatar" accept="image/*" class="hidden" data-auto-enviar>
                 <label for="imagen-input" class="kx-btn-ghost cursor-pointer"><i class="fa-solid fa-camera"></i>Cambiar foto</label>
                 <p id="imagen-nombre" class="mt-1 text-xs kx-muted">JPG, PNG o WEBP · máx. 2 MB</p>
                 @error('avatar') <p class="kx-error">{{ $message }}</p> @enderror
@@ -66,31 +66,3 @@
     </form>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-    document.getElementById('imagen-input')?.addEventListener('change', function(e) {
-        const archivo = e.target.files[0];
-        if (!archivo) return;
-
-        const nombre = document.getElementById('imagen-nombre');
-        const vista = document.getElementById('vista-imagen');
-        const inicial = document.getElementById('avatar-inicial');
-        const form = document.getElementById('form-admin-perfil');
-
-        if (nombre) nombre.textContent = `Subiendo: ${archivo.name}...`;
-        if (vista) {
-            vista.src = URL.createObjectURL(archivo);
-            vista.classList.remove('hidden');
-        }
-        if (inicial) {
-            inicial.classList.add('hidden');
-        }
-
-        // Envía el formulario automáticamente para guardar la foto de perfil en la base de datos
-        if (form) {
-            form.requestSubmit();
-        }
-    });
-</script>
-@endpush

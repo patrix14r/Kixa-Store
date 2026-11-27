@@ -28,14 +28,12 @@
                         <label>
                             <span>DNI</span>
                             <input type="text" id="checkoutDni" name="dni" value="{{ $usuario->dni }}" placeholder="8 dígitos"
-                                   maxlength="8" pattern="[0-9]{8}" inputmode="numeric"
-                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                   maxlength="8" pattern="[0-9]{8}" inputmode="numeric" data-solo-digitos>
                         </label>
                         <label>
                             <span>Teléfono</span>
                             <input type="tel" id="checkoutTelefono" name="telefono" value="{{ $usuario->telefono }}" placeholder="9 dígitos"
-                                   maxlength="9" pattern="[0-9]{9}" inputmode="numeric" autocomplete="tel"
-                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                   maxlength="9" pattern="[0-9]{9}" inputmode="numeric" autocomplete="tel" data-solo-digitos>
                         </label>
                     </div>
                 </div>
@@ -120,7 +118,4 @@
 
 @push('scripts')
     <script src="{{ asset('js/carrito.js') }}"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => mostrarTarjeta());
-    </script>
 @endpush

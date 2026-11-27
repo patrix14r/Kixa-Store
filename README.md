@@ -31,5 +31,5 @@ php artisan serve
 
 ## Credenciales de prueba
 
-- **Administrador:** `admin@kixa.com` / `admin123`
-- **Cliente:** `cliente@kixa.com` / `cliente123`
+- **Administradores:** `admin@kixa.com` y `chambergo@kixa.com` / `admin123`
+- **Clientes:** `cliente@kixa.com`, `junior@kixa.com` y `victor@kixa.com` / `cliente123`

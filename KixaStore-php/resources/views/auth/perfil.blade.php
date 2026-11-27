@@ -96,8 +96,8 @@
                         <div class="grid grid-cols-2 gap-4 max-[860px]:grid-cols-1">
                             <label>Nombre completo<input type="text" name="name" value="{{ old('name', $usuario->name) }}" required></label>
                             <label>Correo electrónico<input type="email" name="email" value="{{ old('email', $usuario->email) }}" required></label>
-                            <label>DNI<input type="text" name="dni" value="{{ old('dni', $usuario->dni) }}" maxlength="8" inputmode="numeric" pattern="[0-9]{8}" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></label>
-                            <label>Teléfono<input type="tel" name="telefono" value="{{ old('telefono', $usuario->telefono) }}" maxlength="9" inputmode="numeric" pattern="[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></label>
+                            <label>DNI<input type="text" name="dni" value="{{ old('dni', $usuario->dni) }}" maxlength="8" inputmode="numeric" pattern="[0-9]{8}" data-solo-digitos></label>
+                            <label>Teléfono<input type="tel" name="telefono" value="{{ old('telefono', $usuario->telefono) }}" maxlength="9" inputmode="numeric" pattern="[0-9]{9}" data-solo-digitos></label>
                         </div>
                         <div class="mt-5 flex justify-end gap-2.5">
                             <button type="button" class="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border px-[22px] py-3 text-[13px] font-bold tracking-[0.04em] transition-colors duration-200 border-[#cacacb] bg-white text-tinta hover:border-tinta hover:bg-perla" data-alternar-edicion>Cancelar</button>
@@ -231,10 +231,4 @@
 @push('scripts')
     <script src="{{ asset('js/perfil-avatar.js') }}"></script>
     <script src="{{ asset('js/favoritos.js') }}"></script>
-    <script>
-        // Botones EDITAR / Cancelar alternan la tarjeta entre lectura y edición
-        document.querySelectorAll('[data-alternar-edicion]').forEach((btn) => {
-            btn.addEventListener('click', () => btn.closest('[data-editable]')?.classList.toggle('editando'));
-        });
-    </script>
 @endpush
