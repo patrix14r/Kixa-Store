@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-// [Sem 09 - Controladores y Middleware]: alias 'admin' (bootstrap/app.php): solo deja pasar a usuarios con rol admin (Spatie).
+// Solo deja pasar al rol admin
 class AdminMiddleware
 {
-    // $modo llega desde la ruta como 'admin:403': en vez de redirigir al home responde 403 (lo usan los PDF del panel).
+    // Con admin:403 responde 403 en vez de redirigir
     public function handle(Request $request, Closure $next, ?string $modo = null): Response
     {
         if (!Auth::check()) {

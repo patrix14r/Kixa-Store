@@ -13,17 +13,18 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
-// [Semana 9-10: Controladores, Request y Componentes] Carrito y compra: el carrito vive en el navegador y el servidor valida todo al procesar.
+// Carrito, checkout y registro de pedidos
 class CarritoController extends Controller
 {
-    // Métodos de pago del simulador: Tarjeta (se valida en el servidor) y Contraentrega (se paga al recibir).
+    // Métodos de pago del simulador
     public const METODOS_PAGO = ['Tarjeta', 'Contraentrega'];
 
     private const MENSAJE_ADMIN = 'La cuenta Administrador es solo de gestión y no puede realizar compras de cliente.';
 
-    // Tope de pares por talla en un mismo pedido (el carrito JS aplica el mismo límite).
+    // Máximo de pares por talla
     public const MAX_POR_TALLA = 10;
 
+    // Muestra la página del carrito
     public function index()
     {
         $reglaEnvio = $this->reglaEnvio();
@@ -31,8 +32,7 @@ class CarritoController extends Controller
         return view('cliente.carrito', compact('reglaEnvio'));
     }
 
-    // [Sem 09 - Controladores y Middleware]: POST /carrito/validar recibe el carrito del localStorage y responde con el precio,
-    // las tallas y el stock reales de MySQL; carrito.js lo usa para bloquear tallas agotadas y limitar la cantidad.
+    // Devuelve stock y precio reales del carrito
     public function validar(Request $request)
     {
         $datos = $request->validate([
@@ -42,7 +42,7 @@ class CarritoController extends Controller
 
         $skus = collect($datos['items'])->pluck('id')->map(fn ($sku) => (string) $sku)->unique()->values();
 
-        // [Sem 12 - Eloquent ORM]: una sola consulta con whereIn + with('tallas') para todos los productos del carrito (evita N+1).
+        // Una sola consulta para todo el carrito
         $productos = Producto::activos()
             ->whereIn('sku', $skus)
             ->with(['tallas' => fn ($q) => $q->orderBy('talla')])
@@ -52,7 +52,7 @@ class CarritoController extends Controller
         return response()->json([
             'max_por_talla'    => self::MAX_POR_TALLA,
             'ultimas_unidades' => ProductoTalla::ULTIMAS_UNIDADES,
-            // Un producto inactivo o inexistente vuelve con disponible = false para que el carrito lo quite.
+            // Si no existe, disponible = false
             'productos' => $skus->mapWithKeys(fn ($sku) => [$sku => $productos->has($sku) ? [
                 'disponible' => true,
                 'nombre'     => $productos[$sku]->nombre,
@@ -64,7 +64,7 @@ class CarritoController extends Controller
         ]);
     }
 
-    // Exige sesión (guest() recuerda la URL), bloquea al admin y genera un token de un solo uso contra envíos dobles.
+    // Prepara el checkout con token único
     public function checkout()
     {
         if (!Auth::check()) {
@@ -88,7 +88,7 @@ class CarritoController extends Controller
             ->header('Expires', '0');
     }
 
-    // Registra el pedido y descuenta stock con DB::transaction; el precio se toma de la BD y lockForUpdate() evita vender el mismo stock dos veces.
+    // Registra el pedido y descuenta stock
     public function procesar(Request $request)
     {
         if (!Auth::check()) {
@@ -109,12 +109,12 @@ class CarritoController extends Controller
             return redirect()->route('carrito')->with('error', self::MENSAJE_ADMIN);
         }
 
-        // El número de tarjeta llega con espacios ("4242 4242 ..."); se limpian antes de validar.
+        // Quita espacios del número de tarjeta
         if ($request->filled('tarjeta_numero')) {
             $request->merge(['tarjeta_numero' => str_replace([' ', '-'], '', (string) $request->input('tarjeta_numero'))]);
         }
 
-        // [Sem 13 - CRUDs, Query Builder y Paginación]: validate() con exclude_unless (los campos de tarjeta solo se validan si el método es Tarjeta) y closures para Luhn y vencimiento.
+        // Valida datos de pago y del carrito
         $request->validate([
             'metodo_pago'      => ['required', Rule::in(self::METODOS_PAGO)],
             'tarjeta_numero'   => ['exclude_unless:metodo_pago,Tarjeta', 'bail', 'required', 'regex:/^[0-9]{13,19}$/',
@@ -159,7 +159,7 @@ class CarritoController extends Controller
             $pedido = DB::transaction(function () use ($request, $items) {
                 $subtotal = 0;
                 $lineasProcesadas = [];
-                // Unidades ya pedidas por cada talla en este mismo carrito: si la misma talla llega en dos líneas, se suman antes de comparar con el stock.
+                // Pares reservados por talla en este carrito
                 $reservadoPorTalla = [];
 
                 foreach ($items as $item) {
@@ -175,7 +175,7 @@ class CarritoController extends Controller
 
                     $tallaRecord = ProductoTalla::where('producto_id', $prod->id)->where('talla', $talla)->lockForUpdate()->first();
                     $yaReservado = $tallaRecord ? ($reservadoPorTalla[$tallaRecord->id] ?? 0) : 0;
-                    // Regla del servidor: máximo 10 pares por talla aunque lleguen repartidos en varias líneas.
+                    // Máximo 10 pares por talla
                     if ($yaReservado + $cantidad > self::MAX_POR_TALLA) {
                         throw new \DomainException("Máximo " . self::MAX_POR_TALLA . " pares de {$prod->nombre} por talla.");
                     }
@@ -202,18 +202,18 @@ class CarritoController extends Controller
                     throw new \DomainException('No se puede generar un pedido en cero.');
                 }
 
-                // [Sem 12 - Eloquent ORM]: regla de envío gratis: Pedido::calcularEnvio da S/ 0 en la primera compra o si los productos suman >= S/ 200; si no, S/ 15.
+                // Envío gratis: primera compra o S/ 200
                 $montoProductos = round($subtotal, 2);
                 $envio = Pedido::calcularEnvio($montoProductos, Auth::user()->esPrimeraCompra());
 
-                // Los precios ya incluyen IGV: del total (productos + envío) se separa el 18 % y la Op. Gravada.
+                // Separa el IGV del total
                 $total = round($montoProductos + $envio, 2);
                 $igv = round($total * 0.18 / 1.18, 2);
                 $subtotal = round($total - $igv, 2);
 
                 $codigoOrden = 'PED-' . strtoupper(Str::random(6));
 
-                // Tarjeta aprobada = pedido Pagado; Contraentrega queda Pendiente hasta que el cliente pague al recibir.
+                // Tarjeta queda Pagado, contraentrega Pendiente
                 $esTarjeta = $request->input('metodo_pago') === 'Tarjeta';
 
                 $pedido = Pedido::create([
@@ -226,7 +226,7 @@ class CarritoController extends Controller
                     'estado'          => $esTarjeta ? 'Pagado' : 'Pendiente',
                     'direccion_envio' => $request->input('direccion_envio') ?: 'Entrega estándar / Tienda Kixa',
                     'metodo_pago'     => $request->input('metodo_pago'),
-                    // Nunca se guarda el número completo ni el CVV: solo los últimos 4 dígitos para el historial.
+                    // Solo se guardan los últimos 4 dígitos
                     'tarjeta_ultimos4' => $esTarjeta ? substr($request->input('tarjeta_numero'), -4) : null,
                 ]);
 
@@ -268,7 +268,7 @@ class CarritoController extends Controller
 
             return $this->rechazar($request, $e->getMessage(), 422);
         } catch (\Throwable $e) {
-            // El detalle técnico va al log (storage/logs); al cliente solo se le muestra un mensaje genérico.
+            // Error al log, mensaje genérico al cliente
             report($e);
 
             if ($request->expectsJson() || $request->ajax()) {
@@ -282,7 +282,7 @@ class CarritoController extends Controller
         }
     }
 
-    // Algoritmo de Luhn: desde la derecha se duplica un dígito sí y uno no (restando 9 si pasa de 9); la suma debe ser múltiplo de 10.
+    // Valida la tarjeta con algoritmo Luhn
     public static function pasaLuhn(string $numero): bool
     {
         if (! ctype_digit($numero)) {
@@ -304,7 +304,7 @@ class CarritoController extends Controller
         return $suma % 10 === 0;
     }
 
-    // La tarjeta "MM/AA" vale hasta el último día de ese mes.
+    // Revisa que la tarjeta no esté vencida
     public static function tarjetaVigente(string $vencimiento): bool
     {
         if (! preg_match('/^(0[1-9]|1[0-2])\/([0-9]{2})$/', $vencimiento, $partes)) {
@@ -314,8 +314,7 @@ class CarritoController extends Controller
         return Carbon::create(2000 + (int) $partes[2], (int) $partes[1], 1)->endOfMonth()->isFuture();
     }
 
-    // Datos de la regla de envío para carrito.js (data-* en el resumen): costo, mínimo para envío gratis y si es la primera compra.
-    // Para un invitado primera_compra queda en null: aún no se sabe quién es.
+    // Datos de la regla de envío para JS
     private function reglaEnvio(): array
     {
         return [
@@ -325,6 +324,7 @@ class CarritoController extends Controller
         ];
     }
 
+    // Responde el rechazo en JSON o redirección
     private function rechazar(Request $request, string $mensaje, int $codigo)
     {
         if ($request->expectsJson() || $request->ajax()) {

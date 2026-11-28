@@ -2,12 +2,11 @@
 
 @section('titulo', $titulo . ' | KixaStore')
 
-{{-- Fondo oscuro del body: se ve en la franja de 40px entre el banner y la grilla --}}
 @section('fondo', 'bg-[#090a0b] text-white')
 
 @section('contenido')
 
-    {{-- Banner dinámico por categoría (datos preparados en CatalogoController) --}}
+    {{-- Banner de la categoría --}}
     <section class="relative mb-10 block h-[420px] w-full overflow-hidden bg-[#080909]">
         <div class="absolute inset-0 size-full">
             @foreach ($bannerActual['imagenes'] as $idx => $imgBanner)
@@ -36,17 +35,13 @@
         </div>
     </section>
 
-    {{-- Barra superior (título + contador, ocultar filtros, ordenar) y sidebar de acordeones.
-         catalogo-filtros.js reemplaza el contenido de esta sección con el @fragment que devuelve CatalogoController (fetch), sin recargar header ni banner;
-         mientras carga, aria-busy="true" atenúa la grilla. --}}
+    {{-- Zona del catálogo (se recarga por fetch) --}}
     <section class="scroll-mt-navbar bg-white px-[5%] pt-8 pb-[72px] text-tinta [&_.kx-grid]:transition-opacity [&_.kx-grid]:duration-200 aria-busy:[&_.kx-grid]:opacity-45" id="zona-catalogo" aria-live="polite">
         @fragment('zona-catalogo')
-        {{-- data-titulo-pagina: catalogo-filtros.js actualiza la pestaña del navegador tras cada filtro --}}
         <div class="sticky top-navbar z-20 -mx-[5%] mb-2 flex flex-wrap items-center justify-between gap-4 bg-white/94 px-[5%] py-4 backdrop-blur-[12px] max-escritorio:static" data-titulo-pagina="{{ $titulo }} | KixaStore">
             <h1 class="text-[24px] font-semibold tracking-[-0.02em] max-escritorio:text-[20px]">{{ $titulo }} <span class="font-normal text-suave">({{ $productos->total() }})</span></h1>
 
             <div class="flex items-center gap-7 max-escritorio:w-full max-escritorio:justify-between max-escritorio:gap-3">
-                {{-- Visible solo con marca, disciplina, talla o búsqueda activa --}}
                 @if ($hayFiltros)
                     <a href="{{ $urlLimpiar }}" class="inline-flex items-center gap-1.5 rounded-full border border-[#e4e4e7] bg-white px-3.5 py-[7px] text-[14px] font-medium whitespace-nowrap text-tinta transition-[border-color,background-color] duration-200 hover:border-tinta hover:bg-perla"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>Limpiar filtros</a>
                 @endif
@@ -55,7 +50,7 @@
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
                 </button>
 
-                {{-- El orden viaja por GET (?orden=) conservando los demás filtros; con JavaScript se aplica por fetch (data-form-orden) --}}
+                {{-- Ordenar por --}}
                 <form method="GET" action="{{ route('catalogo', ['categoria' => $categoria]) }}#zona-catalogo" class="flex items-center gap-1.5 text-[15px] font-medium" data-form-orden>
                     @foreach ($parametrosOrden as $clave => $valor)
                         @if (is_scalar($valor))
@@ -73,12 +68,11 @@
             </div>
         </div>
 
-        {{-- kx-catalogo-cuerpo / kx-filtros / kx-grid: sus estados (filtros-ocultos, drawer-abierto) están en resources/css/app.css --}}
+        {{-- Filtros laterales y grilla --}}
         <div class="kx-catalogo-cuerpo" id="kx-catalogo-cuerpo">
             <div class="kx-filtros-fondo" id="kx-filtros-fondo" hidden></div>
 
             <aside class="kx-filtros" id="kx-filtros" aria-label="Filtros">
-                {{-- Cabecera solo visible en el drawer móvil --}}
                 <div class="hidden items-center justify-between pb-2 text-[18px] font-semibold max-[900px]:flex">
                     <span>Filtros</span>
                     <button type="button" class="inline-flex size-[38px] cursor-pointer items-center justify-center rounded-full border-none bg-perla text-tinta" id="kx-filtros-cerrar" aria-label="Cerrar filtros">
@@ -86,7 +80,6 @@
                     </button>
                 </div>
 
-                {{-- Solo en Deporte, Todos o búsquedas --}}
                 @if ($mostrarCategoria)
                     <x-filtro-catalogo titulo="Categoría / Género" :filtros="$filtrosCategoria" abierto />
                 @endif
@@ -115,7 +108,7 @@
                     @endforelse
                 </div>
 
-                {{-- [Sem 13 - CRUDs, Query Builder y Paginación]: links() con una vista propia del Modo Cliente (cliente/partials/paginacion) --}}
+                {{-- Paginación --}}
                 {{ $productos->onEachSide(1)->links('cliente.partials.paginacion') }}
             </div>
         </div>

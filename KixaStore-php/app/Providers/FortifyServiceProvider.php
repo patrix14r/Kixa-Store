@@ -14,21 +14,21 @@ use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Fortify;
 
-// [Sem 11 - Migraciones, Seeders y Roles]: Fortify aporta las rutas de login, registro y logout; aquí se conectan nuestras vistas y reglas
+// Conecta Fortify con nuestras vistas y respuestas
 class FortifyServiceProvider extends ServiceProvider
 {
+    // Reemplaza las respuestas de login y registro
     public function register(): void
     {
-        // Reemplaza las respuestas por defecto de Fortify para conservar la redirección por rol y ?redirect=.
         $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
         $this->app->singleton(RegisterResponseContract::class, RegisterResponse::class);
     }
 
+    // Configura vistas, registro y límite de intentos
     public function boot(): void
     {
         Fortify::createUsersUsing(CreateNewUser::class);
 
-        // Vistas existentes (su diseño no cambia).
         Fortify::loginView(fn () => view('auth.login'));
         Fortify::registerView(fn () => view('auth.registro'));
 

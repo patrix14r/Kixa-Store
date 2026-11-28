@@ -9,12 +9,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
-// [Semana 9-10: Controladores, Request y Componentes] Gestión de pedidos: listado con filtros y cambio de estado con PATCH.
+// Gestión de pedidos del panel
 class PedidoController extends Controller
 {
     public const ESTADOS = ['Pendiente', 'Pagado', 'Enviado', 'Entregado', 'Cancelado'];
 
-    // Máquina de estados: a qué estados puede pasar cada uno. Entregado y Cancelado son finales.
+    // Estados permitidos desde cada estado
     public const TRANSICIONES = [
         'Pendiente' => ['Pagado', 'Enviado', 'Cancelado'],
         'Pagado'    => ['Enviado', 'Cancelado'],
@@ -23,7 +23,7 @@ class PedidoController extends Controller
         'Cancelado' => [],
     ];
 
-    // Lista pedidos con with() para traer cliente e items en pocas consultas; filtra por estado y búsqueda.
+    // Lista pedidos con filtros y resumen
     public function index(Request $request)
     {
         $buscar = trim((string) $request->query('buscar'));
@@ -54,13 +54,13 @@ class PedidoController extends Controller
         return view('admin.pedidos.index', compact('pedidos', 'conteos', 'estados', 'transiciones', 'buscar', 'estado', 'resumen'));
     }
 
-    // [Sem 09 - Controladores y Middleware]: cambia el estado respetando TRANSICIONES; al cancelar devuelve el stock.
+    // Cambia el estado del pedido
     public function estado(Request $request, Pedido $pedido)
     {
         $datos = $request->validate(['estado' => ['required', Rule::in(self::ESTADOS)]]);
         $nuevo = $datos['estado'];
 
-        // DB::transaction + lockForUpdate: bloquea el pedido para que dos admins no lo cancelen a la vez (stock duplicado).
+        // Bloquea el pedido durante el cambio
         $error = DB::transaction(function () use ($pedido, $nuevo) {
             $bloqueado = Pedido::whereKey($pedido->id)->lockForUpdate()->first();
 
@@ -74,7 +74,7 @@ class PedidoController extends Controller
 
             if ($nuevo === 'Cancelado') {
                 foreach ($bloqueado->items as $item) {
-                    // [Sem 13 - CRUDs, Query Builder y Paginación]: increment() devuelve los pares a la talla exacta del pedido.
+                    // Devuelve el stock al cancelar
                     ProductoTalla::where('producto_id', $item->producto_id)
                         ->where('talla', $item->talla)
                         ->lockForUpdate()

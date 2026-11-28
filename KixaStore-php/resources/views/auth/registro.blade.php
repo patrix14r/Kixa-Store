@@ -1,22 +1,16 @@
 @extends('layouts.app')
 
-{{-- Fondo oscuro del body para que no asome blanco detrás de la portada --}}
 @section('fondo', 'bg-[#090a0b] text-white')
 
 @section('contenido')
-    {{-- Fondo (fondo2.jpg), cristal y bordes rounded-lg de los inputs se editan en components/auth-cristal.blade.php;
-         kx-auth-input (resources/css/app.css) evita el fondo blanco del autocompletado del navegador. --}}
-    {{-- [Sem 08 - Rutas y Vistas Blade]: Registro de Fortify (POST /register) con la misma tarjeta cristal del Login, algo más ancha por la fila Teléfono/DNI --}}
+    {{-- Formulario de registro --}}
     <x-auth-cristal ancho="max-w-[480px]" titulo="Crea tu cuenta en Kixa" subtitulo="Completa tus datos para registrarte">
-        {{-- novalidate: validación propia con mensajes 100% en español (public/js/auth.js) --}}
         <form id="registerForm" method="POST" action="{{ route('register') }}" novalidate data-validar-auth>
-            {{-- Conserva ?redirect=checkout al registrarse --}}
+            {{-- Mantiene el redirect al checkout --}}
             @if (request('redirect'))
                 <input type="hidden" name="redirect" value="{{ request('redirect') }}">
             @endif
             @csrf
-
-            {{-- Los errores de validación se muestran en el toast flotante del layout --}}
 
             <div class="auth-campo">
                 <label for="registerName">Nombre completo</label>
@@ -28,7 +22,7 @@
                 <input class="kx-auth-input" type="email" id="registerEmail" name="email" value="{{ old('email') }}" placeholder="tucorreo@ejemplo.com" autocomplete="email" required>
             </div>
 
-            {{-- [VALIDACION FORMULARIO]: Teléfono de 9 dígitos y DNI de 8 dígitos (ambos opcionales); data-solo-digitos borra letras al escribir (tienda-ui.js) --}}
+            {{-- Teléfono y DNI opcionales --}}
             <div class="grid grid-cols-2 gap-x-3.5 max-[460px]:grid-cols-1">
                 <div class="auth-campo">
                     <label for="registerPhone">Teléfono <small>(opcional)</small></label>
@@ -45,7 +39,7 @@
                 </div>
             </div>
 
-            {{-- [VALIDACION FORMULARIO]: Contraseña con mínimo 8 caracteres y confirmación --}}
+            {{-- Contraseña y confirmación --}}
             <div class="auth-campo">
                 <label for="registerPassword">Contraseña</label>
                 <input type="password" id="registerPassword" name="password" minlength="8" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required class="kx-auth-input @error('password') input-invalido @enderror">

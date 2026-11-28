@@ -10,39 +10,39 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-// [Sem 12 - Eloquent ORM]: modelo de la tabla marcas (CRUD 4) con #[Fillable], casts(), Scope #[Scope] y relación HasMany con productos.
+// Modelo de marcas (fabricantes)
 #[Fillable(['nombre', 'slug', 'logo', 'activo'])]
 class Marca extends Model
 {
     protected $table = 'marcas';
     protected $fillable = ['nombre', 'slug', 'logo', 'activo'];
 
-    // casts() devuelve activo como true/false en vez de 1/0.
+    // Convierte activo a booleano
     protected function casts(): array
     {
         return ['activo' => 'boolean'];
     }
 
-    // [Sem 08 - Rutas y Vistas Blade]: el binding usa el slug, así la URL queda /admin/marcas/new-balance/edit y no expone el ID.
+    // Usa el slug en la URL
     public function getRouteKeyName(): string
     {
         return 'slug';
     }
 
-    // Scope local con #[Scope]: Marca::activos()->get() solo trae las marcas que se pueden asignar a productos.
+    // Filtra solo marcas activas
     #[Scope]
     protected function activos(Builder $consulta): void
     {
         $consulta->where('activo', true);
     }
 
-    // Accessor: $marca->url_logo devuelve la URL pública del logo (o null si no tiene).
+    // URL pública del logo
     protected function urlLogo(): Attribute
     {
         return Attribute::get(fn () => $this->logo ? asset($this->logo) : null);
     }
 
-    // Relación HasMany: una marca tiene muchos productos (FK marca_id en productos).
+    // Una marca tiene muchos productos
     public function productos(): HasMany
     {
         return $this->hasMany(Producto::class, 'marca_id');

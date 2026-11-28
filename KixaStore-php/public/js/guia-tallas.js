@@ -1,4 +1,4 @@
-// Modal "Guía de tallas" de la ficha de producto: se abre con el enlace, se cierra con la X, el fondo o Escape.
+// Modal de guía de tallas
 document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("modalGuiaTallas");
     const abrir = document.getElementById("abrirGuiaTallas");

@@ -12,12 +12,11 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
     }
 
     public function boot(): void
     {
-        // View Composer que entrega menú y notificaciones al layout admin sin lógica en Blade
+        // Menú y alertas para el layout admin
         View::composer('layouts.admin', function ($vista) {
             $vista->with('menuPrincipal', [
                 ['texto' => 'Principal', 'ruta' => route('admin.home'), 'icono' => 'fa-solid fa-house', 'activo' => request()->routeIs('admin.home')],
@@ -32,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
                 ['texto' => 'Pedidos', 'ruta' => route('admin.pedidos.index'), 'icono' => 'fa-solid fa-receipt', 'activo' => request()->routeIs('admin.pedidos.*')],
             ]);
 
-            // Alertas reales para la campanita (tallas agotadas, críticas y últimos pedidos)
+            // Alertas de stock y últimos pedidos
             $agotadas = ProductoTalla::where('stock', 0)->count();
             $criticas = ProductoTalla::whereBetween('stock', [1, ProductoTalla::STOCK_CRITICO])->count();
             $ultimosPedidos = Pedido::with('usuario')->latest()->take(5)->get();

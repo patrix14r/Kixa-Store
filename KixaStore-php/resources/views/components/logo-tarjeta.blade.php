@@ -1,4 +1,4 @@
-{{-- [Sem 08 - Rutas y Vistas Blade]: Componente <x-logo-tarjeta marca="visa|mastercard">: logo SVG de las 2 tarjetas que acepta el simulador de pago --}}
+{{-- Logo SVG de Visa o Mastercard --}}
 @props(['marca' => 'visa'])
 
 <svg viewBox="0 0 48 32" role="img" aria-label="{{ $marca === 'mastercard' ? 'Mastercard' : 'Visa' }}" {{ $attributes->class(['h-6 w-9 shrink-0']) }}>

@@ -2,12 +2,7 @@
 
 @section('contenido')
 
-    <!-- =====================================================
-         HERO / CARRUSEL PRINCIPAL
-         ===================================================== -->
-    {{-- kx-carrusel: las posiciones 3D de cada .slide están en resources/css/app.css (las cambia public/js/movimiento.js) --}}
-    {{-- En escritorio el hero sube bajo el header de vidrio: crece 76px (h-navbar) y baja su contenido con pt-navbar --}}
-    {{-- La imagen de fondo llega por la variable CSS --fondo (asset() arma la URL pública) para que Vite no la reescriba --}}
+    {{-- Hero / carrusel principal --}}
     <section style="--fondo: url('{{ asset('images/ui/backgrounds/789.png') }}')" class="kx-carrusel relative h-[430px] w-full overflow-hidden bg-[linear-gradient(rgba(0,0,0,0.35),rgba(0,0,0,0.35)),var(--fondo)] bg-cover bg-center bg-no-repeat max-[750px]:h-[400px] max-[500px]:h-[360px] escritorio:h-[calc(430px_+_var(--spacing-navbar))] escritorio:pt-navbar">
         <div class="relative size-full">
             <div class="slide active">
@@ -34,11 +29,9 @@
                 <img src="{{ asset('images/banners/home/dsa5.webp') }}" alt="Zapatillas Kixa" />
             </div>
 
-            <!-- Controles del carrusel (clases prev / next que busca movimiento.js) -->
             <button class="prev absolute top-1/2 left-5 z-30 flex size-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-none bg-black/75 text-[22px] text-white transition-[background-color,scale] duration-250 hover:scale-108 hover:bg-black" aria-label="Anterior">&#10094;</button>
             <button class="next absolute top-1/2 right-5 z-30 flex size-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-none bg-black/75 text-[22px] text-white transition-[background-color,scale] duration-250 hover:scale-108 hover:bg-black" aria-label="Siguiente">&#10095;</button>
 
-            <!-- Indicadores de posición: el punto activo lleva la clase "active" -->
             <div class="absolute bottom-3 left-1/2 z-40 flex -translate-x-1/2 items-center gap-[7px] [&>.dot]:size-[7px] [&>.dot]:cursor-pointer [&>.dot]:rounded-full [&>.dot]:bg-white/45 [&>.dot]:transition-all [&>.dot]:duration-250 [&>.dot.active]:size-[9px] [&>.dot.active]:bg-white">
                 <span class="dot active"></span>
                 <span class="dot"></span>
@@ -57,8 +50,7 @@
     </section>
 
 
-    {{-- Carrusel "Lo Destacado" con productos destacado = true (HomeController): 4 tarjetas en escritorio, 3 en tablet y 1 en teléfono.
-         public/js/carrusel-destacados.js maneja flechas, indicadores y el avance automático cada 4 s (se pausa con el mouse encima). --}}
+    {{-- Lo destacado --}}
     <section class="bg-[linear-gradient(180deg,#f5f5f7_0%,#ffffff_55%,#f5f5f7_100%)] px-[5%] pt-16 pb-[72px] max-escritorio:px-4 max-escritorio:pt-11 max-escritorio:pb-[52px]" id="lo-destacado" aria-roledescription="carrusel" aria-labelledby="titulo-destacado">
         <div class="mb-6 flex items-center justify-between">
             <h2 id="titulo-destacado" class="text-[24px] font-semibold tracking-[-0.02em] text-tinta">Lo Destacado</h2>
@@ -72,7 +64,6 @@
             </div>
         </div>
 
-        {{-- Pista con scroll-snap: "relative" la vuelve el punto de referencia de offsetLeft; py-2/-my-2 deja espacio para que la tarjeta suba al pasar el mouse sin recortarse --}}
         <div id="destacado-pista" class="relative -my-2 grid snap-x snap-mandatory auto-cols-[calc((100%_-_48px)_/_4)] grid-flow-col gap-4 overflow-x-auto py-2 [scrollbar-width:none] *:min-w-0 *:snap-start [&::-webkit-scrollbar]:hidden max-[1100px]:auto-cols-[calc((100%_-_32px)_/_3)] max-escritorio:auto-cols-[72%]">
             @forelse ($destacados as $producto)
                 <x-tarjeta-producto :producto="$producto" />
@@ -81,13 +72,10 @@
             @endforelse
         </div>
 
-        {{-- Indicadores: el JS crea un punto por grupo de tarjetas; el activo lleva aria-current="true" y se alarga --}}
         <div id="destacado-puntos" class="mt-8 flex items-center justify-center gap-2" aria-label="Indicadores del carrusel"></div>
     </section>
 
-    <!-- =====================================================
-         SECCIÓN DE OFERTAS ESPECIALES
-         ===================================================== -->
+    {{-- Ofertas especiales --}}
     <section class="relative overflow-hidden bg-[linear-gradient(rgba(0,0,0,0.68),rgba(0,0,0,0.68)),url('https://i.pinimg.com/736x/d6/24/1b/d6241b46598213e84e65eac9f4c8ef68.jpg')] bg-cover bg-center px-5 pt-[55px] pb-[65px] text-center">
         <div class="relative z-2 mb-[30px]">
             <span class="text-[10px] font-bold tracking-[3px] text-[#aaa]"> KIXA </span>
@@ -112,7 +100,6 @@
 @endsection
 
 @push('scripts')
-    {{-- [MOVIDO DESDE LAYOUTS]: movimiento.js controla el carrusel 3D que solo existe en el Home --}}
     <script src="{{ asset('js/movimiento.js') }}"></script>
     <script src="{{ asset('js/carrusel-destacados.js') }}"></script>
 @endpush

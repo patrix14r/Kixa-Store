@@ -10,10 +10,10 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-// [Sem 13 - CRUDs, Query Builder y Paginación]: CRUD 4 (Marcas): Route::resource sin show ni destroy, validate(), paginate() y baja lógica con estado().
+// CRUD 4: marcas
 class MarcaController extends Controller
 {
-    // index (GET): buscador por nombre, withCount('productos') para la columna "Productos" y paginación que conserva el filtro.
+    // Lista marcas con buscador y paginación
     public function index(Request $request)
     {
         $buscar = trim((string) $request->query('buscar', ''));
@@ -27,13 +27,13 @@ class MarcaController extends Controller
         return view('admin.marcas.index', compact('marcas', 'buscar'));
     }
 
-    // create (GET): manda una Marca vacía para que el parcial _formulario use old() y $marca->campo.
+    // Muestra el formulario vacío
     public function create()
     {
         return view('admin.marcas.create', ['marca' => new Marca(['activo' => true])]);
     }
 
-    // store (POST): valida, genera el slug y guarda el logo si se subió.
+    // Guarda una nueva marca
     public function store(Request $request)
     {
         Marca::create($this->validar($request));
@@ -41,13 +41,13 @@ class MarcaController extends Controller
         return redirect()->route('admin.marcas.index')->with('exito', 'Marca creada correctamente.');
     }
 
-    // edit (GET): Laravel resuelve Marca $marca por el slug (getRouteKeyName).
+    // Muestra el formulario de edición
     public function edit(Marca $marca)
     {
         return view('admin.marcas.edit', compact('marca'));
     }
 
-    // update (PUT): DB::transaction actualiza la marca y sincroniza el texto 'marca' de sus productos (lo usa el catálogo del cliente).
+    // Actualiza la marca y sus productos
     public function update(Request $request, Marca $marca)
     {
         $datos = $this->validar($request, $marca);
@@ -60,7 +60,7 @@ class MarcaController extends Controller
         return redirect()->route('admin.marcas.index')->with('exito', 'Marca actualizada correctamente.');
     }
 
-    // Baja lógica: una marca tiene productos (FK restrictOnDelete), así que se activa/desactiva en vez de borrarla.
+    // Activa o desactiva (baja lógica)
     public function estado(Marca $marca)
     {
         $marca->update(['activo' => ! $marca->activo]);
@@ -70,25 +70,24 @@ class MarcaController extends Controller
         return back()->with('exito', "Marca {$marca->nombre} {$texto}.");
     }
 
-    // Reglas compartidas por store y update; el logo se guarda en public/images/brands.
+    // Valida datos y guarda el logo
     private function validar(Request $request, ?Marca $marca = null): array
     {
         $datos = $request->validate([
-            // max:50 igual que productos.marca (string 50): el nombre se copia ahí y MySQL no debe rechazarlo por longitud.
             'nombre'       => ['required', 'string', 'max:50', Rule::unique('marcas', 'nombre')->ignore($marca)],
             'logo_archivo' => ['nullable', 'image', 'max:2048'],
         ], [], ['logo_archivo' => 'logo']);
 
         $datos['slug'] = Str::slug($datos['nombre']);
 
-        // Str::slug puede quedar vacío (nombre "!!!") o demasiado largo: ambos casos romperían la URL /admin/marcas/{slug}.
+        // Slug no vacío ni muy largo
         if ($datos['slug'] === '' || mb_strlen($datos['slug']) > 70) {
             throw ValidationException::withMessages(['nombre' => $datos['slug'] === ''
                 ? 'El nombre debe contener letras o números para generar el slug.'
                 : 'El slug generado no puede superar los 70 caracteres.']);
         }
 
-        // El slug también debe ser único (p. ej. "New-Balance" y "New Balance" darían el mismo).
+        // El slug también debe ser único
         if (Marca::where('slug', $datos['slug'])->when($marca, fn ($q) => $q->whereKeyNot($marca->id))->exists()) {
             throw ValidationException::withMessages(['nombre' => 'Ya existe una marca con un nombre equivalente.']);
         }

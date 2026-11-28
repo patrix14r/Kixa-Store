@@ -8,14 +8,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 
-// [Semana 9-10: Controladores, Request y Componentes] Perfil propio del administrador dentro del panel.
+// Perfil del administrador
 class PerfilController extends Controller
 {
+    // Muestra el perfil del admin
     public function edit()
     {
         return view('admin.perfil', ['usuario' => Auth::user()]);
     }
 
+    // Actualiza datos y foto del admin
     public function update(Request $request)
     {
         /** @var \App\Models\User $usuario */
@@ -46,6 +48,7 @@ class PerfilController extends Controller
         return back()->with('exito', 'Perfil actualizado correctamente.');
     }
 
+    // Cambia la contraseña del admin
     public function password(Request $request)
     {
         $request->validate([

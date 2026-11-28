@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Producto;
 
-// [Semana 9-10: Controladores, Request y Componentes] Controlador del home: arma las colecciones con scopes y las manda a la vista con compact().
+// Página de inicio de la tienda
 class HomeController extends Controller
 {
+    // Productos destacados del home
     public function index()
     {
         $destacados = Producto::activos()->destacados()

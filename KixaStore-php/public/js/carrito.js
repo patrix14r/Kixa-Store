@@ -1,9 +1,6 @@
-// ==========================================================================
-// TIENDA KIXA - GESTIÓN DEL CARRITO DE COMPRAS Y PAGOS (CARRITO.JS)
-// Renderizado dinámico de productos, cálculo de totales y pasarela modal
-// ==========================================================================
+// Carrito de compras y simulador de pago
 
-// Se descartan ítems corruptos y cantidades <= 0, decimales o exageradas
+// Limpia ítems corruptos del carrito
 const cantidadValida = (n) => Math.min(10, Math.max(1, Math.floor(Number(n)) || 1));
 let carrito = (JSON.parse(localStorage.getItem("carrito")) || [])
     .filter((p) => p && (p.sku || p.id) && Number(p.precio) > 0)
@@ -18,27 +15,22 @@ const contenidoPago = document.getElementById("contenido-pago");
 const alerta = document.getElementById("alerta");
 const mensajeAlerta = document.getElementById("mensaje-alerta");
 
-// --------------------------------------------------------------------------
-// Render de ítems, totales con IGV y favoritos
-// --------------------------------------------------------------------------
-// Sin alert() nativos: todo aviso va al toast de la esquina
 const avisar = (mensaje, tipo = "error") => (typeof kxToast === "function" ? kxToast(mensaje, tipo) : console.warn(mensaje));
 const soles = (n) => `S/ ${Number(n || 0).toFixed(2)}`;
 const escapar = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+// Guarda el carrito en localStorage
 function guardarCarrito() {
     localStorage.setItem("carrito", JSON.stringify(carrito));
     if (typeof actualizarBadgesHeader === "function") actualizarBadgesHeader();
 }
 
+// Suma el total de productos
 function totalCarrito() {
     return carrito.reduce((t, p) => t + (Number(p.precio) || 0) * (Number(p.cantidad) || 1), 0);
 }
 
-// --------------------------------------------------------------------------
-// Regla de envío (la misma de Pedido::calcularEnvio): llega en data-regla-envio desde CarritoController
-// primera_compra es true/false con sesión y null para un invitado
-// --------------------------------------------------------------------------
+// Regla de envío desde el servidor
 const reglaEnvio = (() => {
     const base = { costo: 15, gratis_desde: 200, primera_compra: null };
     try {
@@ -48,15 +40,16 @@ const reglaEnvio = (() => {
     }
 })();
 
-// [Sem 08 - Rutas y Vistas Blade]: envío gratis en la primera compra o desde S/ 200; si no, S/ 15 (espejo visual de Pedido::calcularEnvio, el servidor recalcula al pagar).
+// Envío gratis: primera compra o S/ 200
 function costoEnvio(montoProductos) {
     return reglaEnvio.primera_compra === true || montoProductos >= Number(reglaEnvio.gratis_desde) ? 0 : Number(reglaEnvio.costo);
 }
 
+// Pinta subtotal, envío, IGV y total
 function pintarTotales() {
     const productos = totalCarrito();
     const envio = carrito.length ? costoEnvio(productos) : 0;
-    // Los precios ya incluyen IGV: el 18 % se separa del total (productos + envío), igual que en el servidor
+    // Separa el IGV del total
     const total = productos + envio;
     const igv = total * 0.18 / 1.18;
     if (subtotalBox) subtotalBox.textContent = soles(productos);
@@ -72,7 +65,7 @@ function pintarTotales() {
     if (btn) btn.classList.toggle("deshabilitado", carrito.length === 0 || hayTallasAgotadas());
 }
 
-// Barra de progreso: llena en la primera compra o al llegar al mínimo; si no, muestra cuánto falta
+// Barra de progreso del envío gratis
 function pintarBarraEnvio(productos) {
     const caja = document.getElementById("envio-gratis");
     const texto = document.getElementById("envio-texto");
@@ -94,16 +87,13 @@ function pintarBarraEnvio(productos) {
     if (barra) barra.style.width = `${Math.min(100, avance)}%`;
 }
 
-// --------------------------------------------------------------------------
-// Stock real en vivo: POST /carrito/validar devuelve precio, tallas y stock de MySQL
-// --------------------------------------------------------------------------
-// { SKU: { "40": 3, "40.5": 0 } }: vive solo en memoria (no en localStorage) para que nunca quede desactualizado
+// Stock real desde /carrito/validar
 const stockPorSku = {};
 let maxPorTalla = 10;
-let umbralEscasez = 3; // lo reemplaza ProductoTalla::ULTIMAS_UNIDADES al consultar el servidor
+let umbralEscasez = 3;
 
 const claveDe = (p) => String(p.sku || p.id);
-// Stock de la talla elegida: número real, 0 si la talla ya no existe, o null si aún no se consultó al servidor
+// Stock de la talla elegida
 const stockDe = (p) => {
     const tallas = stockPorSku[claveDe(p)];
     return tallas ? (tallas[String(p.talla)] ?? 0) : null;
@@ -111,6 +101,7 @@ const stockDe = (p) => {
 const topeCantidad = (p) => (stockDe(p) === null ? maxPorTalla : Math.min(maxPorTalla, stockDe(p)));
 const hayTallasAgotadas = () => carrito.some((p) => stockDe(p) === 0);
 
+// Consulta stock y precios reales
 async function sincronizarStock() {
     if (!contenedor || carrito.length === 0) return;
 
@@ -128,14 +119,14 @@ async function sincronizarStock() {
         if (!respuesta.ok) return;
         datos = await respuesta.json();
     } catch (e) {
-        return; // Sin conexión: el servidor vuelve a validar stock y precios al pagar
+        return;
     }
 
     maxPorTalla = Number(datos.max_por_talla) || 10;
     umbralEscasez = Number(datos.ultimas_unidades) || umbralEscasez;
     const avisos = [];
 
-    // Producto desactivado o eliminado: se quita del carrito
+    // Quita productos desactivados
     carrito = carrito.filter((p) => {
         if (datos.productos?.[claveDe(p)]?.disponible) return true;
         avisos.push(`${p.nombre} ya no está disponible y se quitó de tu carrito.`);
@@ -145,7 +136,6 @@ async function sincronizarStock() {
     carrito.forEach((p) => {
         const info = datos.productos[claveDe(p)];
         stockPorSku[claveDe(p)] = Object.fromEntries(info.tallas.map((t) => [String(t.talla), Number(t.stock)]));
-        // Arreglo (no Object.keys) para conservar el orden 38, 38.5, 39...
         p.tallas = info.tallas.map((t) => String(t.talla));
 
         if (Number(info.precio) !== Number(p.precio)) {
@@ -167,7 +157,7 @@ async function sincronizarStock() {
     avisos.slice(0, 3).forEach((mensaje) => avisar(mensaje, "info"));
 }
 
-// Tallas sin stock aparecen deshabilitadas (se ven, pero no se pueden elegir)
+// Tallas agotadas aparecen deshabilitadas
 function opcionesTalla(p) {
     const tallas = Array.isArray(p.tallas) && p.tallas.length ? [...p.tallas] : [String(p.talla)];
     if (!tallas.includes(String(p.talla))) tallas.unshift(String(p.talla));
@@ -180,7 +170,7 @@ function opcionesTalla(p) {
     }).join("");
 }
 
-// La cantidad llega hasta el stock real de la talla (máx. 10 por talla)
+// Cantidad hasta el stock real
 function opcionesCantidad(p) {
     const actual = Number(p.cantidad) || 1;
     const tope = Math.max(1, topeCantidad(p), stockDe(p) === 0 ? actual : 1);
@@ -188,7 +178,7 @@ function opcionesCantidad(p) {
         .map((n) => `<option value="${n}" ${n === actual ? "selected" : ""}>${n}</option>`).join("");
 }
 
-// Aviso bajo la línea: talla agotada (bloquea el pago) o pocas unidades
+// Aviso de agotado o pocas unidades
 function avisoStock(p) {
     const stock = stockDe(p);
     if (stock === 0) {
@@ -205,7 +195,7 @@ const esFavorito = (p) => leerFavoritos().some((f) => String(f.sku || f.id) === 
 
 const RUTA_CORAZON = "M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z";
 
-// Corazón de la línea: guarda en favoritos SIN quitar el producto del carrito; relleno = ya está en favoritos
+// Botón de favorito de cada línea
 function botonFavorito(p, i) {
     const lleno = esFavorito(p);
     const texto = lleno ? "Quitar de favoritos" : "Guardar en favoritos";
@@ -214,6 +204,7 @@ function botonFavorito(p, i) {
     </button>`;
 }
 
+// Dibuja las líneas del carrito
 function mostrarCarrito() {
     if (!contenedor) return;
 
@@ -264,9 +255,10 @@ function mostrarCarrito() {
     pintarTotales();
 }
 
+// Cambia la talla de una línea
 function cambiarTalla(i, talla) {
     if (!carrito[i]) return;
-    // Si ya hay otra línea del mismo producto con esa talla, se juntan en una sola (máx. 10)
+    // Junta líneas con la misma talla
     const clave = String(carrito[i].sku || carrito[i].id);
     const j = carrito.findIndex((p, k) => k !== i && String(p.sku || p.id) === clave && String(p.talla) === String(talla));
     if (j !== -1) {
@@ -277,12 +269,12 @@ function cambiarTalla(i, talla) {
         return;
     }
     carrito[i].talla = talla;
-    // Si la nueva talla tiene menos stock, la cantidad baja al máximo disponible
     if (topeCantidad(carrito[i]) > 0) carrito[i].cantidad = Math.min(carrito[i].cantidad, topeCantidad(carrito[i]));
     guardarCarrito();
     mostrarCarrito();
 }
 
+// Cambia la cantidad de una línea
 function cambiarCantidad(i, cantidad) {
     if (!carrito[i]) return;
     carrito[i].cantidad = Math.min(cantidadValida(cantidad), Math.max(1, topeCantidad(carrito[i])));
@@ -290,13 +282,14 @@ function cambiarCantidad(i, cantidad) {
     mostrarCarrito();
 }
 
+// Quita una línea del carrito
 function eliminar(i) {
     carrito.splice(i, 1);
     guardarCarrito();
     mostrarCarrito();
 }
 
-// Guarda (o quita) el producto de Favoritos sin sacarlo del carrito, para que el carrito no se vacíe de golpe
+// Agrega o quita de favoritos
 function alternarFavorito(i) {
     const p = carrito[i];
     if (!p) return;
@@ -315,7 +308,7 @@ function alternarFavorito(i) {
     renderFavoritos("favoritos-carrito", 4);
 }
 
-// Tarjetas de favoritos con el mismo estilo que <x-tarjeta-producto>; se usan en el carrito
+// Tarjetas de favoritos en el carrito
 function renderFavoritos(idContenedor, limite = null) {
     const caja = document.getElementById(idContenedor);
     if (!caja) return;
@@ -343,18 +336,17 @@ function renderFavoritos(idContenedor, limite = null) {
         </article>`).join("")}</div>`;
 }
 
+// Quita un favorito de la lista
 function quitarFavorito(i, idContenedor, limite) {
     const favs = JSON.parse(localStorage.getItem("favoritos")) || [];
     favs.splice(i, 1);
     localStorage.setItem("favoritos", JSON.stringify(favs));
     if (typeof actualizarBadgesHeader === "function") actualizarBadgesHeader();
     renderFavoritos(idContenedor, limite);
-    mostrarCarrito(); // el corazón de la línea del carrito vuelve a quedar vacío
+    mostrarCarrito();
 }
 
-// --------------------------------------------------------------------------
-// [CAMBIO]: Apertura y validación previa del modal de Checkout
-// --------------------------------------------------------------------------
+// Abre el modal de checkout
 function abrirModal() {
     if (carrito.length === 0) {
         avisar("Tu carrito está vacío. Agrega productos antes de continuar.");
@@ -374,31 +366,30 @@ function abrirModal() {
     }
 }
 
+// Cierra el modal de checkout
 function cerrarModal() {
     if (modal) modal.style.display = "none";
 }
 
-// Cerrar al hacer clic fuera del contenido del modal
+// Cierra al hacer clic afuera
 window.addEventListener("click", function(event) {
     if (event.target === modal) {
         cerrarModal();
     }
 });
 
-// --------------------------------------------------------------------------
-// [CAMBIO]: Opciones de métodos de pago dentro del modal
-// --------------------------------------------------------------------------
-// Clases de Tailwind compartidas por los 2 formularios de pago (Tarjeta y Contraentrega) (los inputs toman el estilo de la sección del checkout)
+// Métodos de pago del modal
 const CLASE_PAGO = "mt-[18px] max-w-full min-w-0 rounded-[14px] bg-perla p-5 [&>p]:text-[14px] [&>p]:leading-[1.6] [&>p]:text-suave [&_label]:mt-3 [&_label]:mb-1.5 [&_label]:block [&_label]:text-[13px] [&_label]:text-suave";
 const CLASE_CONFIRMAR = "mt-[18px] flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full border-none bg-tinta p-4 text-[15px] font-medium text-white hover:bg-[#333]";
 
-// Marca el botón del método elegido (aria-pressed lo resalta con Tailwind en checkout.blade.php)
+// Resalta el método elegido
 function marcarMetodo(metodo) {
     document.querySelectorAll("[data-metodo]").forEach((boton) => {
         boton.setAttribute("aria-pressed", boton.dataset.metodo === metodo ? "true" : "false");
     });
 }
 
+// Muestra la opción contraentrega
 function mostrarContraentrega() {
     if (!contenidoPago) return;
     marcarMetodo("Contraentrega");
@@ -417,17 +408,14 @@ function mostrarContraentrega() {
     `;
 }
 
-// --------------------------------------------------------------------------
-// Simulador de tarjeta: vista previa interactiva + validaciones (el servidor vuelve a validar con Luhn)
-// --------------------------------------------------------------------------
-// Visa empieza en 4; Mastercard en 51-55 o 2221-2720
+// Detecta Visa o Mastercard
 function detectarMarca(numero) {
     if (/^4/.test(numero)) return "visa";
     if (/^(5[1-5]|222[1-9]|22[3-9]\d|2[3-6]\d{2}|27[01]\d|2720)/.test(numero)) return "mastercard";
     return "";
 }
 
-// Algoritmo de Luhn (igual que CarritoController::pasaLuhn)
+// Valida la tarjeta con algoritmo Luhn
 function pasaLuhn(numero) {
     if (!/^\d{13,19}$/.test(numero)) return false;
     let suma = 0;
@@ -442,7 +430,7 @@ function pasaLuhn(numero) {
     return suma % 10 === 0;
 }
 
-// "MM/AA" vigente hasta el último día de ese mes
+// Revisa que no esté vencida
 function tarjetaVigente(vencimiento) {
     const partes = /^(0[1-9]|1[0-2])\/(\d{2})$/.exec(vencimiento);
     if (!partes) return false;
@@ -456,10 +444,10 @@ const ICONO_MARCA = {
     "": '<i class="fa-solid fa-credit-card opacity-70"></i>',
 };
 
+// Muestra el formulario de tarjeta
 function mostrarTarjeta() {
     if (!contenidoPago) return;
     marcarMetodo("Tarjeta");
-    // Las caras usan group-data-[marca=...] para cambiar de color según la marca detectada
     contenidoPago.innerHTML = `
         <div class="${CLASE_PAGO}">
             <h3 class="mb-4 flex items-center gap-2 text-[16px] font-semibold">
@@ -529,7 +517,7 @@ function mostrarTarjeta() {
     activarTarjeta();
 }
 
-// Conecta los inputs con la tarjeta visual: formatea mientras se escribe y gira la tarjeta al llegar al CVV
+// Conecta los inputs con la tarjeta visual
 function activarTarjeta() {
     const tarjeta = document.getElementById("tarjetaVisual");
     const numero = document.getElementById("tarjetaNumero");
@@ -544,7 +532,6 @@ function activarTarjeta() {
         const marca = detectarMarca(digitos);
         tarjeta.dataset.marca = marca;
         document.getElementById("tarjetaMarca").innerHTML = ICONO_MARCA[marca];
-        // Muestra los dígitos escritos y completa con puntos hasta 16
         const relleno = digitos.padEnd(Math.max(16, digitos.length), "•");
         document.getElementById("tarjetaNumeroVista").textContent = relleno.replace(/(.{4})(?=.)/g, "$1 ");
     });
@@ -556,7 +543,6 @@ function activarTarjeta() {
 
     vence.addEventListener("input", (e) => {
         let digitos = vence.value.replace(/\D/g, "").slice(0, 4);
-        // Al borrar no se vuelve a poner la barra automáticamente
         if (digitos.length >= 3 || (digitos.length === 2 && e.inputType !== "deleteContentBackward")) {
             digitos = digitos.slice(0, 2) + "/" + digitos.slice(2);
         }
@@ -577,12 +563,10 @@ function activarTarjeta() {
     cvv.addEventListener("blur", () => tarjeta.classList.remove("rotate-y-180"));
 }
 
-// --------------------------------------------------------------------------
-// Errores en rojo por campo: borde + mensaje debajo del input (se limpian al volver a escribir)
-// --------------------------------------------------------------------------
-// border-red-500! lleva "!" porque el contenedor del checkout ya pinta el borde de todos sus inputs ([&_input]:border-...)
+// Errores en rojo por campo
 const CLASES_ERROR_CAMPO = ["border-red-500!", "ring-1", "ring-red-500"];
 
+// Marca un campo con error
 function marcarErrorCampo(id, mensaje) {
     const input = document.getElementById(id);
     if (!input) return;
@@ -600,6 +584,7 @@ function marcarErrorCampo(id, mensaje) {
     aviso.textContent = mensaje;
 }
 
+// Quita el error de un campo
 function limpiarErrorCampo(id) {
     const input = document.getElementById(id);
     if (!input) return;
@@ -609,7 +594,7 @@ function limpiarErrorCampo(id) {
     document.getElementById(`${id}Error`)?.remove();
 }
 
-// Banner rojo compacto arriba de "Pagar ahora" para los errores que devuelve el servidor ("" lo oculta)
+// Banner de error del servidor
 function mostrarErrorPago(mensaje) {
     const banner = document.getElementById("errorPago");
     if (!banner) return false;
@@ -618,7 +603,7 @@ function mostrarErrorPago(mensaje) {
     return true;
 }
 
-// Campo del backend (validate()) → id del input en la tarjeta
+// Campo del backend a input
 const CAMPOS_TARJETA = {
     tarjeta_numero: "tarjetaNumero",
     tarjeta_titular: "tarjetaTitular",
@@ -626,7 +611,7 @@ const CAMPOS_TARJETA = {
     tarjeta_cvv: "tarjetaCvv",
 };
 
-// Valida la tarjeta antes de enviarla: marca en rojo cada campo con error y devuelve los datos o null
+// Valida la tarjeta antes de enviar
 function datosTarjeta() {
     const campo = (id) => document.getElementById(id);
     const numero = (campo("tarjetaNumero")?.value || "").replace(/\D/g, "");
@@ -635,7 +620,6 @@ function datosTarjeta() {
     const cvv = (campo("tarjetaCvv")?.value || "").trim();
     const formatoMMAA = /^(0[1-9]|1[0-2])\/\d{2}$/.test(vencimiento);
 
-    // [id del input, mensaje] solo de los campos que fallan
     const errores = [
         !numero ? ["tarjetaNumero", "Ingresa el número de tu tarjeta."]
             : !pasaLuhn(numero) ? ["tarjetaNumero", "El número de tarjeta no es válido."] : null,
@@ -655,7 +639,7 @@ function datosTarjeta() {
     return { tarjeta_numero: numero, tarjeta_titular: titular, tarjeta_vencimiento: vencimiento, tarjeta_cvv: cvv };
 }
 
-// Capa "Procesando pago..." de checkout.blade.php
+// Muestra la capa de procesando pago
 function mostrarProcesando(visible, detalle = "") {
     const capa = document.getElementById("procesandoPago");
     if (!capa) return;
@@ -664,17 +648,14 @@ function mostrarProcesando(visible, detalle = "") {
     capa.style.display = visible ? "flex" : "none";
 }
 
-// --------------------------------------------------------------------------
-// [CAMBIO]: Confirmación del pedido y generación de código de seguimiento
-// --------------------------------------------------------------------------
-// [CAMBIO: CONFIRMACION DE COMPRA CONECTADA CON CHECKOUT.PROCESAR EN MYSQL]
+// Confirma y envía el pedido
 function confirmar(metodo) {
     if (!carrito || carrito.length === 0) {
         avisar("El carrito está vacío.");
         return;
     }
 
-    // // [VALIDACION FORMULARIO]: Validacion estricta de DNI (8 digitos) y Celular (9 digitos)
+    // Valida DNI y celular
     const dniInput = document.getElementById("checkoutDni") || document.querySelector("input[name='dni']");
     const telInput = document.getElementById("checkoutTelefono") || document.querySelector("input[name='telefono']");
 
@@ -694,7 +675,7 @@ function confirmar(metodo) {
         }
     }
 
-    // La dirección de entrega es obligatoria
+    // Dirección obligatoria
     const direccionInput = document.getElementById("checkoutDireccion");
     const direccion = direccionInput ? direccionInput.value.trim() : "";
     if (direccionInput && direccion.length < 5) {
@@ -703,7 +684,6 @@ function confirmar(metodo) {
         return;
     }
 
-    // Con tarjeta se validan número (Luhn), titular, vencimiento y CVV antes de enviar
     mostrarErrorPago("");
     const tarjeta = metodo === "Tarjeta" ? datosTarjeta() : {};
     if (!tarjeta) return;
@@ -711,7 +691,7 @@ function confirmar(metodo) {
     const csrfMeta = document.querySelector('meta[name="csrf-token"]');
     const token = csrfMeta ? csrfMeta.getAttribute("content") : "";
 
-    // Animación breve de "Procesando pago..." (mínimo 1.4 s) mientras responde el servidor
+    // Animación mínima de procesando
     mostrarProcesando(true, metodo === "Tarjeta" ? "Validando tu tarjeta de forma segura" : "Registrando tu pedido");
     const esperaMinima = new Promise((resolver) => setTimeout(resolver, 1400));
 
@@ -742,7 +722,7 @@ function confirmar(metodo) {
             return;
         }
         const data = await response.json();
-        // Compra ya procesada (409): se limpia el carrito y se va al historial
+        // Compra ya procesada (409)
         if (response.status === 409) {
             vaciarCarritoCompleto();
             permitirSalida();
@@ -753,24 +733,21 @@ function confirmar(metodo) {
             cerrarModal();
             if (contenidoPago) contenidoPago.innerHTML = "";
             
-            // [CAMBIO: VACIAR CARRITO Y ACTUALIZAR CONTADOR DE HEADER]
+            // Vacía el carrito y actualiza el contador
             vaciarCarritoCompleto();
             if (typeof actualizarBadgesHeader === "function") {
                 actualizarBadgesHeader();
             }
 
-            // [CAMBIO: REDIRECCION DIRECTA A PERFIL CON EL HISTORIAL DE COMPRAS ACTUALIZADO]
-            // replace(): el checkout no queda en el historial, así "Atrás" no vuelve a la pantalla de pago
+            // Redirige al historial de pedidos
             permitirSalida();
             window.location.replace(data.redirect_url || "/perfil/pedidos");
         } else {
             mostrarProcesando(false);
-            // 422 de validate() trae "message" y "errors"; los rechazos propios traen "mensaje"
             const mensaje = data.mensaje || data.message || "Ocurrió un error al procesar el pedido.";
             Object.entries(data.errors || {}).forEach(([clave, lista]) => {
                 if (CAMPOS_TARJETA[clave]) marcarErrorCampo(CAMPOS_TARJETA[clave], lista[0]);
             });
-            // Con tarjeta el error se muestra en el banner rojo sobre "Pagar ahora"; en Contraentrega, en el toast
             if (metodo !== "Tarjeta" || !mostrarErrorPago(mensaje)) avisar(mensaje);
         }
     })
@@ -782,8 +759,7 @@ function confirmar(metodo) {
     });
 }
 
-// Tras comprar se borran el carrito activo y sus copias por usuario (kixa:<usuario>:carrito)
-// así cada compra nueva crea un pedido independiente sin arrastrar zapatillas de compras anteriores
+// Vacía el carrito tras comprar
 function vaciarCarritoCompleto() {
     carrito = [];
     try {
@@ -793,6 +769,7 @@ function vaciarCarritoCompleto() {
     } catch (e) { /* almacenamiento bloqueado */ }
 }
 
+// Muestra la alerta de confirmación
 function mostrarAlerta(mensaje) {
     if (mensajeAlerta) mensajeAlerta.innerHTML = mensaje;
     if (alerta) alerta.style.display = "flex";
@@ -802,17 +779,17 @@ function mostrarAlerta(mensaje) {
     mostrarCarrito();
 }
 
+// Cierra la alerta
 function cerrarAlerta() {
     if (alerta) alerta.style.display = "none";
     cerrarModal();
 }
 
-// --------------------------------------------------------------------------
-// Confirmación al salir del checkout sin haber pagado
-// --------------------------------------------------------------------------
+// Confirmación al salir sin pagar
 let salidaPermitida = false;
 const permitirSalida = () => { salidaPermitida = true; };
 
+// Pide confirmar antes de salir del pago
 function activarConfirmacionSalida() {
     const dialogo = document.getElementById("confirmarSalida");
     if (!dialogo || !document.getElementById("tokenCompra")) return;
@@ -830,11 +807,10 @@ function activarConfirmacionSalida() {
         destino = null;
     };
 
-    // Enlaces de la página (header, footer, "Volver al carrito"): se muestra el diálogo propio antes de salir
+    // Avisa antes de salir por un enlace
     document.addEventListener("click", (e) => {
         const enlace = e.target.closest("a[href]");
         if (!enlace || salidaPermitida || e.defaultPrevented) return;
-        // Abrir en otra pestaña (Ctrl/Cmd + clic o target="_blank") no abandona el pago
         if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || enlace.target === "_blank") return;
         const url = new URL(enlace.href, location.href);
         if (url.pathname === location.pathname && url.hash) return;
@@ -851,7 +827,7 @@ function activarConfirmacionSalida() {
         if (e.key === "Escape" && !dialogo.hidden) cerrar();
     });
 
-    // Cerrar la pestaña, recargar, "Atrás" o usar el buscador: el navegador muestra su propio aviso
+    // Aviso del navegador al cerrar
     window.addEventListener("beforeunload", (e) => {
         if (salidaPermitida || carrito.length === 0) return;
         e.preventDefault();
@@ -860,7 +836,7 @@ function activarConfirmacionSalida() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Checkout sin productos (p. ej. tras comprar y pulsar "Atrás") vuelve al carrito
+    // Sin productos vuelve al carrito
     if (document.getElementById("tokenCompra") && carrito.length === 0) {
         window.location.replace("/carrito");
         return;
@@ -872,12 +848,12 @@ document.addEventListener("DOMContentLoaded", () => {
     renderFavoritos("favoritos-contenido");
     sincronizarStock();
     activarConfirmacionSalida();
-    // Checkout: abre el simulador de Tarjeta por defecto (antes era un <script> suelto en checkout.blade.php)
+    // Abre la tarjeta por defecto
     mostrarTarjeta();
 });
 
 
-// Si el navegador restaura la página desde su caché (botón Atrás), se recarga para revalidar con el servidor
+// Recarga si viene de la caché
 window.addEventListener("pageshow", (e) => {
     if (e.persisted && document.getElementById("tokenCompra")) {
         permitirSalida();

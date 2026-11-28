@@ -3,7 +3,6 @@
 @section('titulo', 'Kixa Admin - Editar cliente')
 
 @section('contenido')
-{{-- Edición de datos básicos del cliente (sin cambiar rol ni contraseña) --}}
 <a href="{{ route('admin.clientes.index') }}" class="text-sm kx-muted hover:text-white"><i class="fa-solid fa-arrow-left"></i> Clientes</a>
 <h1 class="mt-2 text-2xl font-bold">Editar cliente</h1>
 

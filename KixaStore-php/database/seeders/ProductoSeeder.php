@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-// [Sem 11 - Migraciones, Seeders y Roles]: productos con FK (categoría, proveedor y marca) buscadas con value('id') / pluck() y sus tallas
+// Productos de prueba con sus tallas
 class ProductoSeeder extends Seeder
 {
     public function run(): void
@@ -15,13 +15,13 @@ class ProductoSeeder extends Seeder
         $catNinos   = DB::table('categorias')->where('nombre', 'Niños')->value('id');
         $catDeporte = DB::table('categorias')->where('nombre', 'Deporte')->value('id');
 
-        // Proveedores = distribuidoras mayoristas (a quién se compra); la marca del producto va aparte en la tabla marcas.
+        // Proveedores por RUC
         $provDeportiva = DB::table('proveedores')->where('ruc', '20512345671')->value('id'); // Distribuidora Deportiva Perú S.A.C.
         $provAndina    = DB::table('proveedores')->where('ruc', '20345678914')->value('id'); // Distribuidora Andina de Calzado S.A.C.
         $provSportLima = DB::table('proveedores')->where('ruc', '20601122333')->value('id'); // Comercializadora Sport Lima S.A.C.
         $provUrbano    = DB::table('proveedores')->where('ruc', '20498765433')->value('id'); // Calzado Urbano Mayorista S.A.C.
 
-        // pluck('id', 'nombre') arma ['Nike' => 1, 'Jordan' => 2, ...] para asignar marca_id a partir del texto de la marca.
+        // Mapa nombre de marca => id
         $marcas = DB::table('marcas')->pluck('id', 'nombre');
 
         $productos = [
@@ -139,7 +139,7 @@ class ProductoSeeder extends Seeder
                 'activo'       => true,
             ],
 
-            // Modelos unisex también en Hombre para poder filtrar por Nike, Adidas y Puma
+            // Modelos unisex también en Hombre
             [
                 'categoria_id' => $catHombre,
                 'proveedor_id' => $provDeportiva,
@@ -183,7 +183,7 @@ class ProductoSeeder extends Seeder
                 'activo'       => true,
             ],
 
-            // SECCIÓN MUJER ())
+            // SECCIÓN MUJER
             [
                 'categoria_id' => $catMujer,
                 'proveedor_id' => $provSportLima,
@@ -555,20 +555,20 @@ class ProductoSeeder extends Seeder
         ];
 
         foreach ($productos as $prod) {
-            // marca_id (FK) se busca por el nombre; la columna de texto 'marca' se conserva igual para el catálogo.
+            // Busca marca_id por el nombre
             $productoId = DB::table('productos')->insertGetId(array_merge($prod, [
                 'marca_id'   => $marcas[$prod['marca']],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]));
 
-            // Tallas: adultos (38 a 43) y niños (30 a 36)
+            // Tallas de adulto o de niño
             $tallas = ($prod['categoria_id'] == $catNinos)
                 ? [30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0]
                 : [38.0, 39.0, 40.0, 41.0, 42.0, 43.0];
 
             foreach ($tallas as $talla) {
-                // Talla 43/36 agotada y 41/33 en stock crítico para probar los estados de la ficha
+                // Tallas agotadas y críticas para pruebas
                 $stock = ($talla == 43.0 || $talla == 36.0) ? 0 : (($talla == 41.0 || $talla == 33.0) ? 2 : 12);
 
                 DB::table('producto_tallas')->insert([

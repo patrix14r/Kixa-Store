@@ -1,13 +1,6 @@
-// ==========================================================================
-// TIENDA KIXA - ALERTAS FLOTANTES UNIFICADAS (TOAST.JS)
-// Esquina superior derecha bajo el header, blur, ícono y cierre automático (~3.5 s).
-// Máximo 3 avisos visibles y sin duplicados: un mensaje repetido reinicia su temporizador y se sacude.
-// Uso: kxToast("Mensaje", "error" | "ok" | "info"); kxToastLimpiar("error") borra los avisos de ese tipo.
-// Los flash de Laravel llegan en window.KX_FLASH.
-// ==========================================================================
+// Alertas flotantes (toasts)
 
 (() => {
-    // Clases de Tailwind: el aviso entra desde la derecha cuando recibe el atributo data-visible
     const CLASE_CAJA = "pointer-events-none fixed top-[calc(var(--spacing-navbar)_+_16px)] right-5 z-3000 flex w-[min(380px,calc(100vw_-_32px))] flex-col gap-2.5 max-escritorio:top-[120px] max-escritorio:right-4";
     const CLASE_TOAST = "pointer-events-auto grid grid-cols-[20px_1fr_auto] items-start gap-3 rounded-[14px] border bg-white/88 py-3.5 pr-3.5 pl-4 text-[14px] leading-[1.45] text-tinta opacity-0 shadow-[0_18px_40px_-16px_rgba(0,0,0,0.35)] backdrop-blur-[12px] translate-x-4 transition-[opacity,translate] duration-250 data-visible:translate-x-0 data-visible:opacity-100";
     const MAXIMO_VISIBLES = 3;
@@ -20,6 +13,7 @@
         info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/>',
     };
 
+    // Crea el contenedor de toasts
     function contenedor() {
         let caja = document.getElementById("kx-toasts");
         if (!caja) {
@@ -32,7 +26,7 @@
         return caja;
     }
 
-    // Cierra un aviso con su animación de salida y libera su temporizador
+    // Cierra un aviso
     function quitar(toast) {
         clearTimeout(toast._temporizador);
         delete toast.dataset.visible;
@@ -40,24 +34,23 @@
         setTimeout(() => toast.remove(), 300);
     }
 
-    // (Re)inicia la cuenta regresiva de cierre automático
+    // Programa el cierre automático
     function programarCierre(toast, duracion) {
         clearTimeout(toast._temporizador);
         toast._temporizador = setTimeout(() => quitar(toast), duracion);
     }
 
-    // Avisos que siguen en pantalla (los que ya se están cerrando no cuentan)
     const visibles = () => [...contenedor().children].filter((t) => !("saliendo" in t.dataset));
 
     window.kxToast = function (mensaje, tipo = "info", duracion = DURACION) {
         if (!mensaje) return;
 
-        // Sin duplicados: si el mismo mensaje ya está visible, se reinicia su temporizador y se sacude para llamar la atención
+        // Sin duplicados: reinicia y sacude
         const repetido = visibles().find((t) => t.dataset.mensaje === mensaje);
         if (repetido) {
             programarCierre(repetido, duracion);
             repetido.classList.remove("animate-sacudir");
-            void repetido.offsetWidth; // fuerza un reflow para que la animación vuelva a empezar
+            void repetido.offsetWidth;
             repetido.classList.add("animate-sacudir");
             return;
         }
@@ -93,7 +86,7 @@
 
         toast.append(icono, texto, cerrar);
 
-        // Máximo 3 visibles: si llega un cuarto, se retira el más antiguo
+        // Máximo 3 avisos visibles
         const actuales = visibles();
         actuales.slice(0, Math.max(0, actuales.length - (MAXIMO_VISIBLES - 1))).forEach(quitar);
 
@@ -102,12 +95,12 @@
         programarCierre(toast, duracion);
     };
 
-    // Cierra todos los avisos (o solo los de un tipo, p. ej. "error") antes de abrir un modal
+    // Cierra todos o los de un tipo
     window.kxToastLimpiar = function (tipo = null) {
         visibles().filter((t) => !tipo || t.dataset.tipo === tipo).forEach(quitar);
     };
 
-    // Mensajes flash y errores de validación enviados por el servidor
+    // Muestra flash y errores del servidor
     document.addEventListener("DOMContentLoaded", () => {
         const flash = window.KX_FLASH || {};
         if (flash.exito) kxToast(flash.exito, "ok");

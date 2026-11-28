@@ -1,4 +1,3 @@
-{{-- [Sem 08 - Rutas y Vistas Blade]: parcial compartido por crear y editar con @include; old() conserva lo escrito si falla la validación. --}}
 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
     <div class="md:col-span-2">
         <label for="razon_social" class="kx-label">Razón social *</label>

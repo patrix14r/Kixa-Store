@@ -1,8 +1,4 @@
-// ==========================================================================
-// TIENDA KIXA - FAVORITOS EN FILAS ESTILO PUMA (FAVORITOS.JS)
-// Foto | Nombre y categoría | precio + SELECCIONAR TALLA + ELIMINAR
-// Se usa en /favoritos y en la pestaña /perfil/favoritos (contenedor #favoritos-filas)
-// ==========================================================================
+// Lista de favoritos en filas
 
 (() => {
     const caja = document.getElementById("favoritos-filas");
@@ -13,11 +9,11 @@
     const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     const refrescarBadges = () => { if (typeof actualizarBadgesHeader === "function") actualizarBadgesHeader(); };
 
-    // Botones negros (y versión con borde) con clases de Tailwind
     const BOTON = "inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border px-[22px] py-3 text-[13px] font-bold tracking-[0.04em] transition-colors duration-200";
     const BOTON_NEGRO = `${BOTON} border-tinta bg-tinta text-white hover:bg-[#333]`;
     const BOTON_BORDE = `${BOTON} border-[#cacacb] bg-white text-tinta hover:border-tinta hover:bg-perla`;
 
+    // Dibuja las filas de favoritos
     function pintar() {
         const favs = leer("favoritos");
         if (favs.length === 0) {
@@ -49,6 +45,7 @@
             </article>`).join("");
     }
 
+    // Carga tallas y agrega al carrito
     async function abrirTallas(fila, fav) {
         const zona = fila.querySelector(".kx-fav-tallas");
         const mensaje = fila.querySelector(".kx-fav-mensaje");
@@ -65,7 +62,7 @@
             zona.innerHTML = datos.tallas.map((t) => `<button type="button" class="kx-fav-talla h-[42px] min-w-[46px] cursor-pointer rounded-md border border-[#e5e5e5] bg-white px-2.5 text-[14px] text-tinta hover:border-tinta hover:bg-tinta hover:text-white" data-talla="${esc(t)}">${esc(t)}</button>`).join("");
             zona.querySelectorAll(".kx-fav-talla").forEach((b) => b.addEventListener("click", () => {
                 const carrito = leer("carrito");
-                // Igual que producto-dinamico.js: mismo SKU + talla suma cantidad (máx. 10) en vez de crear otra línea
+                // Misma talla suma cantidad (máx. 10)
                 const existente = carrito.find((p) => String(p.sku || p.id) === String(datos.sku) && String(p.talla) === String(b.dataset.talla));
                 if (existente) {
                     existente.cantidad = Math.min(10, (Number(existente.cantidad) || 1) + 1);

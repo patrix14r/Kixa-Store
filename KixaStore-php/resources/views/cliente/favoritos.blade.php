@@ -3,7 +3,6 @@
 @section('titulo', 'Favoritos | KixaStore')
 
 @section('contenido')
-    {{-- Filas horizontales: foto, nombre, precio, SELECCIONAR TALLA y ELIMINAR (las arma public/js/favoritos.js) --}}
     <main class="mx-auto w-full max-w-[1080px] px-[5%] pt-12 pb-[72px] text-tinta">
         <div class="mb-6 flex items-baseline justify-between">
             <h1 class="text-[26px] font-bold uppercase">Favoritos</h1>

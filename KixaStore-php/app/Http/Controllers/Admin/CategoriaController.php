@@ -8,10 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
-// [Semana 12-13: Eloquent ORM, Relaciones y los 7 métodos de Route::resource] CRUD 1 (Categorías): Route::resource sin show ni destroy; los 5 métodos restantes más estado().
+// CRUD 1: categorías
 class CategoriaController extends Controller
 {
-    // index (GET): lista las categorías con withCount('productos') y sin columna ID.
+    // Lista las categorías con su conteo
     public function index()
     {
         $categorias = Categoria::withCount('productos')->orderBy('nombre')->get();
@@ -19,13 +19,13 @@ class CategoriaController extends Controller
         return view('admin.categorias.index', compact('categorias'));
     }
 
-    // create (GET): formulario vacío; se manda una Categoria nueva para que el parcial _formulario use old() y $categoria->campo.
+    // Muestra el formulario vacío
     public function create()
     {
         return view('admin.categorias.create', ['categoria' => new Categoria(['activo' => true])]);
     }
 
-    // store (POST): validar() y Categoria::create(); solo se guardan los campos de #[Fillable].
+    // Guarda una nueva categoría
     public function store(Request $request)
     {
         Categoria::create($this->validar($request));
@@ -33,13 +33,13 @@ class CategoriaController extends Controller
         return redirect()->route('admin.categorias.index')->with('exito', 'Categoría creada correctamente.');
     }
 
-    // edit (GET): Laravel resuelve Categoria $categoria por el slug (getRouteKeyName) sin consultar a mano.
+    // Muestra el formulario de edición
     public function edit(Categoria $categoria)
     {
         return view('admin.categorias.edit', compact('categoria'));
     }
 
-    // update (PUT): valida ignorando el propio registro en las reglas unique y actualiza.
+    // Actualiza la categoría
     public function update(Request $request, Categoria $categoria)
     {
         $categoria->update($this->validar($request, $categoria));
@@ -47,7 +47,7 @@ class CategoriaController extends Controller
         return redirect()->route('admin.categorias.index')->with('exito', 'Categoría actualizada correctamente.');
     }
 
-    // Activa o desactiva en vez de borrar: productos tiene FK restrictOnDelete hacia categorias.
+    // Activa o desactiva (baja lógica)
     public function estado(Categoria $categoria)
     {
         $categoria->update(['activo' => ! $categoria->activo]);
@@ -57,15 +57,14 @@ class CategoriaController extends Controller
         return back()->with('exito', "Categoría {$categoria->nombre} {$texto}.");
     }
 
-    // Reglas compartidas por store y update; el slug se genera con Str::slug() si llega vacío.
-    // [Sem 13 - CRUDs, Query Builder y Paginación]: reglas compartidas por store y update; el slug sale de Str::slug().
+    // Reglas de validación compartidas
     private function validar(Request $request, ?Categoria $categoria = null): array
     {
         $request->merge(['slug' => Str::slug($request->input('slug') ?: $request->input('nombre', ''))]);
 
         $datos = $request->validate([
             'nombre'      => ['required', 'string', 'max:50', Rule::unique('categorias', 'nombre')->ignore($categoria)],
-            // El slug no puede quedar vacío (p. ej. nombre "!!!"), ni pasar de 70 chars, ni ser "todos" (reservado por /catalogo/todos).
+            // Slug obligatorio, máximo 70, no "todos"
             'slug'        => ['required', 'string', 'max:70', Rule::notIn(['todos']), Rule::unique('categorias', 'slug')->ignore($categoria)],
             'descripcion' => ['nullable', 'string', 'max:255'],
         ], [

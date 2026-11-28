@@ -5,10 +5,10 @@ namespace App\Http\Responses;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 
-// [Sem 09 - Controladores y MVC]: Lógica de redirección compartida por LoginResponse y RegisterResponse de Fortify
+// Redirección compartida de login y registro
 trait RespuestaAutenticacion
 {
-    // Solo acepta valores conocidos de ?redirect (evita redirecciones abiertas); si no, vuelve a la URL prevista o al home.
+    // Solo acepta redirect a checkout o carrito
     protected function redirigirCliente(Request $request, string $mensaje): RedirectResponse
     {
         $destino = match ($request->input('redirect')) {

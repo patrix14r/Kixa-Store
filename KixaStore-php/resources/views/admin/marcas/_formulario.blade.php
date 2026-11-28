@@ -1,4 +1,3 @@
-{{-- [Sem 08 - Rutas y Vistas Blade]: parcial compartido por crear y editar con @include; old() conserva lo escrito si falla la validación. --}}
 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
     <div>
         <label for="nombre" class="kx-label">Nombre *</label>
@@ -9,9 +8,8 @@
     <div>
         <p class="kx-label">Logo (opcional, máx. 2 MB)</p>
         <div class="flex items-center gap-3">
-            {{-- La <img> existe siempre para que app.js pinte la vista previa también al crear; sin logo arranca oculta con hidden. --}}
+            {{-- Vista previa del logo --}}
             <img id="vista-imagen" src="{{ $marca->url_logo }}" alt="Vista previa del logo" class="h-12 w-12 rounded-lg bg-white object-contain p-1" @if (! $marca->url_logo) hidden @endif>
-            {{-- Input de archivo oculto + botón propio en español (mismo patrón que Productos). --}}
             <input type="file" id="imagen-input" name="logo_archivo" accept="image/*" class="hidden">
             <div class="flex flex-1 items-center gap-3 rounded-xl border border-zinc-800 bg-[#09090b] p-1.5">
                 <label for="imagen-input" class="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-indigo-500">

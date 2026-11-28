@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-// [Semana 12-13: Eloquent ORM, Relaciones y los 7 métodos de Route::resource] Modelo de la tabla productos: scopes, accessors, casts y relaciones con categoría, proveedor y tallas.
+// Modelo de productos de la tienda
 #[Fillable([
     'categoria_id',
     'proveedor_id',
@@ -52,7 +52,7 @@ class Producto extends Model
         'activo',
     ];
 
-    // casts() convierte precio a decimal, galeria_imagenes (JSON) a array y los flags a booleano.
+    // Convierte precio, galería y flags
     protected function casts(): array
     {
         return [
@@ -65,13 +65,13 @@ class Producto extends Model
         ];
     }
 
-    // [Semana 8: Rutas y Herencia Blade] La URL usa el SKU (/producto/ADI-CAM-00S) para no mostrar el ID autoincremental.
+    // Usa el SKU en la URL
     public function getRouteKeyName(): string
     {
         return 'sku';
     }
 
-    // Accessor con Attribute::get: $producto->modelo devuelve el nombre sin repetir la marca ("Jordan Retro 4" -> "Retro 4").
+    // Nombre del modelo sin la marca
     protected function modelo(): Attribute
     {
         return Attribute::get(function () {
@@ -93,57 +93,57 @@ class Producto extends Model
         'training'  => ['Training', 'Zapatillas de entrenamiento'],
     ];
 
+    // Nombre legible de la subcategoría
     public static function nombreSubcategoria(?string $sub): string
     {
         return self::SUBCATEGORIAS[$sub][0] ?? ucfirst((string) $sub);
     }
 
-    // Accessor: $producto->tipo_calzado traduce la subcategoría guardada ("futbol") a un texto legible ("Chimpunes de fútbol").
-    // Accessor: $producto->url_imagen sirve tanto para URLs externas como para rutas locales de public/.
+    // URL de la imagen principal
     protected function urlImagen(): Attribute
     {
         return Attribute::get(fn () => str_starts_with((string) $this->imagen, 'http') ? $this->imagen : asset((string) $this->imagen));
     }
 
+    // Tipo de calzado según la subcategoría
     protected function tipoCalzado(): Attribute
     {
         return Attribute::get(fn () => self::SUBCATEGORIAS[$this->subcategoria][1] ?? 'Zapatillas');
     }
 
     #[Scope]
-    // Scope local: Producto::activos() deja solo los productos visibles en la tienda.
+    // Filtra productos activos
     protected function activos(Builder $consulta): void
     {
         $consulta->where('activo', true);
     }
 
     #[Scope]
-    // Scope local: Producto::destacados() se usa en "Lo Destacado" del home.
+    // Filtra productos destacados
     protected function destacados(Builder $consulta): void
     {
         $consulta->where('destacado', true);
     }
 
-    // Relación BelongsTo: cada producto pertenece a una categoría (FK categoria_id); se muestra con $producto->categoria->nombre.
+    // El producto pertenece a una categoría
     public function categoria(): BelongsTo
     {
         return $this->belongsTo(Categoria::class, 'categoria_id');
     }
 
-    // [Sem 12 - Eloquent ORM]: BelongsTo con la tabla marcas (FK marca_id). Se usa como $producto->marca() en consultas (whereHas('marca')).
-    // Ojo: $producto->marca (sin paréntesis) devuelve la columna de texto, que el controlador mantiene igual a marcas.nombre para el catálogo.
+    // El producto pertenece a una marca
     public function marca(): BelongsTo
     {
         return $this->belongsTo(Marca::class, 'marca_id');
     }
 
-    // Relación BelongsTo: cada producto tiene un proveedor opcional (FK proveedor_id con nullOnDelete); se muestra con ->proveedor->razon_social.
+    // Proveedor opcional del producto
     public function proveedor(): BelongsTo
     {
         return $this->belongsTo(Proveedor::class, 'proveedor_id');
     }
 
-    // Relación HasMany: un producto tiene muchas filas de producto_tallas, cada una con su stock.
+    // Tallas con su stock
     public function tallas(): HasMany
     {
         return $this->hasMany(ProductoTalla::class, 'producto_id');

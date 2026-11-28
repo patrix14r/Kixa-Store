@@ -7,21 +7,21 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-// [Semana 12-13: Eloquent ORM, Relaciones y los 7 métodos de Route::resource] Modelo de producto_tallas: una fila por talla de cada zapatilla con su stock.
+// Tallas de cada producto con su stock
 #[Fillable(['producto_id', 'talla', 'stock'])]
 class ProductoTalla extends Model
 {
     protected $table = 'producto_tallas';
 
-    // Umbral de stock crítico (2 o menos) que comparten dashboard, productos y abastecimiento.
+    // Stock crítico: 2 pares o menos
     public const STOCK_CRITICO = 2;
 
-    // Marketing de escasez en la tienda: de 1 a 3 pares se muestra "¡Últimas X unidades disponibles!".
+    // Aviso de últimas unidades (1 a 3)
     public const ULTIMAS_UNIDADES = 3;
 
     protected $fillable = ['producto_id', 'talla', 'stock'];
 
-    // casts() deja la talla con un decimal (39.5) y el stock como entero.
+    // Talla con un decimal, stock entero
     protected function casts(): array
     {
         return [
@@ -30,13 +30,13 @@ class ProductoTalla extends Model
         ];
     }
 
-    // Accessor: $talla->talla_etiqueta devuelve "9" o "9.5" sin ceros sobrantes.
+    // Muestra la talla sin ceros sobrantes
     protected function tallaEtiqueta(): Attribute
     {
         return Attribute::get(fn () => rtrim(rtrim(number_format((float) $this->talla, 1), '0'), '.'));
     }
 
-    // Relación BelongsTo: cada talla pertenece a un producto (FK producto_id con cascadeOnDelete).
+    // La talla pertenece a un producto
     public function producto(): BelongsTo
     {
         return $this->belongsTo(Producto::class, 'producto_id');

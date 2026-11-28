@@ -1,5 +1,3 @@
-{{-- [Semana 8: Rutas y Herencia Blade] El guion bajo en _formulario indica que es un parcial: create y edit lo incluyen con @include. old('campo', $producto->campo) conserva lo escrito si falla la validación. --}}
-{{-- Formulario compartido; FK con <select> por nombre, nunca IDs visibles --}}
 <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
     <div class="kx-card space-y-5 p-6 xl:col-span-2">
         <h2 class="font-bold">Datos del producto</h2>
@@ -8,7 +6,6 @@
                 <label for="categoria_id" class="kx-label">Categoría *</label>
                 <select id="categoria_id" name="categoria_id" class="kx-input" required>
                     <option value="">Selecciona una categoría</option>
-                    {{-- [Semana 9-10: Controladores, Request y Componentes] $categorias y $proveedores llegan del método privado opciones() del controlador, que consulta ambos modelos ordenados por nombre; así el <select> muestra nombres y el value guarda el id de la FK. --}}
                     @foreach ($categorias as $cat)
                         <option value="{{ $cat->id }}" @selected(old('categoria_id', $producto->categoria_id) == $cat->id)>{{ $cat->nombre }}{{ $cat->activo ? '' : ' (inactiva)' }}</option>
                     @endforeach
@@ -19,7 +16,6 @@
                 <label for="proveedor_id" class="kx-label">Proveedor</label>
                 <select id="proveedor_id" name="proveedor_id" class="kx-input">
                     <option value="">Sin proveedor</option>
-                    {{-- Mismo caso: se lista $prov->razon_social (solo proveedores activos), nunca el ID. --}}
                     @foreach ($proveedores as $prov)
                         <option value="{{ $prov->id }}" @selected(old('proveedor_id', $producto->proveedor_id) == $prov->id)>{{ $prov->razon_social }}</option>
                     @endforeach
@@ -28,7 +24,6 @@
             </div>
             <div>
                 <label for="marca" class="kx-label">Marca *</label>
-                {{-- [Sem 12 - Eloquent ORM]: FK marca_id con <select>; se muestra $m->nombre (solo marcas activas) y el value es el id. data-nombre lo usa el JS del SKU automático. --}}
                 <select id="marca" name="marca_id" class="kx-input" required>
                     <option value="">Selecciona una marca</option>
                     @foreach ($marcas as $m)
@@ -43,7 +38,6 @@
                 @error('nombre') <p class="kx-error">{{ $message }}</p> @enderror
             </div>
             <div>
-                {{-- Se arma con la Marca y el Modelo; si llega vacío lo genera el controlador --}}
                 <label for="sku" class="kx-label">SKU <span class="font-normal kx-muted">· automático</span></label>
                 <div class="flex gap-2">
                     <input type="text" id="sku" name="sku" value="{{ old('sku', $producto->sku) }}" class="kx-input uppercase" maxlength="30" placeholder="ADI-CAM-00S" data-sku-auto>
@@ -75,13 +69,12 @@
     </div>
 
     <div class="space-y-6">
-        {{-- Imagen: subir un archivo nuevo o escribir la ruta de una imagen existente en public/ --}}
+        {{-- Imagen principal --}}
         <div class="kx-card space-y-4 p-6">
             <h2 class="font-bold">Imagen</h2>
             <div class="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 p-2 {{ $producto->imagen ? '' : 'hidden' }}" id="vista-imagen-caja">
                 <img id="vista-imagen" src="{{ $producto->imagen ? (str_starts_with($producto->imagen, 'http') ? $producto->imagen : asset($producto->imagen)) : '' }}" alt="Vista previa" class="aspect-square w-full rounded-xl object-cover">
             </div>
-            {{-- [FASE 3.5]: Input de archivo oculto + botón y texto propios en español (evita "Choose File" del navegador) --}}
             <div>
                 <p class="kx-label">Subir imagen (máx. 2 MB)</p>
                 <input type="file" id="imagen-input" name="imagen_archivo" accept="image/*" class="hidden">
@@ -93,27 +86,33 @@
                 </div>
                 @error('imagen_archivo') <p class="kx-error">{{ $message }}</p> @enderror
             </div>
-            {{-- Imágenes secundarias opcionales: salen como miniaturas en la ficha del producto --}}
+            {{-- Galería de imágenes secundarias --}}
             <div>
                 <p class="kx-label">Imágenes secundarias (opcional, máx. 6)</p>
-                <input type="file" id="galeria-input" name="galeria_archivos[]" accept="image/*" multiple class="hidden">
+                <input type="file" id="galeria-input" name="galeria_archivos[]" accept="image/*" multiple class="hidden" data-max="6">
                 <div class="flex items-center gap-3 rounded-xl border border-zinc-800 bg-[#09090b] p-1.5">
                     <label for="galeria-input" class="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-zinc-700 px-3 py-1.5 text-sm font-semibold transition hover:bg-white/5">
                         <i class="fa-regular fa-images"></i>Agregar imágenes
                     </label>
                     <span id="galeria-nombre" class="truncate text-sm kx-muted">Ninguna imagen secundaria</span>
                 </div>
+                @error('galeria_archivos') <p class="kx-error">{{ $message }}</p> @enderror
                 @error('galeria_archivos.*') <p class="kx-error">{{ $message }}</p> @enderror
-                @if (! empty($producto->galeria_imagenes))
-                    <div class="mt-3 grid grid-cols-4 gap-2">
-                        @foreach ($producto->galeria_imagenes as $ruta)
-                            <label class="group relative block cursor-pointer">
-                                <img src="{{ asset($ruta) }}" alt="Imagen secundaria" class="aspect-square w-full rounded-lg border border-zinc-800 object-cover">
-                                <span class="mt-1 flex items-center gap-1 text-[11px] kx-muted"><input type="checkbox" name="galeria_quitar[]" value="{{ $ruta }}" class="accent-red-500">Quitar</span>
-                            </label>
-                        @endforeach
+                <div id="galeria-miniaturas" class="mt-3 flex flex-wrap gap-2">
+                    @foreach ($producto->galeria_imagenes ?? [] as $ruta)
+                        <label class="group relative block h-16 w-16 cursor-pointer has-checked:opacity-30" title="Imagen guardada · pulsa × para quitarla" data-galeria-guardada>
+                            <img src="{{ asset($ruta) }}" alt="Imagen secundaria guardada" class="h-16 w-16 rounded-lg border border-zinc-800 object-cover">
+                            <input type="checkbox" name="galeria_quitar[]" value="{{ $ruta }}" class="hidden" @checked(in_array($ruta, old('galeria_quitar', [])))>
+                            <span class="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-xs leading-none text-zinc-300 group-hover:bg-zinc-700" aria-hidden="true">&times;</span>
+                        </label>
+                    @endforeach
+                </div>
+                <template id="plantilla-miniatura">
+                    <div class="relative h-16 w-16" data-galeria-nueva>
+                        <img alt="" class="h-16 w-16 rounded-lg border border-indigo-500/60 object-cover">
+                        <button type="button" class="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-xs leading-none text-zinc-300 hover:bg-zinc-700" data-quitar-nueva aria-label="Quitar imagen">&times;</button>
                     </div>
-                @endif
+                </template>
             </div>
             <div>
                 <label for="imagen" class="kx-label">o ruta de imagen existente</label>
@@ -122,7 +121,7 @@
             </div>
         </div>
 
-        {{-- Gestión de stock por talla --}}
+        {{-- Stock por talla --}}
         <div class="kx-card p-6">
             <div class="flex items-center justify-between">
                 <h2 class="font-bold">Tallas y stock</h2>
@@ -130,7 +129,6 @@
             </div>
             <div class="mt-3 grid grid-cols-[1fr_1fr_auto] gap-2 text-xs kx-muted"><span>Talla</span><span>Stock</span><span class="w-8"></span></div>
             <div id="tallas-filas" class="mt-1 space-y-2">
-                {{-- Una fila por talla con su stock; los nombres tallas[i][talla] y tallas[i][stock] llegan como arreglo y sincronizarTallas() los guarda en producto_tallas. --}}
                 @foreach (old('tallas', $tallas) as $i => $fila)
                     <div class="grid grid-cols-[1fr_1fr_auto] gap-2" data-fila-talla>
                         <input type="number" step="0.5" name="tallas[{{ $i }}][talla]" value="{{ $fila['talla'] ?? '' }}" class="kx-input py-2">

@@ -1,19 +1,14 @@
 @extends('layouts.app')
 
-{{-- Fondo oscuro del body para que no asome blanco detrás de la portada --}}
 @section('fondo', 'bg-[#090a0b] text-white')
 
 @section('contenido')
-    {{-- Fondo (fondo2.jpg), cristal y bordes rounded-lg de los inputs se editan en components/auth-cristal.blade.php;
-         kx-auth-input (resources/css/app.css) evita el fondo blanco del autocompletado del navegador. --}}
-    {{-- [Sem 08 - Rutas y Vistas Blade]: Login de Fortify (POST /login) dentro de la tarjeta cristal <x-auth-cristal> (tarjeta vertical de 420px) --}}
+    {{-- Formulario de login --}}
     <x-auth-cristal titulo="Bienvenido a Kixa" subtitulo="Inicia sesión para continuar">
-        {{-- novalidate: se reemplazan los globos del navegador ("Please fill out this field.") por mensajes en español (public/js/auth.js) --}}
         <form id="loginForm" method="POST" action="{{ route('login') }}" novalidate data-validar-auth>
             @csrf
 
-            {{-- El error de credenciales aparece en el toast flotante del layout --}}
-            {{-- ?redirect=checkout viaja oculto para volver al pago tras ingresar --}}
+            {{-- Mantiene el redirect al checkout --}}
             @if (request('redirect'))
                 <input type="hidden" name="redirect" value="{{ request('redirect') }}">
             @endif
@@ -28,7 +23,6 @@
                 <input class="kx-auth-input" type="password" id="loginPassword" name="password" placeholder="Tu contraseña" autocomplete="current-password" required>
             </div>
 
-            {{-- remember: Fortify lo lee con $request->boolean('remember') y mantiene la sesión abierta --}}
             <div class="mt-1 mb-6 px-1 text-[13px] text-zinc-300">
                 <label class="inline-flex cursor-pointer items-center gap-2 select-none">
                     <input type="checkbox" name="remember" value="1" class="size-4 cursor-pointer accent-white" @checked(old('remember'))>

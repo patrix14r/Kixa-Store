@@ -1,5 +1,5 @@
 @props(['estado'])
-{{-- Componente <x-admin.estado-pedido> con el color de cada estado --}}
+{{-- Etiqueta de color por estado --}}
 <span {{ $attributes->class([
     'whitespace-nowrap',
     'kx-badge-bajo' => $estado === 'Pendiente',

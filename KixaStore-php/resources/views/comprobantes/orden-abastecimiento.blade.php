@@ -2,13 +2,11 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    {{-- [Sem 08 - Rutas y Vistas Blade]: Guía de Abastecimiento / Orden de Compra que dompdf convierte en PDF (AbastecimientoController@guia).
-         No hereda layouts porque dompdf no usa Vite ni Tailwind: reutiliza el CSS plano de la boleta (resources/css/boleta.css). --}}
     <title>Orden de compra {{ $orden->codigo_lote }}</title>
     <link rel="stylesheet" href="{{ resource_path('css/boleta.css') }}">
 </head>
 <body>
-    {{-- Cabecera: datos de KixaStore a la izquierda y recuadro con el código de lote a la derecha --}}
+    {{-- Cabecera de la guía --}}
     <table class="cabecera">
         <tr>
             <td class="col-logo"><img src="{{ $logo }}" alt="KixaStore" class="logo"></td>
@@ -26,7 +24,7 @@
         </tr>
     </table>
 
-    {{-- [Sem 12 - Eloquent ORM]: $orden->proveedor es la relación BelongsTo; se muestran nombres y RUC, nunca el ID. --}}
+    {{-- Datos del proveedor --}}
     <div class="seccion">
         <p class="seccion-titulo">Datos del proveedor</p>
         <table class="datos">
@@ -61,7 +59,7 @@
         </table>
     </div>
 
-    {{-- Detalle: una fila por talla del lote; talla_etiqueta muestra 40 o 40.5 (medias tallas) --}}
+    {{-- Detalle por talla --}}
     <div class="seccion">
         <p class="seccion-titulo">Detalle del pedido al proveedor</p>
         <table class="productos">
@@ -91,7 +89,7 @@
             </tbody>
         </table>
 
-        {{-- Inversión = suma de subtotales (costo_total); ganancia estimada = (precio de venta − costo) × cantidad (accessor del modelo) --}}
+        {{-- Totales e inversión --}}
         <table class="totales">
             <tr>
                 <td>Pares en el lote</td>

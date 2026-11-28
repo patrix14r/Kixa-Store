@@ -6,15 +6,15 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-// [Sem 11 - Migraciones, Seeders y Roles]: marcas reales del catálogo; corre antes de ProductoSeeder porque productos.marca_id depende de ellas.
+// Marcas con sus logos
 class MarcaSeeder extends Seeder
 {
     public function run(): void
     {
-        // El nombre debe coincidir con el texto de productos.marca para que el catálogo y sus filtros sigan funcionando.
+        // Nombres iguales al texto de productos.marca
         $marcas = ['Nike', 'Jordan', 'Adidas', 'Puma', 'Vans', 'New Balance', 'DC Shoes', 'Lacoste', 'Umbro'];
 
-        // Logos que ya existen en public/images/brands/; las marcas sin logo muestran su inicial en el panel.
+        // Logos de public/images/brands
         $logos = [
             'Nike'   => 'images/brands/nike-logo.png',
             'Jordan' => 'images/brands/jordan-logo.webp',

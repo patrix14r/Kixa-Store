@@ -13,13 +13,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
-// [Semana 12-13: Eloquent ORM, Relaciones y los 7 métodos de Route::resource] CRUD 2 (Productos): listado con filtros, create/store, edit/update, tallas con stock e imágenes.
+// CRUD 2: productos
 class ProductoController extends Controller
 {
     private const TALLAS_ADULTO = [38, 39, 40, 41, 42, 43];
     private const TALLAS_NINO = [30, 31, 32, 33, 34, 35, 36];
 
-    // index (GET): los buscadores (buscar, categoria, estado, marca, stock) llegan por GET y se aplican con when(); with() trae categoría y proveedor para mostrar nombres, no IDs.
+    // Lista productos con filtros y stock
     public function index(Request $request)
     {
         $buscar = trim((string) $request->query('buscar'));
@@ -55,7 +55,7 @@ class ProductoController extends Controller
         return view('admin.productos.index', compact('productos', 'categorias', 'marcas', 'buscar', 'categoriaSlug', 'marca', 'estado', 'stock'));
     }
 
-    // create (GET): mezcla opciones() (categorías y proveedores para los <select>) con un Producto vacío y las tallas base.
+    // Formulario vacío con tallas base
     public function create()
     {
         $producto = new Producto(['activo' => true]);
@@ -64,20 +64,24 @@ class ProductoController extends Controller
         return view('admin.productos.create', array_merge($this->opciones($producto), compact('producto', 'tallas')));
     }
 
-    // store (POST): DB::transaction guarda el producto y sus tallas juntos; si algo falla no queda nada a medias.
+    // Guarda el producto y sus tallas
     public function store(Request $request)
     {
         $datos = $this->validar($request);
 
-        DB::transaction(function () use ($request, $datos) {
+        $producto = DB::transaction(function () use ($request, $datos) {
             $producto = Producto::create($datos);
             $this->sincronizarTallas($producto, $request->input('tallas', []));
+
+            return $producto;
         });
 
-        return redirect()->route('admin.productos.index')->with('exito', 'Producto creado correctamente.');
+        return redirect()->route('admin.productos.index')
+            ->with('exito', 'Producto creado correctamente.')
+            ->with('producto_guardado', $this->enlacesProducto($producto));
     }
 
-    // edit (GET): el producto llega por su SKU; carga sus tallas o usa las tallas base según la categoría.
+    // Formulario de edición con sus tallas
     public function edit(Producto $producto)
     {
         $producto->load('tallas');
@@ -91,7 +95,7 @@ class ProductoController extends Controller
         return view('admin.productos.edit', array_merge($this->opciones($producto), compact('producto', 'tallas')));
     }
 
-    // update (PUT): misma transacción que store, pero con $producto->update().
+    // Actualiza el producto y sus tallas
     public function update(Request $request, Producto $producto)
     {
         $datos = $this->validar($request, $producto);
@@ -101,10 +105,12 @@ class ProductoController extends Controller
             $this->sincronizarTallas($producto, $request->input('tallas', []));
         });
 
-        return redirect()->route('admin.productos.index')->with('exito', 'Producto actualizado correctamente.');
+        return redirect()->route('admin.productos.index')
+            ->with('exito', 'Producto actualizado correctamente.')
+            ->with('producto_guardado', $this->enlacesProducto($producto));
     }
 
-    // Activa o desactiva: no se borra porque tiene pedidos asociados (order_items tiene FK restrict).
+    // Activa o desactiva (baja lógica)
     public function estado(Producto $producto)
     {
         $producto->update(['activo' => ! $producto->activo]);
@@ -112,9 +118,17 @@ class ProductoController extends Controller
         return back()->with('exito', 'Estado de ' . $producto->nombre . ' actualizado.');
     }
 
-    // opciones() es privado (no es ruta) y lo reutilizan create y edit: devuelve las listas ordenadas por nombre para llenar los <select> de categoría, proveedor y marca.
-    // Así la vista muestra $cat->nombre, $prov->razon_social y $m->nombre, y el value interno es el id solo para la FK. Solo se listan proveedores y marcas activos
-    // (más la marca actual del producto, por si fue desactivada después, para no perderla al editar).
+    // Enlaces del aviso tras guardar
+    private function enlacesProducto(Producto $producto): array
+    {
+        return [
+            'nombre'     => $producto->nombre,
+            'url_tienda' => $producto->activo ? route('producto.detalle', $producto->sku) : null,
+            'url_editar' => route('admin.productos.edit', $producto),
+        ];
+    }
+
+    // Listas para los select del formulario
     private function opciones(Producto $producto): array
     {
         return [
@@ -124,18 +138,17 @@ class ProductoController extends Controller
         ];
     }
 
-    // Valida el Request, genera el SKU si viene vacío y guarda las imágenes subidas en public/images/products/uploads.
+    // Valida datos, genera SKU y guarda imágenes
     private function validar(Request $request, ?Producto $producto = null): array
     {
         $datos = $request->validate([
             'categoria_id'      => ['required', 'exists:categorias,id'],
             'proveedor_id'      => ['nullable', 'exists:proveedores,id'],
-            // La marca llega como FK y debe estar activa (o ser la que el producto ya tenía).
             'marca_id'          => ['required', Rule::exists('marcas', 'id')->where(fn ($q) => $q->where('activo', true)->orWhere('id', $producto?->marca_id))],
             'nombre'            => ['required', 'string', 'max:120'],
             'subcategoria'      => ['nullable', 'string', 'max:50'],
             'sku'               => ['nullable', 'string', 'max:30', 'alpha_dash', Rule::unique('productos', 'sku')->ignore($producto)],
-            // decimal(10,2) en MySQL: el tope 99999.99 evita desbordes y el mínimo impide productos gratis.
+            // Precio dentro del rango de decimal(10,2)
             'precio'            => ['required', 'numeric', 'min:0.01', 'max:99999.99'],
             'descripcion'       => ['nullable', 'string'],
             'imagen_archivo'    => ['nullable', 'image', 'max:2048'],
@@ -143,7 +156,7 @@ class ProductoController extends Controller
             'galeria_archivos'  => ['nullable', 'array', 'max:6'],
             'galeria_archivos.*' => ['image', 'max:2048'],
             'galeria_quitar'    => ['nullable', 'array'],
-            // Al menos una talla con número, sin repetir (distinct) y con stock razonable.
+            // Al menos una talla, sin repetir
             'tallas'            => ['bail', 'required', 'array', 'min:1',
                 fn ($campo, $valor, $falla) => collect($valor)->contains(fn ($f) => isset($f['talla']) && $f['talla'] !== '') || $falla('Registra al menos una talla.')],
             'tallas.*.talla'    => ['nullable', 'numeric', 'between:15,50', 'distinct'],
@@ -161,7 +174,7 @@ class ProductoController extends Controller
             'galeria_archivos.*' => 'imagen secundaria',
         ]);
 
-        // Sincroniza la columna de texto 'marca' con el nombre de la marca elegida: el catálogo y sus filtros la siguen usando.
+        // Sincroniza el texto de la marca
         $datos['marca'] = Marca::whereKey($datos['marca_id'])->value('nombre');
 
         $datos['sku'] = strtoupper($datos['sku'] ?? '') ?: $this->generarSku($datos['marca'], $datos['nombre']);
@@ -189,6 +202,7 @@ class ProductoController extends Controller
         return $datos;
     }
 
+    // Genera un SKU único automático
     private function generarSku(string $marca, string $nombre): string
     {
         $parte = fn (string $texto) => str_pad(substr(strtoupper(Str::slug($texto, '')), 0, 3), 3, 'X');
@@ -201,7 +215,7 @@ class ProductoController extends Controller
         return $sku;
     }
 
-    // Crea o actualiza las filas de producto_tallas enviadas y borra las tallas quitadas del formulario.
+    // Guarda tallas y borra las quitadas
     private function sincronizarTallas(Producto $producto, array $filas): void
     {
         $tallasGuardadas = [];

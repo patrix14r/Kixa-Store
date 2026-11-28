@@ -3,7 +3,6 @@
 @section('titulo', 'Kixa Admin - Clientes')
 
 @section('contenido')
-{{-- Solo usuarios con rol cliente; sin columna ID --}}
 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
         <h1 class="text-2xl font-bold">Clientes</h1>

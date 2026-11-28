@@ -7,10 +7,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-// [Semana 9-10: Controladores, Request y Componentes] Clientes del admin (solo lectura y edición básica); no gestiona roles ni crea usuarios.
+// Clientes del panel (sin crear ni borrar)
 class ClienteController extends Controller
 {
-    // Lista solo usuarios con rol cliente usando el scope role() de Spatie y withCount('pedidos').
+    // Lista solo usuarios con rol cliente
     public function index(Request $request)
     {
         $buscar = trim((string) $request->query('buscar'));
@@ -28,6 +28,7 @@ class ClienteController extends Controller
         return view('admin.clientes.index', compact('clientes', 'buscar'));
     }
 
+    // Muestra el cliente y sus pedidos
     public function show(User $cliente)
     {
         abort_if($cliente->esAdmin(), 404);
@@ -37,6 +38,7 @@ class ClienteController extends Controller
         return view('admin.clientes.show', compact('cliente', 'pedidos'));
     }
 
+    // Formulario de edición del cliente
     public function edit(User $cliente)
     {
         abort_if($cliente->esAdmin(), 404);
@@ -44,6 +46,7 @@ class ClienteController extends Controller
         return view('admin.clientes.edit', compact('cliente'));
     }
 
+    // Actualiza los datos del cliente
     public function update(Request $request, User $cliente)
     {
         abort_if($cliente->esAdmin(), 404);

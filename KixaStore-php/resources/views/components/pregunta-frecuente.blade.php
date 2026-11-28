@@ -1,6 +1,4 @@
-{{-- [Sem 08 - Rutas y Vistas Blade]: componente anónimo <x-...> con @props y $slot --}}
-{{-- Pregunta del Centro de Ayuda: <x-pregunta-frecuente pregunta="..." abierta>respuesta</x-pregunta-frecuente> --}}
-{{-- Acordeón nativo <details> sin JavaScript; el "+" es un pseudo-elemento after: que gira 45° al abrirse (group-open) --}}
+{{-- Pregunta frecuente con acordeón --}}
 @props(['pregunta', 'abierta' => false])
 
 <details class="group border-b border-[#e5e5e5] last:border-b-0" @if ($abierta) open @endif>

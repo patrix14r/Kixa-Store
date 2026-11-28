@@ -1,13 +1,9 @@
-// ==========================================================================
-// TIENDA KIXA - VALIDACIÓN DE LOGIN Y REGISTRO (AUTH.JS)
-// Los formularios usan novalidate: aquí se validan con mensajes 100% en español
-// (sin "Please fill out this field." del navegador). El servidor vuelve a validar todo en AuthController.
-// ==========================================================================
+// Validación de login y registro en español
 
 document.querySelectorAll("[data-validar-auth]").forEach((form) => {
     const correoValido = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
 
-    // Reglas por name del input: devuelven el mensaje de error o "" si es válido
+    // Reglas de cada campo
     const reglas = {
         name: (v) => (v.length < 3 ? "Ingresa tu nombre completo." : ""),
         email: (v) => (!v ? "Ingresa tu correo electrónico." : !correoValido(v) ? "El correo no tiene un formato válido." : ""),

@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
-// Seeder principal que llama a los seeders en orden de dependencias (FK)
+// Llama a los seeders en orden
 class DatabaseSeeder extends Seeder
 {
     public function run(): void

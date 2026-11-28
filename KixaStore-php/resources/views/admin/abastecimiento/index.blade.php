@@ -11,7 +11,7 @@
     <a href="{{ route('admin.abastecimiento.create') }}" class="kx-btn-primary"><i class="fa-solid fa-plus"></i>Nuevo lote</a>
 </div>
 
-{{-- 4 tarjetas KPI compactas --}}
+{{-- Tarjetas KPI --}}
 <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
     <div class="kx-card flex items-center gap-4 p-4">
         <span class="flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-400"><i class="fa-solid fa-truck-ramp-box"></i></span>
@@ -51,7 +51,6 @@
                 <tr class="kx-row align-top">
                     <td class="kx-td font-semibold">{{ $orden->codigo_lote }}</td>
                     <td class="kx-td">{{ $orden->proveedor->razon_social }}</td>
-                    {{-- Una línea por fila del lote: producto · talla × cantidad (accessor talla_etiqueta para medias tallas) --}}
                     <td class="kx-td">
                         <ul class="space-y-0.5">
                             @foreach ($orden->detalles as $detalle)
@@ -66,14 +65,14 @@
                         <span class="{{ match ($orden->estado) { 'Recibido' => 'kx-badge-ok', 'Cancelado' => 'kx-badge-agotado', default => 'kx-badge-bajo' } }}">{{ $orden->estado }}</span>
                     </td>
                     <td class="kx-td">
-                        {{-- Guía de Abastecimiento / Orden de Compra en PDF: "Ver guía" abre la vista previa en otra pestaña y "Descargar" baja el archivo --}}
+                        {{-- Guía PDF: ver o descargar --}}
                         <div class="mb-2 flex justify-end gap-2">
                             <a href="{{ route('admin.abastecimiento.guia', $orden) }}" target="_blank" rel="noopener" class="kx-btn-ghost whitespace-nowrap px-3 py-1.5"><i class="fa-solid fa-file-pdf"></i>Ver guía</a>
                             <a href="{{ route('admin.abastecimiento.guia', ['orden' => $orden, 'descargar' => 1]) }}" class="kx-btn-ghost whitespace-nowrap px-3 py-1.5"><i class="fa-solid fa-download"></i>Descargar</a>
                         </div>
                         @if ($orden->estado === 'Pendiente')
                             <div class="flex justify-end gap-2">
-                                {{-- data-confirmar: app.js pide confirmación antes de sumar el stock de todas las tallas del lote --}}
+                                {{-- Confirmar recepción del lote --}}
                                 <form action="{{ route('admin.abastecimiento.recibir', $orden) }}" method="POST" data-confirmar="¿Llegó el lote {{ $orden->codigo_lote }} completo? Se sumarán {{ $orden->unidades }} pares al stock.">
                                     @csrf
                                     @method('PATCH')
@@ -99,7 +98,7 @@
 
 <div class="mt-4">{{ $ordenes->links() }}</div>
 
-{{-- Mini-tabla "Más urgentes": máximo 5 filas, con enlace directo a crear la orden de esa talla --}}
+{{-- Tallas más urgentes --}}
 @if ($urgentes->isNotEmpty())
     <div class="kx-card mt-6 overflow-x-auto">
         <div class="flex items-center justify-between px-5 pt-5">

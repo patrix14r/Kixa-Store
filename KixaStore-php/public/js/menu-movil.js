@@ -1,7 +1,4 @@
-// ==========================================================================
-// TIENDA KIXA - MENÚ HAMBURGUESA DEL HEADER EN TELÉFONOS (MENU-MOVIL.JS)
-// Abre y cierra el menú lateral deslizable; se cierra con el fondo, la X o Escape
-// ==========================================================================
+// Menú hamburguesa en teléfonos
 
 (() => {
     const menu = document.getElementById("menu-movil");

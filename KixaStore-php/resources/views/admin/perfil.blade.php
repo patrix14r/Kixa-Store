@@ -3,7 +3,6 @@
 @section('titulo', 'Kixa Admin - Mi Perfil')
 
 @section('contenido')
-{{-- Perfil del administrador dentro del layout oscuro del panel --}}
 <h1 class="text-2xl font-bold">Mi Perfil</h1>
 <p class="text-sm kx-muted">Datos de tu cuenta de administrador.</p>
 

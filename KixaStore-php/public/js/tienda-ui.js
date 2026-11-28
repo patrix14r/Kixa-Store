@@ -1,14 +1,5 @@
-// ==========================================================================
-// TIENDA KIXA - UI GLOBAL DEL MODO CLIENTE (TIENDA-UI.JS)
-// Extraído de resources/views/layouts/app.blade.php para separar la lógica JS de las vistas Blade.
-// Incluye:
-//   1. Contadores del header (#cart-count y #fav-count) -> actualizarBadgesHeader()
-//   2. Efecto vidrio al hacer scroll en el navbar del home (#navbar-principal)
-//   3. Botones de corazón en tarjetas (.btn-fav-card) -> kxPintarFavoritos()
-//   4. Campos con data-solo-digitos (DNI y teléfono en registro, perfil y checkout): borran todo lo que no sea número
-// ==========================================================================
 
-// Actualiza los globos rojos de favoritos y carrito en el header (también lo llaman carrito.js, favoritos.js y producto-dinamico.js)
+// Actualiza contadores de favoritos y carrito
 function actualizarBadgesHeader() {
   try {
     const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
@@ -38,7 +29,7 @@ function actualizarBadgesHeader() {
   }
 }
 
-// Header de vidrio del home: al bajar más de 40px adopta el carbón casi opaco
+// Header de vidrio al hacer scroll
 (() => {
   const navbar = document.getElementById('navbar-principal');
   if (!navbar || !navbar.classList.contains('navbar--glass')) return;
@@ -47,8 +38,8 @@ function actualizarBadgesHeader() {
   window.addEventListener('scroll', alScroll, { passive: true });
 })();
 
-// Corazón de las tarjetas (.btn-fav-card): se pinta al cargar y tras recargas AJAX (catalogo-filtros.js)
 const corazonLleno = '<i class="fa-solid fa-heart text-[#ed001b]"></i>';
+// Pinta los corazones de favoritos
 function kxPintarFavoritos(raiz = document) {
   const favs = JSON.parse(localStorage.getItem('favoritos')) || [];
   raiz.querySelectorAll('.btn-fav-card').forEach((btn) => {
@@ -63,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   kxPintarFavoritos();
 });
 
-// Delegación de clics para agregar o quitar favoritos desde cualquier tarjeta de producto
+// Agrega o quita favoritos desde tarjetas
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('.btn-fav-card');
   if (!btn) return;
@@ -97,10 +88,10 @@ document.addEventListener('click', (e) => {
   actualizarBadgesHeader();
 });
 
-// Mantiene sincronizados los contadores si el cliente abre varias pestañas
+// Sincroniza contadores entre pestañas
 window.addEventListener('storage', actualizarBadgesHeader);
 
-// Campos con data-solo-digitos: un solo listener delegado reemplaza los oninput repetidos en registro, perfil y checkout
+// Campos que solo aceptan dígitos
 document.addEventListener('input', (e) => {
   if (e.target.matches?.('[data-solo-digitos]')) e.target.value = e.target.value.replace(/\D/g, '');
 });

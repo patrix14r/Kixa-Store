@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-// [Sem 11 - Migraciones, Seeders y Roles]: proveedores = distribuidoras mayoristas peruanas (a quién se le compra), distintas de las Marcas (quién fabrica); los RUC tienen dígito verificador SUNAT válido.
+// Distribuidoras mayoristas con RUC válido
 class ProveedorSeeder extends Seeder
 {
     public function run(): void

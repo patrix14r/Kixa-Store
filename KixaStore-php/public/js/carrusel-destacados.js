@@ -1,8 +1,4 @@
-// ==========================================================================
-// TIENDA KIXA - CARRUSEL "LO DESTACADO" DEL HOME (CARRUSEL-DESTACADOS.JS)
-// Pista con scroll-snap (también se desliza con el dedo) + flechas, indicadores y avance automático cada 4 s.
-// El avance se pausa con el mouse encima, al enfocar con teclado o con la pestaña oculta, y no corre con "reducir movimiento".
-// ==========================================================================
+// Carrusel de destacados del home
 
 (() => {
     const pista = document.getElementById("destacado-pista");
@@ -18,7 +14,7 @@
     const reducirMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const CLASE_PUNTO = "h-2 w-2 cursor-pointer rounded-full border-none bg-[#cacacb] p-0 transition-[width,background-color] duration-300 hover:bg-suave aria-[current=true]:w-6 aria-[current=true]:bg-tinta";
 
-    let porVista = 1;   // tarjetas completas en pantalla: 4 escritorio, 3 tablet, 1 teléfono
+    let porVista = 1;
     let paginas = 1;
     let actual = 0;
     let temporizador = null;
@@ -30,7 +26,6 @@
         return Math.max(1, Math.floor((pista.clientWidth + gap) / (ancho + gap) + 0.01));
     };
 
-    // Primera tarjeta de cada página; la última se ajusta para que no queden huecos al final
     const inicioDePagina = (p) => Math.min(p * porVista, Math.max(0, tarjetas.length - porVista));
     const desplazamiento = (p) => tarjetas[inicioDePagina(p)].offsetLeft - tarjetas[0].offsetLeft;
 
@@ -49,16 +44,14 @@
         pintarPuntos();
     };
 
-    // Da la vuelta: después de la última página vuelve a la primera (y al revés con la flecha izquierda)
+    // Va a una página del carrusel
     const irA = (p, suave = true) => {
         actual = (p + paginas) % paginas;
         pista.scrollTo({ left: desplazamiento(actual), behavior: suave && !reducirMovimiento ? "smooth" : "auto" });
         pintarPuntos();
     };
 
-    // --------------------------------------------------------------------------
     // Avance automático cada 4 segundos
-    // --------------------------------------------------------------------------
     const detener = () => {
         clearInterval(temporizador);
         temporizador = null;
@@ -84,10 +77,10 @@
     seccion.addEventListener("focusout", (e) => {
         if (!seccion.contains(e.relatedTarget)) reanudar();
     });
-    pista.addEventListener("touchstart", pausar, { passive: true }); // en el celular, tocar la pista detiene el avance
+    pista.addEventListener("touchstart", pausar, { passive: true });
     document.addEventListener("visibilitychange", () => (document.hidden ? detener() : iniciar()));
 
-    // Flechas e indicadores: mueven la pista y reinician los 4 s
+    // Flechas e indicadores
     prev.addEventListener("click", () => { irA(actual - 1); iniciar(); });
     next.addEventListener("click", () => { irA(actual + 1); iniciar(); });
     puntos.addEventListener("click", (e) => {
@@ -98,7 +91,7 @@
         }
     });
 
-    // Al deslizar con el dedo o el trackpad, el indicador sigue a la página más cercana
+    // El indicador sigue al deslizar
     let esperaScroll;
     pista.addEventListener("scroll", () => {
         clearTimeout(esperaScroll);

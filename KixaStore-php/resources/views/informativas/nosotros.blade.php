@@ -3,7 +3,7 @@
 @section('titulo', 'Acerca de | KixaStore')
 
 @section('contenido')
-    {{-- Página "Acerca de" (rúbrica 5.2) con @extends, @section y anclas al Centro de Ayuda --}}
+    {{-- Página Acerca de --}}
     <div class="bg-white text-tinta">
         <section class="border-b border-[#ececec] bg-perla px-5 pt-20 pb-16 text-center">
             <span class="inline-block text-[11px] font-semibold tracking-[0.2em] text-suave">ACERCA DE</span>
@@ -27,7 +27,7 @@
                 </div>
             </section>
 
-            {{-- Misión y Visión: la franja negra superior es un pseudo-elemento before: --}}
+            {{-- Misión y visión --}}
             <section class="mt-10 grid grid-cols-2 gap-4 max-escritorio:grid-cols-1 [&>article]:relative [&>article]:overflow-hidden [&>article]:rounded-2xl [&>article]:border [&>article]:border-[#ececec] [&>article]:bg-perla [&>article]:p-6 [&>article]:before:absolute [&>article]:before:top-0 [&>article]:before:left-0 [&>article]:before:h-[3px] [&>article]:before:w-full [&>article]:before:bg-tinta [&>article]:before:content-[''] [&_h3]:mb-1.5 [&_h3]:text-[1.05rem] [&_h3]:font-bold [&_h3]:tracking-[0.5px] [&_h3]:uppercase [&_p]:text-[13px] [&_p]:leading-[1.7] [&_p]:text-[#52525b]">
                 <article>
                     <span class="mb-3.5 flex size-10 items-center justify-center rounded-xl bg-white text-[16px] text-tinta"><i class="fa-solid fa-bullseye"></i></span>
@@ -68,9 +68,8 @@
                 </div>
             </section>
 
-            {{-- Centro de Ayuda integrado (acordeón nativo <details>, sin JavaScript) --}}
+            {{-- Centro de ayuda --}}
             <section class="-mx-[5%] mt-[72px] scroll-mt-24 rounded-3xl bg-perla px-[5%] py-16" id="centro-ayuda">
-                {{-- Ancla de los enlaces "Obtener ayuda" del footer --}}
                 <div class="mx-auto mb-8 max-w-[560px] scroll-mt-[110px] text-center" id="preguntas-frecuentes">
                     <span class="inline-block text-[11px] font-semibold tracking-[0.2em] text-suave">CENTRO DE AYUDA</span>
                     <h2 class="mt-1.5 mb-3 text-[1.6rem] leading-[1.3] font-bold tracking-[-0.02em]">Preguntas frecuentes</h2>
@@ -112,7 +111,7 @@
                 </div>
             </section>
 
-            {{-- Ubícanos: mapa de la sede y datos de atención --}}
+            {{-- Ubícanos: mapa de la sede --}}
             <section class="relative flex scroll-mt-[100px] flex-col gap-5 rounded-3xl border border-white/60 bg-white/90 p-7 text-tinta shadow-[0_24px_60px_-24px_rgba(0,0,0,0.45)] backdrop-blur-[18px] max-[520px]:p-5" id="ubicanos" aria-labelledby="titulo-sede">
                 <div class="flex items-center gap-3.5">
                     <span class="inline-flex size-[42px] shrink-0 items-center justify-center rounded-xl border border-[#e4e4e7] bg-perla text-tinta">

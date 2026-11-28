@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-// [Sem 12 - Eloquent ORM]: fila de un lote de abastecimiento (tabla detalles_abastecimiento): qué talla, cuántos pares y a qué costo.
+// Fila de un lote de abastecimiento
 #[Fillable(['orden_abastecimiento_id', 'producto_talla_id', 'cantidad', 'costo_unitario', 'subtotal'])]
 class DetalleAbastecimiento extends Model
 {
     protected $table = 'detalles_abastecimiento';
 
+    // Convierte cantidad y montos a número
     protected function casts(): array
     {
         return [
@@ -22,19 +23,19 @@ class DetalleAbastecimiento extends Model
         ];
     }
 
-    // Accessor: $detalle->ganancia_estimada = (precio de venta actual - costo unitario) × cantidad.
+    // Ganancia estimada de la fila
     protected function gananciaEstimada(): Attribute
     {
         return Attribute::get(fn () => round(((float) $this->talla?->producto?->precio - (float) $this->costo_unitario) * $this->cantidad, 2));
     }
 
-    // Relación BelongsTo: la fila pertenece a un lote (FK orden_abastecimiento_id).
+    // La fila pertenece a un lote
     public function orden(): BelongsTo
     {
         return $this->belongsTo(OrdenAbastecimiento::class, 'orden_abastecimiento_id');
     }
 
-    // Relación BelongsTo: la talla (y por ella el producto) que se repone.
+    // Talla que se repone
     public function talla(): BelongsTo
     {
         return $this->belongsTo(ProductoTalla::class, 'producto_talla_id');

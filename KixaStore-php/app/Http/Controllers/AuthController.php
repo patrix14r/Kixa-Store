@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 
-// [Semana 9-10: Controladores, Request y Componentes] Perfil del cliente; login, registro y logout los maneja Laravel Fortify.
+// Perfil del cliente
 class AuthController extends Controller
 {
-    // Una sola vista con pestañas; la sección llega por la ruta /perfil/{seccion?}.
+    // Muestra el perfil según la pestaña
     public function perfil(?string $seccion = null)
     {
         $usuario = Auth::user();
@@ -22,7 +22,7 @@ class AuthController extends Controller
         return view('auth.perfil', compact('usuario', 'pedidos', 'seccion', 'pasos'));
     }
 
-    // [Sem 09 - Controladores y Middleware]: único punto para cambiar la clave; exige la contraseña actual (current_password).
+    // Cambia la contraseña pidiendo la actual
     public function actualizarPassword(Request $request)
     {
         /** @var \App\Models\User $usuario */
@@ -42,6 +42,7 @@ class AuthController extends Controller
         return redirect()->route('perfil')->with('exito', 'Tu contraseña se actualizó correctamente.');
     }
 
+    // Guarda la dirección predeterminada
     public function actualizarDireccion(Request $request)
     {
         $datos = $request->validate([
@@ -53,7 +54,7 @@ class AuthController extends Controller
         return redirect()->route('perfil', 'direcciones')->with('exito', 'Dirección predeterminada guardada.');
     }
 
-    // [Sem 09 - Controladores y Middleware]: PUT /perfil solo cambia datos personales; la clave se cambia únicamente en actualizarPassword().
+    // Actualiza datos personales y foto
     public function actualizarPerfil(Request $request)
     {
         /** @var \App\Models\User $usuario */

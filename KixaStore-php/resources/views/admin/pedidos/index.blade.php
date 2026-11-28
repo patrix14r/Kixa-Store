@@ -3,7 +3,7 @@
 @section('titulo', 'Kixa Admin - Pedidos')
 
 @section('contenido')
-{{-- Proceso 2 - Gestión y despacho de pedidos; cliente por nombre y sin IDs (Reglas 4.4 y 4.5) --}}
+{{-- Gestión de pedidos --}}
 <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
     <div>
         <h1 class="text-2xl font-bold">Pedidos</h1>
@@ -19,7 +19,7 @@
     </form>
 </div>
 
-{{-- Tarjetas con los totales reales de MySQL --}}
+{{-- Tarjetas de resumen --}}
 <div class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
     @foreach ($resumen as $tarjeta)
         <div class="kx-card p-5 {{ $loop->last ? 'col-span-2 md:col-span-1' : '' }}">
@@ -32,7 +32,7 @@
     @endforeach
 </div>
 
-{{-- Pestañas por estado con su contador --}}
+{{-- Pestañas por estado --}}
 <div class="mt-6 flex flex-wrap gap-1 rounded-xl border border-zinc-800 bg-[#09090b] p-1 text-sm">
     <a href="{{ route('admin.pedidos.index', array_filter(['buscar' => $buscar])) }}" class="kx-tab {{ $estado ? '' : 'kx-tab-activa' }}">Todos <span class="kx-muted">{{ $conteos->sum() }}</span></a>
     @foreach ($estados as $opcion)
@@ -64,12 +64,11 @@
                     <p class="text-xs kx-muted">Total</p>
                     <p class="font-semibold">S/ {{ number_format($pedido->total, 2) }}</p>
                 </div>
-                {{-- Cambio de estado con PATCH; el toast confirma el cambio --}}
+                {{-- Cambio de estado del pedido --}}
                 <form action="{{ route('admin.pedidos.estado', $pedido) }}" method="POST" class="col-span-2 flex items-center gap-2 md:col-span-1">
                     @csrf
                     @method('PATCH')
                     <x-admin.estado-pedido :estado="$pedido->estado" />
-                    {{-- Solo se habilitan los estados permitidos por PedidoController::TRANSICIONES --}}
                     <select name="estado" class="kx-input py-2" aria-label="Cambiar estado" onchange="this.form.submit()" @disabled(empty($transiciones[$pedido->estado]))>
                         @foreach ($estados as $opcion)
                             <option value="{{ $opcion }}" @selected($pedido->estado === $opcion) @disabled($pedido->estado !== $opcion && ! in_array($opcion, $transiciones[$pedido->estado] ?? [], true))>{{ $opcion }}</option>
@@ -77,11 +76,10 @@
                     </select>
                 </form>
             </div>
-            {{-- Barra de 4 pasos sincronizada con el perfil del cliente --}}
             <div class="mt-5 border-t border-zinc-800/80 pt-5">
                 <x-admin.seguimiento-pedido :pedido="$pedido" />
             </div>
-            {{-- Detalle plegable + boleta PDF (BoletaController; la URL usa codigo_orden, nunca el ID): vista previa en otra pestaña o descarga con ?descargar=1 --}}
+            {{-- Detalle y boleta PDF --}}
             <div class="mt-4 flex flex-wrap items-start justify-between gap-3 border-t border-zinc-800/80 pt-3">
                 <details class="min-w-0 flex-1">
                     <summary class="cursor-pointer rounded text-sm kx-muted outline-none hover:text-white focus:outline-none focus-visible:text-white">{{ $pedido->items->sum('cantidad') }} {{ $pedido->items->sum('cantidad') === 1 ? 'zapatilla' : 'zapatillas' }} · {{ $pedido->direccion_envio }}</summary>

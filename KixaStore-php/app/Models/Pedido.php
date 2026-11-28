@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-// [Semana 12-13: Eloquent ORM, Relaciones y los 7 métodos de Route::resource] Modelo de pedidos: guarda totales con IGV y su estado de envío.
+// Modelo de pedidos con totales e IGV
 #[Fillable([
     'user_id',
     'codigo_orden',
@@ -38,11 +38,11 @@ class Pedido extends Model
         'tarjeta_ultimos4',
     ];
 
-    // Regla única de envío: gratis en la primera compra o desde S/ 200 en productos; si no, S/ 15.00.
+    // Regla de envío: costo y mínimo gratis
     public const COSTO_ENVIO = 15.00;
     public const ENVIO_GRATIS_DESDE = 200.00;
 
-    // casts() mantiene subtotal, igv, envío y total con 2 decimales.
+    // Montos con 2 decimales
     protected function casts(): array
     {
         return [
@@ -53,20 +53,20 @@ class Pedido extends Model
         ];
     }
 
-    // [Sem 12 - Eloquent ORM]: la misma regla la usan CarritoController@procesar, /carrito, /checkout (carrito.js) y el FAQ de Nosotros.
+    // Calcula el costo de envío
     public static function calcularEnvio(float $montoProductos, bool $primeraCompra): float
     {
         return ($primeraCompra || $montoProductos >= self::ENVIO_GRATIS_DESDE) ? 0.0 : self::COSTO_ENVIO;
     }
 
-    // Texto de la regla para el FAQ y la ficha de producto (sale de las constantes, así nunca se desincroniza).
+    // Texto de la regla de envío
     public static function textoReglaEnvio(): string
     {
         return 'El envío es gratis en tu primera compra o cuando tus productos suman S/ ' . number_format(self::ENVIO_GRATIS_DESDE, 2)
             . ' o más; en los demás casos cuesta S/ ' . number_format(self::COSTO_ENVIO, 2) . '.';
     }
 
-    // [Sem 08 - Rutas y Vistas Blade]: La URL del admin usa el código de orden (/admin/pedidos/PED-AB12CD/estado) en vez del ID autoincremental.
+    // Usa el código de orden en la URL
     public function getRouteKeyName(): string
     {
         return 'codigo_orden';
@@ -74,7 +74,7 @@ class Pedido extends Model
 
     public const PASOS =['Confirmado', 'En preparación', 'En camino', 'Entregado'];
 
-    // Accessor: $pedido->paso_seguimiento traduce el estado (Pendiente, Pagado...) a un número de 1 a 4 para la barra de progreso.
+    // Paso de la barra de seguimiento
     protected function pasoSeguimiento(): Attribute
     {
         return Attribute::get(fn () => match ($this->estado) {
@@ -86,7 +86,7 @@ class Pedido extends Model
         });
     }
 
-    // Accessor: $pedido->metodo_pago_detalle muestra "Tarjeta •••• 4242" o "Contraentrega" en el perfil y en el panel.
+    // Método de pago con últimos 4 dígitos
     protected function metodoPagoDetalle(): Attribute
     {
         return Attribute::get(fn () => $this->tarjeta_ultimos4
@@ -94,13 +94,13 @@ class Pedido extends Model
             : $this->metodo_pago);
     }
 
-    // Relación BelongsTo: el pedido pertenece al cliente que compró (FK user_id).
+    // Cliente dueño del pedido
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Relación HasMany: un pedido tiene muchas líneas en la tabla order_items.
+    // Líneas del pedido
     public function items(): HasMany
     {
         return $this->hasMany(DetallePedido::class, 'pedido_id');

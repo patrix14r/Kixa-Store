@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
-// [Sem 12 - Eloquent ORM]: Fortify llama a create() al registrarse; aquí se valida, se crea el User y se le asigna el rol cliente con Spatie
+// Registra un cliente nuevo con Fortify
 class CreateNewUser implements CreatesNewUsers
 {
     /**
@@ -39,7 +39,7 @@ class CreateNewUser implements CreatesNewUsers
             'password' => Hash::make($input['password']),
         ]);
 
-        // [Sem 11 - Migraciones, Seeders y Roles]: assignRole() inserta la fila en model_has_roles (Spatie).
+        // Asigna el rol cliente
         $user->assignRole('cliente');
 
         return $user;

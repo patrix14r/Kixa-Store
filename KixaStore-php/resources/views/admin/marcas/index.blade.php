@@ -1,6 +1,5 @@
 @extends('layouts.admin')
 
-{{-- [Sem 08 - Rutas y Vistas Blade]: @extends hereda el layout admin y @section rellena título y contenido. --}}
 @section('titulo', 'Kixa Admin - Marcas')
 
 @section('contenido')
@@ -12,7 +11,7 @@
     <a href="{{ route('admin.marcas.create') }}" class="kx-btn-primary"><i class="fa-solid fa-plus"></i>Nueva marca</a>
 </div>
 
-{{-- Buscador GET: el controlador lee ?buscar= con $request->query() y filtra por nombre. --}}
+{{-- Buscador de marcas --}}
 <form method="GET" action="{{ route('admin.marcas.index') }}" class="mt-6 flex gap-3">
     <input type="search" name="buscar" value="{{ $buscar }}" class="kx-input max-w-sm" placeholder="Buscar marca por nombre" maxlength="50">
     <button type="submit" class="kx-btn-ghost"><i class="fa-solid fa-magnifying-glass"></i>Buscar</button>
@@ -34,12 +33,10 @@
             </tr>
         </thead>
         <tbody>
-            {{-- [Sem 13 - CRUDs, Query Builder y Paginación]: @forelse con @empty; productos_count viene de withCount('productos'); no se muestra el ID. --}}
             @forelse ($marcas as $marca)
                 <tr class="kx-row">
                     <td class="kx-td">
                         @if ($marca->url_logo)
-                            {{-- Contenedor claro uniforme para que logos negros o de colores se vean limpios en el tema oscuro --}}
                             <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/95 p-1"><img src="{{ $marca->url_logo }}" alt="Logo {{ $marca->nombre }}" class="max-h-full max-w-full object-contain"></span>
                         @else
                             <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-800 font-bold">{{ mb_substr($marca->nombre, 0, 1) }}</span>
@@ -53,7 +50,6 @@
                     </td>
                     <td class="kx-td">
                         <div class="flex justify-end gap-2">
-                            {{-- route() recibe el modelo y Laravel usa su slug (getRouteKeyName). --}}
                             <a href="{{ route('admin.marcas.edit', $marca) }}" class="kx-btn-ghost px-3 py-1.5"><i class="fa-solid fa-pen"></i>Editar</a>
                             <form action="{{ route('admin.marcas.estado', $marca) }}" method="POST">
                                 @csrf

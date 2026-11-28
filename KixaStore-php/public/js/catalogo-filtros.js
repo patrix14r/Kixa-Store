@@ -1,22 +1,15 @@
-// ==========================================================================
-// TIENDA KIXA - FILTROS DEL CATÁLOGO ESTILO NIKE (CATALOGO-FILTROS.JS)
-// Desktop: oculta/muestra el sidebar. Móvil: abre un drawer.
-// Filtros, orden, búsqueda y paginación se cargan con fetch: CatalogoController devuelve solo el
-// @fragment('zona-catalogo') y se reemplaza #zona-catalogo, sin el parpadeo del header ni del banner.
-// ==========================================================================
+// Filtros del catálogo sin recargar
 
 (() => {
     const zona = document.getElementById("zona-catalogo");
     if (!zona) return;
 
-    // Los botones viven dentro del fragmento que se reemplaza: por eso se buscan cada vez y los clics se escuchan en #zona-catalogo (delegación)
     const cuerpo = () => document.getElementById("kx-catalogo-cuerpo");
     const fondo = () => document.getElementById("kx-filtros-fondo");
     const esMovil = () => window.matchMedia("(max-width: 900px)").matches;
-    // /catalogo y /catalogo/todos son la misma página
     const ruta = (pathname) => pathname.replace(/\/todos\/?$/, "").replace(/\/$/, "");
 
-    // Si la URL trae filtros, orden o página, se queda en la grilla y no salta al banner
+    // Con filtros se queda en la grilla
     const params = new URLSearchParams(location.search);
     if (["marca", "sub", "talla", "orden", "buscar", "page"].some((p) => params.has(p))) {
         zona.scrollIntoView({ behavior: "instant", block: "start" });
@@ -36,12 +29,9 @@
         pintarBoton(abrir);
     };
 
-    // En móvil el sidebar arranca cerrado
     if (esMovil()) pintarBoton(false);
 
-    // --------------------------------------------------------------------------
-    // Estado visual que se conserva al reemplazar el HTML (filtros ocultos, drawer y acordeones abiertos)
-    // --------------------------------------------------------------------------
+    // Guarda el estado visual de los filtros
     const leerEstado = () => ({
         ocultos: cuerpo()?.classList.contains("filtros-ocultos") ?? false,
         drawer: cuerpo()?.classList.contains("drawer-abierto") ?? false,
@@ -63,10 +53,8 @@
         if (filtros) filtros.scrollTop = estado.scrollFiltros;
     };
 
-    // --------------------------------------------------------------------------
-    // Carga por fetch: cabecera X-Requested-With para que $request->ajax() sea true en CatalogoController
-    // --------------------------------------------------------------------------
-    let peticion = null; // AbortController de la última carga: un clic nuevo cancela la anterior
+    // Carga de la grilla por fetch
+    let peticion = null;
 
     async function cargar(url) {
         const destino = new URL(url, location.href);
@@ -86,16 +74,14 @@
             zona.innerHTML = html;
             aplicarEstado(estado);
 
-            // replaceState cambia la URL (para compartirla o recargar) sin agregar una entrada al historial
             history.replaceState(history.state, "", `${destino.pathname}${destino.search}#zona-catalogo`);
             const titulo = zona.querySelector("[data-titulo-pagina]")?.dataset.tituloPagina;
             if (titulo) document.title = titulo;
             if (typeof kxPintarFavoritos === "function") kxPintarFavoritos(zona);
 
-            // Si el inicio del catálogo quedó arriba de la pantalla (p. ej. al paginar desde abajo), se vuelve a él
             if (zona.getBoundingClientRect().top < 0) zona.scrollIntoView({ behavior: "smooth", block: "start" });
         } catch (error) {
-            // Si algo falla, se navega de forma normal para no dejar al cliente sin resultados
+            // Si falla, navega normal
             if (error.name !== "AbortError") window.location.href = destino.href;
         } finally {
             if (peticion === actual) zona.removeAttribute("aria-busy");
@@ -116,7 +102,7 @@
             return;
         }
 
-        // Filtros, "Limpiar filtros" y paginación de la misma categoría → fetch; otra categoría (otro banner) navega normal
+        // Filtros y paginación por fetch
         const enlace = e.target.closest("a[href]");
         if (!enlace || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         const url = new URL(enlace.href, location.href);
@@ -125,7 +111,7 @@
         cargar(url.href);
     });
 
-    // "Ordenar por": arma la URL con los campos del formulario (sin ?page para volver a la página 1)
+    // Cambiar el orden vuelve a página 1
     zona.addEventListener("change", (e) => {
         const select = e.target.closest("[data-form-orden] select");
         if (!select) return;
@@ -136,7 +122,7 @@
         cargar(url.href);
     });
 
-    // Buscador del header: en el catálogo también se resuelve por fetch
+    // Buscador del header también por fetch
     document.querySelector('form[role="search"]')?.addEventListener("submit", (e) => {
         e.preventDefault();
         const url = new URL(e.currentTarget.action, location.href);

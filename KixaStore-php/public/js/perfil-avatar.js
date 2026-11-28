@@ -1,7 +1,4 @@
-// ==========================================================================
-// TIENDA KIXA - PERFIL DEL CLIENTE (PERFIL-AVATAR.JS): foto de perfil y modo edición
-// Al elegir una imagen muestra el nombre y la vista previa, y envía el formulario para guardarla
-// ==========================================================================
+// Foto de perfil y modo edición
 
 (() => {
     const input = document.getElementById("inputAvatar");
@@ -16,7 +13,7 @@
 
         if (nombre) nombre.textContent = `Subiendo: ${archivo.name}...`;
 
-        // Vista previa inmediata (reemplaza la inicial si aún no había foto)
+        // Vista previa de la foto
         let foto = document.getElementById("fotoPerfil");
         if (!foto) {
             foto = document.createElement("img");
@@ -30,7 +27,7 @@
     });
 })();
 
-// Botones EDITAR / Cancelar del perfil: alternan la tarjeta entre lectura y edición (antes era un <script> dentro de auth/perfil.blade.php)
+// Alterna entre ver y editar
 document.querySelectorAll("[data-alternar-edicion]").forEach((btn) => {
     btn.addEventListener("click", () => btn.closest("[data-editable]")?.classList.toggle("editando"));
 });

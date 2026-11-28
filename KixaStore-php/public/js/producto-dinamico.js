@@ -1,24 +1,15 @@
-// ==========================================================================
-// TIENDA KIXA - FICHA DE PRODUCTO (PRODUCTO-DINAMICO.JS)
-// Los datos del producto llegan desde Blade (atributos data-* Que arma CatalogoController@show)
-// ==========================================================================
-
-// ==========================================================================
-// [BLOQUE]: INTERACTIVIDAD DE FICHA DE PRODUCTO Y AGREGAR AL CARRITO
-// ==========================================================================
+// Ficha de producto: tallas y carrito
 
 document.addEventListener("DOMContentLoaded", () => {
-    // [CAMBIO: SE DESACTIVA LA VALIDACION ANTIGUA QUE SOBREESCRIBIA EL HTML CON ERROR ESTATICO]
-    // [CAMBIO: LA INFORMACION AHORA SE MUESTRA DIRECTAMENTE DESDE EL MODELO ELOQUENT EN BLADE]
 
-    // [CAMBIO: SELECCION INTERACTIVA DE TALLAS RENDERIZADAS POR BLADE]
+    // Selección de talla
     let selectedSize = null;
     let selectedStock = 0;
     const sizeButtons = document.querySelectorAll(".size-btn");
     const avisoEscasez = document.getElementById("aviso-escasez");
     const ultimasUnidades = Number(document.getElementById("sizes")?.dataset.ultimasUnidades) || 3;
 
-    // Marketing de escasez: con 1 a 3 pares en la talla elegida aparece "¡Últimas X unidades disponibles!"
+    // Aviso de últimas unidades
     const pintarEscasez = (stock) => {
         if (!avisoEscasez) return;
         const mostrar = stock >= 1 && stock <= ultimasUnidades;
@@ -30,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     sizeButtons.forEach(btn => {
         btn.addEventListener("click", () => {
-            // [CAMBIO: NO PERMITIR SELECCIONAR TALLAS AGOTADAS O DESHABILITADAS]
+            // Ignora tallas agotadas
             if (btn.disabled || btn.classList.contains("disabled") || btn.classList.contains("agotado")) {
                 return;
             }
@@ -43,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // [CAMBIO: BOTON PARA AGREGAR AL CARRITO CON DATOS REALES DE MYSQL]
+    // Botones de carrito y favoritos
     const addBtn = document.getElementById("addBtn");
     const favBtn = document.getElementById("favBtn");
     const toast = document.getElementById("toast");
@@ -52,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const priceEl = document.getElementById("productPrice");
     const skuEl = document.getElementById("productSku");
 
-    // Verificar si el producto ya está en favoritos para pintar el corazón
+    // Corazón de favoritos
     if (favBtn) {
         const prodId = favBtn.dataset.id || (skuEl ? skuEl.innerText.trim() : "");
         const favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
@@ -97,9 +88,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (addBtn) {
         addBtn.addEventListener("click", () => {
-            // [CAMBIO: VALIDACION DE TALLA SELECCIONADA ANTES DE AGREGAR AL CARRITO]
+            // Exige elegir una talla
             if (!selectedSize) {
-                // Aviso flotante + sacudida suave (animate-sacudir del tema) y borde rojo (ring) en el bloque de tallas
                 if (typeof kxToast === "function") kxToast("Selecciona una talla disponible antes de agregar al carrito.", "error");
                 const bloqueTallas = document.getElementById("sizes");
                 if (bloqueTallas) {
@@ -112,7 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // Extraer datos con respaldo robusto
             const rawPrice = addBtn.dataset.precio || (priceEl ? priceEl.innerText.replace(/[^0-9.]/g, '') : "0");
             const pId = addBtn.dataset.id || (skuEl ? skuEl.innerText.trim() : "PROD");
             const pSku = addBtn.dataset.sku || (skuEl ? skuEl.innerText.trim() : "");
@@ -127,14 +116,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 talla: selectedSize,
                 imagen: pImagen,
                 cantidad: 1,
-                // Datos extra para el selector de talla y la línea de categoría
                 marca: addBtn.dataset.marca || "",
                 tipo: addBtn.dataset.tipo || "",
                 tallas: [...document.querySelectorAll(".size-btn:not([disabled])")].map((b) => b.dataset.talla)
             };
 
             const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-            // Si ya existe el mismo producto en la misma talla, se suma la cantidad (máx. 10 y nunca más que el stock real) en vez de crear otra línea
+            // Suma si ya está la misma talla
             const tope = Math.min(10, selectedStock || 10);
             const existente = carrito.find((p) => String(p.sku || p.id) === String(pSku || pId) && String(p.talla) === String(selectedSize));
             if (existente && (Number(existente.cantidad) || 1) >= tope) {
@@ -148,22 +136,20 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             localStorage.setItem("carrito", JSON.stringify(carrito));
 
-            // [CAMBIO: ACTUALIZAR BADGE DE CONTADOR DEL CARRITO EN EL HEADER]
+            // Actualiza el contador del header
             if (typeof actualizarBadgesHeader === "function") {
                 actualizarBadgesHeader();
             }
 
-            // Confirmación flotante con el resumen del carrito
             mostrarModalCarrito(item, addBtn.dataset.tipo || "", carrito);
         });
     }
 });
 
-// Rellena y abre el modal con blur; se cierra con la X, el fondo, "Seguir comprando" o Escape
+// Abre el modal de agregado al carrito
 function mostrarModalCarrito(item, tipo, carrito) {
     const modal = document.getElementById("modalCarrito");
     if (!modal) return;
-    // Los avisos de error previos (p. ej. "Selecciona una talla") no deben quedar encima del modal
     if (typeof kxToastLimpiar === "function") kxToastLimpiar("error");
 
     const soles = (n) => `S/ ${Number(n).toFixed(2)}`;
@@ -195,7 +181,7 @@ function mostrarModalCarrito(item, tipo, carrito) {
     modal.querySelector("[data-enfocar]")?.focus();
 }
 
-// Al hacer clic en una miniatura se muestra como foto principal
+// Miniaturas cambian la foto principal
 document.addEventListener("DOMContentLoaded", () => {
     const thumbs = document.getElementById("thumbs");
     const principal = document.getElementById("mainImage");

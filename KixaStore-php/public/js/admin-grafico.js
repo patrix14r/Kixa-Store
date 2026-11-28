@@ -1,4 +1,4 @@
-// Gráficos del dashboard admin (Chart.js 4 por CDN): barras "Productos por Marca" y área "Estadísticas de Ingresos" con pestañas 7 / 30 días.
+// Gráficos del dashboard con Chart.js
 document.addEventListener("DOMContentLoaded", () => {
     if (typeof Chart === "undefined") return;
 
@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const rejilla = "rgba(63, 63, 70, 0.4)";
     const tooltip = { backgroundColor: "#121215", borderColor: "#27272a", borderWidth: 1, titleColor: "#fafafa", bodyColor: texto, padding: 10 };
 
-    // 1) Barras redondeadas: conteo real de productos por marca (data-marcas viene de AdminController).
+    // Barras de productos por marca
     const lienzoMarcas = document.getElementById("graficoMarcas");
     if (lienzoMarcas) {
         const marcas = JSON.parse(lienzoMarcas.dataset.marcas);
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 2) Área suave de ingresos: el controlador envía 30 días y aquí se muestran los últimos 7 o los 30.
+    // Área de ingresos (7 o 30 días)
     const lienzoVentas = document.getElementById("graficoVentas");
     if (!lienzoVentas) return;
 
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
     });
 
-    // Pestañas: cambian el rango visible sin recargar la página.
+    // Pestañas que cambian el rango
     document.querySelectorAll("[data-rango]").forEach((boton) => {
         boton.addEventListener("click", () => {
             const rango = recortar(Number(boton.dataset.rango));

@@ -5,11 +5,10 @@
     <main class="mx-auto w-[min(1200px,92%)] pt-14 pb-[72px] text-tinta max-[650px]:pt-8 max-[650px]:pb-14">
         <div class="grid grid-cols-[1.2fr_0.8fr] items-start gap-14 max-[980px]:grid-cols-1 max-[980px]:gap-8">
 
-            <!-- GALERÍA DE IMÁGENES: al hacer clic en una miniatura producto-dinamico.js le pone la clase "active" -->
+            {{-- Galería de imágenes --}}
             <div class="flex min-w-0 gap-4 max-[650px]:flex-col-reverse">
                 <div id="thumbs" class="flex w-[76px] flex-col gap-3 max-[650px]:w-full max-[650px]:flex-row max-[650px]:overflow-x-auto [&>img]:size-[76px] [&>img]:cursor-pointer [&>img]:rounded-[10px] [&>img]:border [&>img]:border-transparent [&>img]:bg-perla [&>img]:object-contain [&>img]:p-1.5 [&>img]:mix-blend-multiply [&>img]:transition-[border-color] [&>img]:duration-200 [&>img:hover]:border-tinta [&>img.active]:border-tinta max-[650px]:[&>img]:size-16 max-[650px]:[&>img]:flex-[0_0_64px]">
                     <img src="{{ $producto->url_imagen }}" class="active" alt="{{ $producto->nombre }}">
-                    {{-- Imágenes secundarias subidas desde el Panel Admin --}}
                     @foreach ($producto->galeria_imagenes ?? [] as $ruta)
                         <img src="{{ asset($ruta) }}" alt="{{ $producto->nombre }}" loading="lazy">
                     @endforeach
@@ -20,9 +19,8 @@
                 </div>
             </div>
 
-            <!-- PANEL DE INFORMACIÓN Y COMPRA (queda fijo con sticky mientras se baja por la galería) -->
+            {{-- Información y compra --}}
             <aside class="sticky top-[calc(var(--spacing-navbar)_+_24px)] py-1 max-[980px]:static">
-                {{-- Marca, categoría y SKU en una línea discreta --}}
                 <div class="mb-2.5 flex flex-wrap items-center gap-2 text-[13px] text-suave">
                     <span class="text-[12px] font-semibold tracking-[0.16em] text-tinta" id="productBrand">{{ strtoupper($producto->marca) }}</span>
                     <span class="text-[#cacacb]">•</span>
@@ -43,15 +41,13 @@
                     {{ $producto->descripcion ?? 'Zapatilla original con la mejor tecnología de amortiguación, materiales de alta resistencia y diseño moderno.' }}
                 </p>
 
-                <!-- SELECTOR DE TALLAS -->
+                {{-- Selector de tallas --}}
                 <div>
                     <label class="flex items-center justify-between text-[15px] font-semibold text-tinta">
                         <span>Selecciona tu talla</span>
                         <span class="text-[13px] font-normal text-suave">Tallas Perú / US</span>
                     </label>
 
-                    {{-- .size-btn y .selected los usa producto-dinamico.js; las tallas sin stock llegan con disabled y se ven tachadas.
-                         data-stock alimenta el aviso de escasez y data-ultimas-unidades es su umbral (ProductoTalla::ULTIMAS_UNIDADES) --}}
                     <div class="mt-3 grid grid-cols-4 gap-2 rounded-[10px] p-0.5 transition-shadow duration-300 max-[650px]:grid-cols-3" id="sizes" data-ultimas-unidades="{{ $ultimasUnidades }}">
                         @foreach ($producto->tallas as $tallaObj)
                             <button
@@ -65,19 +61,16 @@
                             </button>
                         @endforeach
                     </div>
-                    {{-- Etiqueta discreta de escasez: producto-dinamico.js la muestra al elegir una talla con 1 a 3 pares --}}
                     <p id="aviso-escasez" class="mt-3 flex w-fit items-center gap-2 rounded-full bg-[#fff7ed] px-3 py-1.5 text-[13px] font-semibold text-[#b45309]" role="status" hidden>
                         <i class="fa-solid fa-fire-flame-curved"></i><span></span>
                     </p>
-                    {{-- Abre el modal #modalGuiaTallas (public/js/guia-tallas.js) --}}
                     <button type="button" class="mt-3 cursor-pointer border-0 bg-transparent p-0 text-[14px] font-semibold text-tinta underline" id="abrirGuiaTallas" aria-haspopup="dialog" aria-controls="modalGuiaTallas">
                         <i class="fa-solid fa-ruler mr-1.5"></i> Guía de tallas
                     </button>
                 </div>
 
-                <!-- ACCIONES DE COMPRA Y FAVORITOS -->
+                {{-- Carrito y favoritos --}}
                 <div class="mt-7 flex items-center gap-3">
-                    {{-- El admin no compra; ve un acceso directo para editar el producto --}}
                     @if (auth()->user()?->esAdmin())
                         <a href="{{ route('admin.productos.edit', $producto) }}" class="inline-flex min-h-14 flex-1 cursor-pointer items-center justify-center gap-2.5 rounded-full border-none bg-tinta text-[16px] font-medium text-white transition-colors duration-200 hover:bg-[#333]">
                             ⚙️ Gestionar este producto en Panel Admin
@@ -98,7 +91,6 @@
                         </button>
                     @endif
 
-                    {{-- producto-dinamico.js le agrega la clase "activo" cuando el producto ya está en favoritos --}}
                     <button
                         class="flex size-14 shrink-0 cursor-pointer items-center justify-center rounded-full border border-[#e4e4e7] bg-white text-[20px] text-tinta transition-[border-color] duration-200 hover:border-tinta [&.activo]:border-tinta"
                         id="favBtn"
@@ -114,7 +106,7 @@
                     </button>
                 </div>
 
-                <!-- INFORMACIÓN DE ENVÍO -->
+                {{-- Información de envío --}}
                 <div class="mt-6 flex gap-2.5 border-t border-[#ececec] pt-5 text-[14px] leading-[1.6] text-[#52525b]">
                     <i class="fa-solid fa-truck"></i>
                     {{ $reglaEnvio }} Entrega en 24-48 horas a todo el Perú.
@@ -124,10 +116,7 @@
         </div>
     </main>
 
-    <!-- =====================================================
-         SECCIÓN DE PRODUCTOS RECOMENDADOS (TAMBIÉN TE PUEDE INTERESAR)
-         ===================================================== -->
-    {{-- Recomendados con <x-tarjeta-producto> sobre fondo claro --}}
+    {{-- Productos recomendados --}}
     <section class="mx-auto w-[min(1200px,92%)] border-t border-[#ececec] pt-12 pb-20">
         <div class="mb-6 flex items-baseline justify-between gap-4">
             <h2 class="text-[24px] font-semibold tracking-[-0.02em]">También te puede interesar</h2>
@@ -141,7 +130,6 @@
         </div>
     </section>
 
-    <!-- COMPONENTE DE ALERTA TIPO TOAST -->
     <x-alerta
         id="toast"
         tipo="toast"
@@ -149,7 +137,7 @@
         icono="fa-solid fa-circle-check"
     />
 
-    {{-- Modal "Guía de tallas": guia-tallas.js quita el atributo hidden y agrega la clase "abierto" (fundido de opacidad) --}}
+    {{-- Modal guía de tallas --}}
     <div class="fixed inset-0 z-1200 flex items-center justify-center p-4 opacity-0 transition-opacity duration-250 [&.abierto]:opacity-100" id="modalGuiaTallas" hidden>
         <div class="absolute inset-0 bg-black/55 backdrop-blur-[4px]" data-cerrar-guia></div>
         <div class="relative max-h-[90vh] w-full max-w-[480px] overflow-y-auto rounded-2xl bg-white p-7 text-tinta" role="dialog" aria-modal="true" aria-labelledby="guiaTallasTitulo">
@@ -171,7 +159,7 @@
         </div>
     </div>
 
-    {{-- Modal "agregado al carrito": producto-dinamico.js lo rellena, quita hidden y agrega "abierto" (group-[.abierto] anima fondo y panel) --}}
+    {{-- Modal agregado al carrito --}}
     <div class="group fixed inset-0 z-2000" id="modalCarrito" hidden>
         <div class="absolute inset-0 bg-[rgba(10,10,14,0.35)] opacity-0 backdrop-blur-[10px] transition-opacity duration-250 group-[.abierto]:opacity-100" data-cerrar-modal></div>
         <div class="absolute top-6 right-6 w-[min(440px,calc(100vw_-_32px))] -translate-y-3 rounded-2xl bg-white px-6 pt-[22px] pb-6 text-tinta opacity-0 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.45)] transition-[opacity,translate] duration-250 group-[.abierto]:translate-y-0 group-[.abierto]:opacity-100 max-[520px]:top-auto max-[520px]:right-4 max-[520px]:bottom-4" role="dialog" aria-modal="true" aria-labelledby="modalCarritoTitulo">

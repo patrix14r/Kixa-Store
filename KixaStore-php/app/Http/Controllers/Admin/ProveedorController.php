@@ -7,16 +7,15 @@ use App\Models\Proveedor;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-// [Sem 12-13 - Eloquent ORM y Route::resource]: CRUD 3 (Proveedores): Route::resource sin show ni destroy más estado() para la baja lógica.
+// CRUD 3: proveedores
 class ProveedorController extends Controller
 {
-    // index (GET): buscador por razón social o RUC, withCount('productos') y paginación que conserva el filtro.
+    // Lista proveedores con buscador y paginación
     public function index(Request $request)
     {
         $buscar = trim((string) $request->query('buscar', ''));
 
         $proveedores = Proveedor::withCount('productos')
-            // when() aplica el where solo si hay texto; el grupo evita que el orWhere rompa otros filtros.
             ->when($buscar !== '', fn ($q) => $q->where(fn ($q) => $q
                 ->where('razon_social', 'like', "%{$buscar}%")
                 ->orWhere('ruc', 'like', "%{$buscar}%")))
@@ -27,13 +26,13 @@ class ProveedorController extends Controller
         return view('admin.proveedores.index', compact('proveedores', 'buscar'));
     }
 
-    // create (GET): manda un Proveedor vacío para que el parcial _formulario use old() y $proveedor->campo.
+    // Muestra el formulario vacío
     public function create()
     {
         return view('admin.proveedores.create', ['proveedor' => new Proveedor(['activo' => true])]);
     }
 
-    // store (POST): validar() y create(); solo se guardan los campos de #[Fillable].
+    // Guarda un nuevo proveedor
     public function store(Request $request)
     {
         Proveedor::create($this->validar($request));
@@ -41,13 +40,13 @@ class ProveedorController extends Controller
         return redirect()->route('admin.proveedores.index')->with('exito', 'Proveedor creado correctamente.');
     }
 
-    // edit (GET): Laravel resuelve Proveedor $proveedor por el RUC (getRouteKeyName).
+    // Muestra el formulario de edición
     public function edit(Proveedor $proveedor)
     {
         return view('admin.proveedores.edit', compact('proveedor'));
     }
 
-    // update (PUT): el RUC único ignora al propio registro.
+    // Actualiza el proveedor
     public function update(Request $request, Proveedor $proveedor)
     {
         $proveedor->update($this->validar($request, $proveedor));
@@ -55,7 +54,7 @@ class ProveedorController extends Controller
         return redirect()->route('admin.proveedores.index')->with('exito', 'Proveedor actualizado correctamente.');
     }
 
-    // Baja lógica: un proveedor tiene productos y órdenes de abastecimiento (FK), así que se activa/desactiva en vez de borrar.
+    // Activa o desactiva (baja lógica)
     public function estado(Proveedor $proveedor)
     {
         $proveedor->update(['activo' => ! $proveedor->activo]);
@@ -65,7 +64,7 @@ class ProveedorController extends Controller
         return back()->with('exito', "Proveedor {$proveedor->razon_social} {$texto}.");
     }
 
-    // Reglas compartidas por store y update.
+    // Reglas de validación compartidas
     private function validar(Request $request, ?Proveedor $proveedor = null): array
     {
         $datos = $request->validate([

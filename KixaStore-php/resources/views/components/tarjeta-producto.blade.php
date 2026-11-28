@@ -1,6 +1,4 @@
-{{-- Recibe el modelo Producto: foto cuadrada uniforme + texto limpio alineado a la izquierda --}}
-{{-- Componente <x-tarjeta-producto :producto="$p" /> reutilizado en home, catálogo y detalle --}}
-{{-- "group" permite que la foto haga zoom (group-hover) cuando el mouse pasa por cualquier parte de la tarjeta --}}
+{{-- Tarjeta de producto reutilizable --}}
 @props(['producto'])
 
 <article class="group relative text-tinta transition-[translate] duration-300 hover:-translate-y-1" data-marca="{{ strtolower($producto->marca) }}">
@@ -29,7 +27,7 @@
         </div>
     </a>
 
-    {{-- Botón de favoritos: conserva la clase .btn-fav-card y los data-* que usa el script del layout --}}
+    {{-- Botón de favoritos --}}
     <button
         type="button"
         class="btn-fav-card absolute top-3 right-3 z-5 flex size-9 cursor-pointer items-center justify-center rounded-full border-none bg-white text-[15px] text-tinta shadow-[0_1px_4px_rgba(0,0,0,0.08)] transition-[scale] duration-200 hover:scale-108 max-[480px]:top-2 max-[480px]:right-2 max-[480px]:size-7 max-[480px]:text-[13px]"

@@ -1,6 +1,5 @@
 @extends('layouts.admin')
 
-{{-- [Sem 08 - Rutas y Vistas Blade]: @extends hereda el layout admin y @section rellena título y contenido. --}}
 @section('titulo', 'Kixa Admin - Proveedores')
 
 @section('contenido')
@@ -12,7 +11,7 @@
     <a href="{{ route('admin.proveedores.create') }}" class="kx-btn-primary"><i class="fa-solid fa-plus"></i>Nuevo proveedor</a>
 </div>
 
-{{-- Buscador GET: el controlador lee ?buscar= con $request->query() y filtra razón social o RUC. --}}
+{{-- Buscador de proveedores --}}
 <form method="GET" action="{{ route('admin.proveedores.index') }}" class="mt-6 flex gap-3">
     <input type="search" name="buscar" value="{{ $buscar }}" class="kx-input max-w-sm" placeholder="Buscar por razón social o RUC">
     <button type="submit" class="kx-btn-ghost"><i class="fa-solid fa-magnifying-glass"></i>Buscar</button>
@@ -36,7 +35,6 @@
             </tr>
         </thead>
         <tbody>
-            {{-- [Sem 12-13 - Eloquent ORM y Route::resource]: @forelse con @empty; productos_count viene de withCount('productos'); no se muestra el ID. --}}
             @forelse ($proveedores as $proveedor)
                 <tr class="kx-row">
                     <td class="kx-td font-semibold">{{ $proveedor->razon_social }}</td>
@@ -50,7 +48,6 @@
                     </td>
                     <td class="kx-td">
                         <div class="flex justify-end gap-2">
-                            {{-- route() recibe el modelo y Laravel usa su RUC (getRouteKeyName). --}}
                             <a href="{{ route('admin.proveedores.edit', $proveedor) }}" class="kx-btn-ghost px-3 py-1.5"><i class="fa-solid fa-pen"></i>Editar</a>
                             <form action="{{ route('admin.proveedores.estado', $proveedor) }}" method="POST">
                                 @csrf

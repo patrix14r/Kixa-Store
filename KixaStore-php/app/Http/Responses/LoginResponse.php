@@ -4,12 +4,12 @@ namespace App\Http\Responses;
 
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 
-// [Sem 11 - Migraciones, Seeders y Roles]: Tras el login Fortify llama a esta clase; el rol decide el destino
+// Redirige según el rol tras el login
 class LoginResponse implements LoginResponseContract
 {
     use RespuestaAutenticacion;
 
-    public function toResponse($request)
+    public function toResponse($request) //$request es el objeto que representa la petición HTTP que esta ubicado en 
     {
         if ($request->user()->esAdmin()) {
             return redirect()->route('admin.home')->with('exito', 'Bienvenido al Panel Administrador');

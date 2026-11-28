@@ -597,4 +597,82 @@ class AdminCrudTest extends TestCase
     {
         $this->actingAs($this->cliente)->get(route('admin.pedidos.index'))->assertRedirect();
     }
+
+    // ---------- Seeder de usuarios, galería y enlaces del aviso ----------
+
+    public function test_user_seeder_separa_administradores_y_clientes_y_es_idempotente(): void
+    {
+        $this->seed(\Database\Seeders\UserSeeder::class); // segunda corrida: no debe duplicar
+
+        $this->assertSame(5, User::count());
+        foreach (['admin@kixa.com', 'chambergo@kixa.com'] as $email) {
+            $this->assertTrue(User::where('email', $email)->first()->hasRole('admin'));
+        }
+        foreach (['cliente@kixa.com', 'junior@kixa.com', 'victor@kixa.com'] as $email) {
+            $this->assertTrue(User::where('email', $email)->first()->hasRole('cliente'));
+        }
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('admin123', $this->admin->password));
+    }
+
+    public function test_crear_producto_con_galeria_y_aviso_con_enlaces(): void
+    {
+        $respuesta = $this->actingAs($this->admin)->post(route('admin.productos.store'), [
+            'categoria_id' => Categoria::where('slug', 'hombre')->value('id'),
+            'marca_id' => Marca::where('nombre', 'Nike')->value('id'),
+            'nombre' => 'Nike Galeria Test',
+            'sku' => 'NIK-GAL-01',
+            'precio' => 300,
+            'imagen' => 'images/products/hombre/h1.jpg',
+            'activo' => '1',
+            'galeria_archivos' => [
+                \Illuminate\Http\UploadedFile::fake()->image('lado.jpg'),
+                \Illuminate\Http\UploadedFile::fake()->image('suela.jpg'),
+            ],
+            'tallas' => [['talla' => 40, 'stock' => 3]],
+        ]);
+
+        $producto = Producto::where('sku', 'NIK-GAL-01')->first();
+        $respuesta->assertRedirect(route('admin.productos.index'))
+            ->assertSessionHas('producto_guardado', [
+                'nombre' => 'Nike Galeria Test',
+                'url_tienda' => route('producto.detalle', 'NIK-GAL-01'),
+                'url_editar' => route('admin.productos.edit', $producto),
+            ]);
+        $this->assertCount(2, $producto->galeria_imagenes);
+
+        // El aviso del listado muestra "Ver en tienda" (nueva pestaña) y "Editar"
+        $this->actingAs($this->admin)->get(route('admin.productos.index'))
+            ->assertSee('Ver en tienda')
+            ->assertSee(route('producto.detalle', 'NIK-GAL-01'), false)
+            ->assertSee('target="_blank"', false)
+            ->assertSee(route('admin.productos.edit', $producto), false);
+
+        // Editar muestra las miniaturas de las imágenes secundarias guardadas, cada una con su × para quitarla
+        $this->actingAs($this->admin)->get(route('admin.productos.edit', $producto))
+            ->assertOk()
+            ->assertSee('id="galeria-miniaturas"', false)
+            ->assertSee('value="' . $producto->galeria_imagenes[0] . '"', false)
+            ->assertSee('value="' . $producto->galeria_imagenes[1] . '"', false);
+
+        foreach ($producto->galeria_imagenes as $ruta) {
+            @unlink(public_path($ruta));
+        }
+    }
+
+    public function test_actualizar_producto_inactivo_no_ofrece_ver_en_tienda(): void
+    {
+        $producto = Producto::with('tallas')->first();
+
+        $this->actingAs($this->admin)->put(route('admin.productos.update', $producto), [
+            'categoria_id' => $producto->categoria_id,
+            'marca_id' => $producto->marca_id,
+            'nombre' => $producto->nombre,
+            'sku' => $producto->sku,
+            'precio' => $producto->precio,
+            'imagen' => $producto->imagen,
+            'tallas' => $producto->tallas->map(fn ($t) => ['talla' => (float) $t->talla, 'stock' => $t->stock])->all(),
+        ])->assertSessionHas('producto_guardado.url_editar', route('admin.productos.edit', $producto));
+
+        $this->assertNull(session('producto_guardado.url_tienda'));
+    }
 }

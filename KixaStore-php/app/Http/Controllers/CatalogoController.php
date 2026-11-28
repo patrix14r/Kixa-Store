@@ -8,7 +8,7 @@ use App\Models\Producto;
 use App\Models\ProductoTalla;
 use Illuminate\Http\Request;
 
-// [Semana 9-10: Controladores, Request y Componentes] Catálogo del cliente: filtros por Request (?marca, ?sub, ?talla, ?orden) y ficha por SKU.
+// Catálogo con filtros y ficha de producto
 class CatalogoController extends Controller
 {
     private const BANNERS = [
@@ -83,8 +83,7 @@ class CatalogoController extends Controller
 
     private const POR_PAGINA = 12;
 
-    // Filtra el catálogo con Eloquent: recibe la categoría por la ruta y el resto por query string con $request->query().
-    // Si la petición llega por fetch (X-Requested-With: XMLHttpRequest) solo devuelve el fragmento de la grilla, sin layout ni banner.
+    // Lista los productos activos con filtros
     public function index(Request $request, $categoria = 'todos')
     {
         $subcategoria = $request->query('sub');
@@ -93,7 +92,7 @@ class CatalogoController extends Controller
         $orden        = array_key_exists($request->query('orden'), self::ORDENES) ? $request->query('orden') : 'destacados';
         $buscar       = $this->limpiarBusqueda((string) $request->query('buscar'));
 
-        // [Sem 12 - Eloquent ORM]: firstOrFail() responde 404 si la categoría no existe o está inactiva (antes mostraba todo el catálogo).
+        // 404 si la categoría no existe
         $catObj = ($categoria && $categoria !== 'todos')
             ? Categoria::activas()->where('slug', $categoria)->firstOrFail()
             : null;
@@ -102,7 +101,7 @@ class CatalogoController extends Controller
 
         if ($buscar !== '') {
             foreach (preg_split('/\s+/', $buscar) as $palabra) {
-                // addcslashes escapa % y _ para que el usuario no use comodines de LIKE.
+                // Escapa % y _ del buscador
                 $palabra = addcslashes($palabra, '%_\\');
                 $base->where(function ($q) use ($palabra) {
                     $q->where('nombre', 'like', "%{$palabra}%")
@@ -142,7 +141,7 @@ class CatalogoController extends Controller
             default       => $query->orderByDesc('destacado')->orderBy('nombre'),
         };
 
-        // [Sem 13 - CRUDs, Query Builder y Paginación]: 12 por página; withQueryString() conserva los filtros y fragment() el ancla #zona-catalogo.
+        // 12 por página conservando filtros
         $productos = $query->paginate(self::POR_PAGINA)->withQueryString()->fragment(ltrim(self::ANCLA, '#'));
 
         $bannerActual = self::BANNERS[strtolower($categoria ?? 'todos')] ?? self::BANNERS['hombre'];
@@ -168,7 +167,6 @@ class CatalogoController extends Controller
         $filtrosTalla = $this->filtros($request, $categoria, 'talla', $tallasDisponibles);
 
         $ordenes          = self::ORDENES;
-        // Al cambiar el orden o un filtro se vuelve a la página 1 (sin ?page).
         $parametrosOrden  = $request->except(['orden', 'page']);
 
         $hayFiltros       = (bool) ($marca || $subcategoria || $talla || $buscar !== '');
@@ -180,14 +178,12 @@ class CatalogoController extends Controller
             'ordenes', 'parametrosOrden', 'hayFiltros', 'urlLimpiar', 'mostrarCategoria'
         ));
 
-        // [Sem 09 - Controladores y Middleware]: $request->ajax() detecta la cabecera X-Requested-With que envía catalogo-filtros.js;
-        // fragment() renderiza solo el bloque @fragment('zona-catalogo') para reemplazarlo sin recargar header ni banner.
-        // Vary avisa al navegador que la misma URL tiene dos respuestas (página completa o fragmento) y no debe mezclarlas en caché.
+        // Con AJAX devuelve solo la grilla
         return response($request->ajax() ? $vista->fragment('zona-catalogo') : $vista)
             ->header('Vary', 'X-Requested-With');
     }
 
-    // Devuelve JSON con las tallas que tienen stock (lo consume favoritos.js).
+    // Tallas con stock en JSON
     public function tallas(string $sku)
     {
         $producto = Producto::activos()->with(['tallas' => fn ($q) => $q->where('stock', '>', 0)->orderBy('talla'), 'categoria'])
@@ -202,11 +198,10 @@ class CatalogoController extends Controller
         ]);
     }
 
-    // Busca el producto por su SKU con with() para evitar consultas repetidas y muestra la ficha.
+    // Muestra la ficha del producto
     public function show($sku = null)
     {
-        // Solo productos activos y solo por SKU (nunca por id) para no exponer IDs ni productos ocultos.
-        // [Sem 12 - Eloquent ORM]: las tallas llegan ordenadas (38, 38.5, 39...) para mostrar bien las medias tallas.
+        // Solo activos, con tallas ordenadas
         $consulta = Producto::activos()->with(['categoria', 'proveedor', 'tallas' => fn ($q) => $q->orderBy('talla')]);
 
         $producto = $sku
@@ -231,7 +226,7 @@ class CatalogoController extends Controller
 
         $recomendados->load('categoria');
 
-        // Equivalencias para el modal "Guía de tallas" (la lógica y los datos viven en el controlador, no en Blade).
+        // Datos del modal guía de tallas
         $guiaTallas = [
             ['us' => 6,  'eu' => 39, 'cm' => 24],
             ['us' => 7,  'eu' => 40, 'cm' => 25],
@@ -242,13 +237,13 @@ class CatalogoController extends Controller
             ['us' => 12, 'eu' => 45, 'cm' => 30],
         ];
 
-        // Marketing de escasez (1 a 3 pares) y regla de envío: salen de los modelos para no repetir números en la vista.
         $ultimasUnidades = ProductoTalla::ULTIMAS_UNIDADES;
         $reglaEnvio = Pedido::textoReglaEnvio();
 
         return view('cliente.producto', compact('producto', 'recomendados', 'guiaTallas', 'ultimasUnidades', 'reglaEnvio'));
     }
 
+    // Arma los enlaces de cada filtro
     private function filtros(Request $request, ?string $categoria, string $parametro, array $valores, ?callable $etiqueta = null): array
     {
         return array_map(function ($valor) use ($request, $categoria, $parametro, $etiqueta) {
@@ -269,7 +264,7 @@ class CatalogoController extends Controller
         }, $valores);
     }
 
-    // [Sem 09 - Controladores y Middleware]: recorta el buscador a 80 caracteres y 6 palabras para evitar consultas abusivas.
+    // Limita el buscador a 80 caracteres
     private function limpiarBusqueda(string $texto): string
     {
         $texto    = mb_substr(trim(preg_replace('/\s+/u', ' ', $texto)), 0, 80);
@@ -278,6 +273,7 @@ class CatalogoController extends Controller
         return implode(' ', $palabras);
     }
 
+    // Talla sin ceros sobrantes
     private function formatoTalla($talla): string
     {
         return rtrim(rtrim(number_format((float) $talla, 1, '.', ''), '0'), '.');

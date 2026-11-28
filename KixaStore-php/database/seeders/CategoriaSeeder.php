@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class CategoriaSeeder extends Seeder
 {
+    // Crea las categorías de la tienda
     public function run(): void
     {
         DB::table('categorias')->insert([

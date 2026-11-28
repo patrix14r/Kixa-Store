@@ -1,4 +1,4 @@
-{{-- Detalle de zapatillas compradas en un pedido (parcial reutilizado en Pedidos e Historial del cliente) --}}
+{{-- Productos de un pedido --}}
 <ul class="space-y-2">
     @foreach ($pedido->items as $item)
         <li class="flex items-center gap-3">

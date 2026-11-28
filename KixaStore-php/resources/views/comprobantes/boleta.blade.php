@@ -2,13 +2,11 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    {{-- [Sem 08 - Rutas y Vistas Blade]: vista que dompdf convierte en PDF; no hereda layouts porque no usa Vite ni Tailwind. --}}
     <title>Boleta {{ $pedido->codigo_orden }}</title>
-    {{-- dompdf lee el CSS plano desde el disco (resources/css/boleta.css); así la vista no lleva bloques <style>. --}}
     <link rel="stylesheet" href="{{ resource_path('css/boleta.css') }}">
 </head>
 <body>
-    {{-- Cabecera: datos del emisor a la izquierda y recuadro con el código de orden a la derecha --}}
+    {{-- Cabecera de la boleta --}}
     <table class="cabecera">
         <tr>
             <td class="col-logo"><img src="{{ $logo }}" alt="KixaStore" class="logo"></td>
@@ -26,7 +24,7 @@
         </tr>
     </table>
 
-    {{-- [Sem 12 - Eloquent ORM]: $pedido->usuario es la relación BelongsTo; ?-> evita error si el cliente ya no existe. --}}
+    {{-- Datos del cliente --}}
     <div class="seccion">
         <p class="seccion-titulo">Datos del cliente</p>
         <table class="datos">
@@ -49,7 +47,7 @@
         </table>
     </div>
 
-    {{-- Detalle: una fila por línea de order_items; talla_etiqueta muestra 40 o 40.5 --}}
+    {{-- Detalle de productos --}}
     <div class="seccion">
         <p class="seccion-titulo">Detalle de la compra</p>
         <table class="productos">
@@ -75,7 +73,7 @@
             </tbody>
         </table>
 
-        {{-- Los precios ya incluyen IGV: el checkout guarda Op. Gravada (subtotal) e IGV 18% por separado; el envío (S/ 0 = gratis) forma parte del total --}}
+        {{-- Totales con IGV --}}
         <table class="totales">
             <tr>
                 <td>Envío</td>

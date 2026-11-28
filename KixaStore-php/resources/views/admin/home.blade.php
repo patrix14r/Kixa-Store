@@ -2,15 +2,13 @@
 
 @section('titulo', 'Kixa Admin - Resumen')
 
-{{-- [Sem 08 - Rutas y Vistas Blade]: @extends, @section, @foreach y componentes <x-...>; los datos llegan calculados desde AdminController@home --}}
 @section('contenido')
 <h1 class="text-2xl font-bold md:text-3xl">Resumen General</h1>
 <p class="mt-1 text-sm kx-muted">Datos reales de la tienda en tiempo real.</p>
 
-{{-- ===== Bloque 1: 7 columnas (KPI + barras) / 5 columnas (disponibilidad de stock) ===== --}}
+{{-- KPI, marcas y disponibilidad --}}
 <div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-12">
     <div class="flex flex-col gap-6 xl:col-span-7">
-        {{-- KPI compactos --}}
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <a href="{{ route('admin.clientes.index') }}" class="kx-card block p-5 transition hover:border-indigo-500/50">
                 <span class="flex h-11 w-11 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-400"><i class="fa-solid fa-users"></i></span>
@@ -30,7 +28,7 @@
             </a>
         </div>
 
-        {{-- Barras: productos por marca (Chart.js; datos en data-marcas) --}}
+        {{-- Gráfico de productos por marca --}}
         <div class="kx-card flex flex-1 flex-col p-6">
             <div class="flex items-center justify-between">
                 <h2 class="text-lg font-bold">Productos por Marca</h2>
@@ -42,7 +40,7 @@
         </div>
     </div>
 
-    {{-- Tarjeta alta estilo "Objetivo mensual": medidor arriba y 3 métricas abajo --}}
+    {{-- Disponibilidad de stock --}}
     <div class="kx-card flex flex-col overflow-hidden xl:col-span-5">
         <div class="flex flex-1 flex-col rounded-b-2xl border-b border-zinc-800/80 bg-[#121215] p-6">
             <h2 class="text-lg font-bold">Disponibilidad de Stock</h2>
@@ -88,7 +86,7 @@
     </div>
 </div>
 
-{{-- ===== Bloque 2: estadísticas de ingresos (ancho completo, pestañas 7 / 30 días) ===== --}}
+{{-- Estadísticas de ingresos --}}
 <div class="kx-card mt-6 p-6">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -105,9 +103,8 @@
     </div>
 </div>
 
-{{-- ===== Bloque 3: 5 columnas (alertas de stock) / 7 columnas (pedidos recientes) ===== --}}
 <div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-12">
-    {{-- Alertas: 5 más urgentes; el filtro por marca se aplica en el servidor --}}
+    {{-- Alertas de stock --}}
     <div id="alertas" class="kx-card flex flex-col p-6 xl:col-span-5">
         <div class="flex items-center justify-between">
             <h2 class="text-lg font-bold">Alertas de Stock Crítico</h2>
@@ -137,7 +134,7 @@
         </ul>
     </div>
 
-    {{-- Pedidos recientes: miniatura del primer producto, código, cliente, total y estado --}}
+    {{-- Pedidos recientes --}}
     <div class="kx-card p-6 xl:col-span-7">
         <div class="flex items-center justify-between">
             <h2 class="text-lg font-bold">Pedidos recientes</h2>
